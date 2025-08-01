@@ -72,17 +72,15 @@ namespace Flexy.GameFlow
 
 			var service		= gctx.GetService<GameFlowService>( );
 
-            // if (_statesToOpen.Length > 1)
-	           //  foreach (var state in _statesToOpen[..^2])
-	           //  {
-		          //   service.OpenGameStage( state );
-	           //  }
-            //
-            // if (_statesToOpen.Length > 0)
-	           //  service.OpenNewState( _statesToOpen[^1], openParams );
+            if (_statesToOpen.Length > 1)
+	            foreach (var state in _statesToOpen[..^2])
+		            service.Graph.Open( state, null );
+            
+            if (_statesToOpen.Length > 0)
+				service.Graph.Open( _statesToOpen[^1], null, openParams );
 
 			// Show first state synchronously
-			service.FlowGraph.TransitionNow();
+			service.Graph.TransitionNow();
 		}
 		
 

@@ -86,8 +86,8 @@ namespace Flexy.GameFlow
 	public interface		IOpener : IOpenerB {}
 	public interface		IOpenerB { OpenCtx Ctx {get; protected  internal set;} }
 
-	public readonly record struct OpenCtx( AssetRef<State> WndRef, State Source )
+	public readonly record struct OpenCtx( AssetRef<State> StateRef, State CallSrc )
 	{
-		public StateHandle Open		( Object openParams = null )	=> Source.GameStage.OpenNewState( WndRef, openParams );
+		public StateHandle Open		( Object openParams = null )	=> CallSrc.Node.Graph.Open(StateRef, CallSrc, openParams);
 	}
 }

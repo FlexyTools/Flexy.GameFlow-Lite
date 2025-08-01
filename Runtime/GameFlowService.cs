@@ -12,18 +12,18 @@ namespace Flexy.GameFlow
 		[SerializeField]	UnityEngine.InputSystem.InputActionReference	_backInputAction;
 		#endif
 
-		private				FlowGraph		_flowGraph;
+		private				FlowGraph		_graph;
 
 		private	readonly	List<FlowLibrary.StateRef>			_flattenedLibrary = new ( 64 );
 		private readonly	Dictionary<String, AssetRef<State>>	_stateRefByType = new ( 64 );
 
-		public				FlowGraph		FlowGraph			=> _flowGraph;
+		public				FlowGraph		Graph			=> _graph;
 		
 		public				void			OrderedInit			( GameContext ctx )
 		{
 			Debug.Log( $"[GameFlowService] Init" );
 			ReadLibrary( );
-			_flowGraph = new(this, _rootStateRef);
+			_graph = new(this, _rootStateRef);
 		}
 		protected virtual	void			Update				( )
 		{
@@ -31,7 +31,7 @@ namespace Flexy.GameFlow
 	        if (_backInputHandling == EBackInputHandling.OldInputManager)
 		    {
 		        if (Input.GetKeyDown( KeyCode.Escape ))
-			        FlowGraph.GoBack();
+			        Graph.GoBack();
 			}
 	        else if (_backInputHandling == EBackInputHandling.NewInputSystem)
 			{
@@ -43,20 +43,6 @@ namespace Flexy.GameFlow
 				#endif
 				
 			}
-		}
-		
-		public			StateHandle			OpenGameStage		( GameStage parent, AssetRef<GameStage> gameStageRef, Object openParams = null )
-		{
-			return OpenGameStage( gameStageRef, openParams, parent.gameObject.scene, parent.Context );
-		}
-		public			StateHandle			OpenGameStage		( AssetRef<GameStage> gameStageRef, Object openParams = null, Scene spawnIn = default, GameContext parentContext = null )
-		{
-			if( spawnIn == default )
-			 	spawnIn = gameObject.scene;
-		
-			var handle = _flowGraph.Open( new AssetRef<State>(gameStageRef.Uid, gameStageRef.SubId), null, (openParams, parentContext), spawnIn );
-			
-			return handle;
 		}
 		
 		public			State.Opener		GetOpener_FromId			( String cropId, State src )
@@ -180,7 +166,7 @@ namespace Flexy.GameFlow
 				return;
 
 			GUILayout.Space( 16 );
-			_flowGraph.DrawRuntimeUI();
+			_graph.DrawRuntimeUI();
 		}
 		#endif
 	}

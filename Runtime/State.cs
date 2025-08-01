@@ -23,15 +23,15 @@ namespace Flexy.GameFlow
 			get
 			{
 				for (var current = _node; current != null; current = current.Parent)
-					if (current.State is GameStage stage)
-						return stage;
+					if (current.State is GameStage gs)
+						return gs;
 						
 				return null;
 			}
 		}
 		
 		protected internal virtual Boolean		TryGoBack				( )	=> true;
-		protected internal virtual Transform	GetSubStatesContainer	( ) => GameStage.StatesContainer;
+		protected internal virtual Transform	GetSubStatesContainer	( ) => null;
 		
 		internal			void	DoShow			( )	
 		{ 

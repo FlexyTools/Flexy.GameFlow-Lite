@@ -7,47 +7,35 @@
 		[SerializeField] Transform			_statesContainer;
 
 		public		GameContext			Context				{get; private set;}
-		public		GameFlowService		FlowService			=> _node.Graph.Service;
+		public		FlowGraph			Graph				=> _node.Graph;
 		public		FlowNode			Node				=> _node;
 		public		StateHandle			RootHandle			=> _node.GetHandle();
 
-		public		State				CurrentState		=> _node.Graph.CurrentStateNode.State;
-		public		State				ActiveState			=> _node.Graph.ActiveStateNode.State;
-		public		Boolean				AtStageRoot			=> _node.Graph.CurrentStateNode == _node;
+		public		State				CurrentState		=> Graph.CurrentStateNode.State;
+		public		State				ActiveState			=> Graph.ActiveStateNode.State;
+		public		Boolean				AtStageRoot			=> Graph.CurrentStateNode == _node;
 
 		public		AssetRef<State>		MainStateRef		=> _mainStateRef;
-		public		State				MainState			=> _node.Forward?.State;
-		public		StateHandle			MainHandle			=> _node.Forward?.GetHandle( ) ?? default;
+		public		State				MainState			=> _node.FirstChild?.State;
+		public		StateHandle			MainHandle			=> _node.FirstChild?.GetHandle( ) ?? default;
 		
 		public		Transform			StatesContainer		=> _statesContainer;
 		
-		public		StateHandle			OpenNewState		( AssetRef<State> stateRef, Object openParams = null )
-		{
-			var state		= _node.Graph.GetLoadedState( stateRef, this, default );
-
-			Debug.Log( $"[GameStage] {name} => Open State: {state.name}" );
-
-			if( state == MainState )	
-				return OpenMainState();
-
-			var node		= _node.Graph.AddNode( state, openParams );
-
-			return node.GetHandle( );
-		}
+		internal void SetContext(GameContext ctx) => Context = ctx;
+		
 		public		StateHandle			OpenMainState		( Object openParams = null )
 		{
-			if( _node == null )
+			if( _node.FirstChild == null )
 			{
 				// main substate never was opened yet so just open it
-				var rootState = _node.Graph.GetLoadedState( _mainStateRef, this, default );
-				Debug.Log( $"[GameStage] {name} => Open Root State: {rootState.name}" );
-				_node = _node.Graph.AddNode( rootState, openParams, true );
+				var handle = Graph.Open( _mainStateRef, this, openParams, parent:_node );
+				Debug.Log( $"[GameStage] {name} => Open Root State: {handle.State.name}" );
 			}
 			else
 			{
 				// loader is somewhere in history so just return to it
 				Debug.Log( $"[GameStage] {name} => Open Main State: {_node.State.name}" );
-				_node.Graph.RemoveNodesUpTo( _node, openParams );
+				Graph.RemoveNodesUpTo( _node, openParams );
 			}
 
 			return RootHandle;
@@ -70,7 +58,7 @@
 		}
 		public		void				MoveToServiceScene	( )							
 		{
-			SceneManager.MoveGameObjectToScene( gameObject, FlowService.gameObject.scene );
+			SceneManager.MoveGameObjectToScene( gameObject, Graph.Service.gameObject.scene );
 		}
 		
 		protected override	void		OnShow	( )		

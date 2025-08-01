@@ -54,23 +54,14 @@ public class FlowGraph
 	public		FlowNode		ActiveStateNode			=> _activeNode;
 	public		FlowNode		CurrentStateNode		=> _currentNode;
 
-	public		StateHandle		Open					( AssetRef<State> stateRef, State? parent, Object openParams = null, Scene spawnIn = default )
+	public		StateHandle		Open					( AssetRef<State> stateRef, State callSource, Object openParams = null, Scene spawnIn = default, GameContext parentContext = null, FlowNode? parent = null )
 	{
-		var state			= GetLoadedState( stateRef, parent, spawnIn );
-		var prevSibling		= GetPrevSibling( parent?._node, _currentNode );
+		var newNode			= SpawnStateAndNode( stateRef, openParams, callSource, spawnIn, parent );
 		
-		var node			= AddNode( state, openParams );
-		node.PrevSibling	= prevSibling;
-		node.Parent			= parent?._node;
+		if (parentContext != null && newNode.State is GameStage gs)
+			gs.SetContext( parentContext );
 		
-		return node.GetHandle();
-	}
-
-	private		FlowNode?		GetPrevSibling			( FlowNode parent, FlowNode? currentNode )
-	{
-		for ( ; currentNode != null && currentNode.LeftNode != parent; currentNode = currentNode.LeftNode );
-
-		return currentNode;
+		return newNode.GetHandle();
 	}
 
 	internal	FlowNode		AddNode					( State state, Object openParams, Boolean isPreserved = false )
@@ -154,34 +145,67 @@ public class FlowGraph
 		_doTransition = false;
 		TransitionState();
 	}
-	public		State			GetLoadedState			( AssetRef<State> stateRef, State? parent, Scene spawnIn )
+	public		FlowNode		SpawnStateAndNode		( AssetRef<State> stateRef, Object openParams, State callSource, Scene spawnIn, FlowNode? parent )
 	{
-		if ( _stateInstances.TryGetValue( stateRef, out var state ) && state )
-			return state;
+		_stateInstances.TryGetValue( stateRef, out var state );
 
-		var statePrefab		= stateRef.LoadAssetSync();
-		var activeSelf = statePrefab.gameObject.activeSelf;
-		statePrefab.gameObject.SetActive( false );
+		var statePrefab	= stateRef.LoadAssetSync();
+		var activeSelf	= statePrefab.gameObject.activeSelf;
 		
-		if (parent)
+		FlowNode newFlowNode;
+		
+		if (statePrefab is GameStage gs)
 		{
-			var statesContainer = parent?.GetSubStatesContainer();
-			state = UnityEngine.Object.Instantiate( statePrefab, statesContainer );
+			parent = _root;
+			
+			if (!state)
+			{
+				statePrefab.gameObject.SetActive( false );
+				state = (State)UnityEngine.Object.Instantiate( statePrefab, spawnIn.IsValid() ? spawnIn : Service.gameObject.scene );
+				state.transform.SetSiblingIndex(0);
+				statePrefab.gameObject.SetActive( activeSelf );
+			}
 		}
 		else
 		{
-			state = (State)UnityEngine.Object.Instantiate( statePrefab, spawnIn );
-			state.transform.SetSiblingIndex(0);
+			if (parent == null)
+			{
+				var stage = !callSource ? (GameStage)_root.FirstChild.GetLastSibling().State : callSource.GameStage;
+				parent = stage._node;
+		
+				if( state == stage.MainState )	
+					return stage.OpenMainState(openParams).Node;		
+			}
+			
+			if (!state)
+			{
+				statePrefab.gameObject.SetActive( false );
+				var stateContainer = parent.State.GetSubStatesContainer();
+				state = UnityEngine.Object.Instantiate( statePrefab, stateContainer );
+				statePrefab.gameObject.SetActive( activeSelf );
+			}
 		}
-		
-		statePrefab.gameObject.SetActive( activeSelf );
-		
+
+		_stateInstances[stateRef] = state;
 		state.name = state.name.Replace( "(Clone)", "" );
 		state.SetSelfRef( stateRef );
 		
-		_stateInstances[stateRef] = state;
-
-		return state;
+		newFlowNode = AddNode( state, openParams );
+		newFlowNode.Parent = parent;
+		
+		if (parent.FirstChild == null)
+			parent.FirstChild = newFlowNode;
+		
+		newFlowNode.Parent = _root;
+		newFlowNode.PrevSibling = _root.Forward.GetLastSibling();
+		newFlowNode.PrevSibling.NextSibling = newFlowNode;
+			
+		_currentNode.Forward = newFlowNode;
+		newFlowNode.Back = _currentNode;
+		
+		_currentNode = newFlowNode;
+		
+		return newFlowNode;
 	}
 	public		void			ScheduleSwitchStates	( )
 	{
@@ -339,6 +363,7 @@ public class FlowNode
 	public	FlowNode?	Back;
 	public	FlowNode?	Forward;
 	public	FlowNode?	Parent;
+	public	FlowNode?	FirstChild;
 	
 	public	Boolean		IsActive	=> Graph.ActiveStateNode == this;
 	public	Boolean		IsCurrent	=> Graph.CurrentStateNode == this;
@@ -356,5 +381,12 @@ public class FlowNode
 		var h = GetHandle();
 		Graph.RemoveNode(GetHandle());
 		return h;
+	}
+
+	public FlowNode GetLastSibling()
+	{
+		var node = this;
+		for (;node.NextSibling != null; node = node.NextSibling);
+		return node;
 	}
 }
