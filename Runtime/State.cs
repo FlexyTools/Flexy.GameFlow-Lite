@@ -13,10 +13,11 @@ namespace Flexy.GameFlow
 		public		Int32				Uid			=> _uid;
 		public		FlowNode			Node		=> _node;
 		public		Object				OpenParams	=> _node.OpenParams;
-		public		StateHandle			Handle		=> new(_uid){Node = _node};
-		
-		public		Boolean				IsOpened	=> gameObject && gameObject.scene.IsValid( ) && GameStage.CurrentState == this;
+		public		StateHandle			Handle		=> new(_uid, _node);
 		public		AssetRef<State>		PrefabRef	=> _prefabRef;
+		
+		public		Boolean				IsOpened	=> _node?.IsOpened ?? false;
+		public		Boolean				IsActive	=> _node?.IsActive ?? false;
 		
 		public		GameStage			GameStage	
 		{
@@ -92,9 +93,9 @@ namespace Flexy.GameFlow
 		}
 	}
 	
-	public readonly record struct StateHandle( Int32 Uid )
+	public readonly record struct StateHandle( Int32 Uid, FlowNode Node )
 	{
-		internal	FlowNode	Node		{get; init;}	= null; 
+		internal	FlowNode	Node		{get;}			= Node; 
 		internal	Int32		Uid			{get;}			= Uid;
 		
 		public 		Boolean 	IsValid		=> Node?.Uid == Uid;

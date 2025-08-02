@@ -9,15 +9,15 @@
 		public		GameContext			Context				{get; private set;}
 		public		FlowGraph			Graph				=> _node.Graph;
 		public		FlowNode			Node				=> _node;
-		public		StateHandle			RootHandle			=> _node.GetHandle();
+		public		StateHandle			RootHandle			=> _node.Handle;
 
-		public		State				CurrentState		=> Graph.CurrentStateNode.State;
-		public		State				ActiveState			=> Graph.ActiveStateNode.State;
-		public		Boolean				AtStageRoot			=> Graph.CurrentStateNode == _node;
+		public		State				CurrentState		=> Graph.MainLineTip.State;
+		public		State				ActiveState			=> Graph.MainLineActive.State;
+		public		Boolean				AtStageRoot			=> _node.IsActive;
 
 		public		AssetRef<State>		MainStateRef		=> _mainStateRef;
 		public		State				MainState			=> _node.FirstChild?.State;
-		public		StateHandle			MainHandle			=> _node.FirstChild?.GetHandle( ) ?? default;
+		public		StateHandle			MainHandle			=> _node.FirstChild?.Handle ?? default;
 		
 		public		Transform			StatesContainer		=> _statesContainer;
 		
