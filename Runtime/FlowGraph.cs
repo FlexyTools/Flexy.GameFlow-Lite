@@ -17,7 +17,7 @@ public class FlowGraph
 		
 			statePrefab.gameObject.SetActive( activeSelf );
 		
-			state.name = state.name.Replace( "(Clone)", "" );
+			state.name = "[GS] " + state.name.Replace( "(Clone)", "" );
 			state.SetSelfRef( rootStateRef );
 		
 			_root = new FlowNode
@@ -71,18 +71,15 @@ public class FlowGraph
 
 		return _mainLineTip.Handle;
 	}
-	internal	void			RemoveNode				( StateHandle handle )
+	internal	void			RemoveNode				( FlowNode node )
 	{
-		if (!handle.IsValid || handle.Node == _root)
-			return;
-
-		RemoveNodesUpTo( _mainLineTip, _mainLineTip.Back );
+		RemoveNodesUpTo( node, node.Back );
 	}
 	internal	void			RemoveNodesUpTo			( FlowNode source, FlowNode target, Object openParams = null, Boolean skipCurrent = false )
 	{
-		if (source == null)
+		if (source is not { IsValid: true } || source == _root)
 			return;
-	
+		
 		var iter	= source;
 
 		if (skipCurrent)

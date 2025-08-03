@@ -2,7 +2,7 @@ namespace Flexy.GameFlow;
 
 public class FlowNode
 {
-	public	FlowGraph	Graph;
+	public	FlowGraph	Graph			{get; internal set;}
 
 	public	Int32		Uid				{get; internal set;}
 	public	Boolean		WasShown		{get; internal set;} // used to call OnShow in case first show will be BackShow
@@ -18,7 +18,7 @@ public class FlowNode
 	public	FlowNode?	FirstChild		{get; internal set;}
 	
 	public	StateHandle	Handle			=> new(this);
-	public	Boolean		IsValid			=> Back?.Forward == this;
+	public	Boolean		IsValid			=> Graph.Root == this || Back?.Forward == this;
 	public	Boolean		IsOpened		=> IsValid;
 	public	Boolean		IsShowed		=> IsOpened && State.gameObject.activeInHierarchy;
 
@@ -29,9 +29,8 @@ public class FlowNode
 
 	public	StateHandle		Close			( )	
 	{
-		var h = Handle;
-		Graph.RemoveNode(Handle);
-		return h;
+		Graph.RemoveNode(this);
+		return Handle;
 	}
 }
 
