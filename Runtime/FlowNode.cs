@@ -5,7 +5,7 @@ public class FlowNode
 	public	FlowGraph	Graph;
 
 	public	Int32		Uid				{get; internal set;}
-	public	Boolean		WasShowed		{get; internal set;} // used to call OnShow in case first show will be BackShow
+	public	Boolean		WasShown		{get; internal set;} // used to call OnShow in case first show will be BackShow
 	public	Boolean		IsLocked		{get; internal set;}
 	public	Boolean		IsOpened		{get; internal set;}
 	public	Object		OpenParams		{get; internal set;}
@@ -33,10 +33,15 @@ public class FlowNode
 		Graph.RemoveNode(Handle);
 		return h;
 	}
+}
 
-	public	FlowNode		GetLastSibling	( )	
+public static class FlowNodeExt
+{
+	public static	FlowNode?	GetLastSibling	( this FlowNode? node )	
 	{
-		var node = this;
+		if (node == null) 
+			return null;
+		
 		for (;node.NextSibling != null; node = node.NextSibling);
 		return node;
 	}

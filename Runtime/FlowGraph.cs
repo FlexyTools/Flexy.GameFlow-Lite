@@ -27,7 +27,7 @@ public class FlowGraph
 				State		= state, 
 				OpenParams	= null, 
 				IsLocked	= true,
-				WasShowed	= true
+				WasShown	= true
 			};
 
 			_mainLineActive = _root;
@@ -64,25 +64,6 @@ public class FlowGraph
 		return newNode.Handle;
 	}
 
-	internal	FlowNode		AddNode					( State state, Object openParams, Boolean isLocked = false )
-	{
-		var newNode = new FlowNode
-		{
-			Graph		= this,
-			Uid			= _uidNext++,
-			State		= state, 
-			OpenParams	= openParams, 
-			IsLocked	= isLocked,
-		};
-
-		_mainLineTip.Forward = newNode;
-		newNode.Back = _mainLineTip;
-		_mainLineTip = newNode;
-		
-		ScheduleSwitchStates();
-
-		return newNode;
-	}
 	internal	void			RemoveNode				( StateHandle handle )
 	{
 		if ( !handle.IsValid || handle.Node == _root )
@@ -144,22 +125,23 @@ public class FlowGraph
 	public		FlowNode		SpawnStateAndNode		( AssetRef<State> stateRef, Object openParams, State callSource, Scene spawnIn, FlowNode? parent )
 	{
 		_stateInstances.TryGetValue( stateRef, out var state );
-
-		var statePrefab	= stateRef.LoadAssetSync();
-		var activeSelf	= statePrefab.gameObject.activeSelf;
 		
-		FlowNode nextNode;
+		var stateInstanceOrPrefab = state;
 		
-		if (statePrefab is GameStage gs)
+		if (!stateInstanceOrPrefab)
+			stateInstanceOrPrefab = stateRef.LoadAssetSync();
+		
+		if (stateInstanceOrPrefab is GameStage gs)
 		{
 			parent = _root;
 			
 			if (!state)
 			{
-				statePrefab.gameObject.SetActive( false );
-				state = (State)UnityEngine.Object.Instantiate( statePrefab, spawnIn.IsValid() ? spawnIn : Service.gameObject.scene );
+				var activeSelf	= stateInstanceOrPrefab.gameObject.activeSelf;
+				stateInstanceOrPrefab.gameObject.SetActive( false );
+				state = (State)UnityEngine.Object.Instantiate( stateInstanceOrPrefab, spawnIn.IsValid() ? spawnIn : Service.gameObject.scene );
 				state.transform.SetSiblingIndex(0);
-				statePrefab.gameObject.SetActive( activeSelf );
+				stateInstanceOrPrefab.gameObject.SetActive( activeSelf );
 			}
 		}
 		else
@@ -175,10 +157,11 @@ public class FlowGraph
 			
 			if (!state)
 			{
-				statePrefab.gameObject.SetActive( false );
+				var activeSelf	= stateInstanceOrPrefab.gameObject.activeSelf;
+				stateInstanceOrPrefab.gameObject.SetActive( false );
 				var stateContainer = parent.State.GetSubStatesContainer();
-				state = UnityEngine.Object.Instantiate( statePrefab, stateContainer );
-				statePrefab.gameObject.SetActive( activeSelf );
+				state = UnityEngine.Object.Instantiate( stateInstanceOrPrefab, stateContainer );
+				stateInstanceOrPrefab.gameObject.SetActive( activeSelf );
 			}
 		}
 
@@ -186,20 +169,30 @@ public class FlowGraph
 		state.name = state.name.Replace( "(Clone)", "" );
 		state.SetSelfRef( stateRef );
 		
-		nextNode = AddNode( state, openParams );
+		var nextNode = new FlowNode
+		{
+			Graph		= this,
+			Uid			= _uidNext++,
+			State		= state, 
+			OpenParams	= openParams, 
+			IsLocked	= false,
+		};
+		
+		nextNode.PrevSibling = parent.FirstChild.GetLastSibling();
+		if (nextNode.PrevSibling != null)
+			nextNode.PrevSibling.NextSibling = nextNode;
+		
 		nextNode.Parent = parent;
 		
 		if (parent.FirstChild == null)
 			parent.FirstChild = nextNode;
 		
-		nextNode.Parent = _root;
-		nextNode.PrevSibling = _root.Forward.GetLastSibling();
-		nextNode.PrevSibling.NextSibling = nextNode;
-			
 		_mainLineTip.Forward = nextNode;
 		nextNode.Back = _mainLineTip;
 		
 		_mainLineTip = nextNode;
+		
+		ScheduleSwitchStates();
 		
 		return nextNode;
 	}
@@ -210,9 +203,6 @@ public class FlowGraph
 
 	private async	UniTask		SwitchStatesAsyncInfiniteLoop	( )	
 	{
-		while (Application.isPlaying && _root == null)
-			await UniTask.NextFrame();
-	
 		while (Application.isPlaying && _root != null && _root.State)
 		{
 			// Change view at last update (before animations)
@@ -228,63 +218,69 @@ public class FlowGraph
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
 	}
+	
 	private 		void		TransitionState					( )	
 	{
 		var prevNode		= _mainLineActive; 
 		var nextNode		= _mainLineTip;
 	
 		var isMoveForward	= nextNode.Uid > prevNode.Uid;
+		var commonParent	= FindNearestCommonParent( prevNode, nextNode );
 
-		var prevState		= prevNode.State;
-		var nextState		= nextNode.State;
-
-		var nextWasShown	= nextNode.WasShowed;
-
-		if( nextState )
+		var closingBranchNode = prevNode;
+		while (closingBranchNode != commonParent)
 		{
-			_mainLineActive		= nextNode;
-			nextNode.WasShowed = true;
-			nextNode.State._node = nextNode;
+			try{ closingBranchNode.State.gameObject.SetActive( false );	} catch (Exception ex) { Debug.LogException( ex ); }
+			try{ NodeStateHide( closingBranchNode, isMoveForward );		} catch (Exception ex) { Debug.LogException( ex ); }
+
+			closingBranchNode = closingBranchNode.Parent;
 		}
 		
-		if (nextNode == prevNode && nextNode == _root) // This is possible only on very first substate open in state or first gameStage in history
+		var openingBranchNode = commonParent.FirstChild.GetLastSibling();
+		while (openingBranchNode != null)
 		{
-			isMoveForward = true;
-			try{ StateShow( nextState, isMoveForward, nextNode.Uid, nextWasShown );	} catch (Exception ex) { Debug.LogException( ex ); }
-			try{ nextState.gameObject.SetActive( true );} catch (Exception ex) { Debug.LogException( ex ); }
-		}
-		else
-		{
-			if (prevState is GameStage == nextState is GameStage)
-			{
-				try{ prevState.gameObject.SetActive( false );	} catch (Exception ex) { Debug.LogException( ex ); }
-				try{ StateHide ( prevState, isMoveForward );	} catch (Exception ex) { Debug.LogException( ex ); }
+			_mainLineActive = openingBranchNode;
+		
+			try{ NodeStateShow( openingBranchNode, isMoveForward );		} catch (Exception ex) { Debug.LogException( ex ); }
+			try{ openingBranchNode.State.gameObject.SetActive( true );	} catch (Exception ex) { Debug.LogException( ex ); }
 			
-				try{ StateShow( nextState, isMoveForward, nextNode.Uid, nextWasShown );	} catch (Exception ex) { Debug.LogException( ex ); }
-				try{ nextState.gameObject.SetActive( true );} catch (Exception ex) { Debug.LogException( ex ); }
-			}
-			else
-			{
-				var pgs = prevState as GameStage; 
-				var ngs = nextState as GameStage;
-				
-				if (pgs != null && nextState.GameStage == pgs)
-				{
-					try{ StateShow( nextState, isMoveForward, nextNode.Uid, nextWasShown );	} catch (Exception ex) { Debug.LogException( ex ); }
-					try{ nextState.gameObject.SetActive( true );} catch (Exception ex) { Debug.LogException( ex ); }
-				}
-				else if (ngs != null && prevState.GameStage == ngs)
-				{
-					try{ prevState.gameObject.SetActive( false );	} catch (Exception ex) { Debug.LogException( ex ); }
-					try{ StateHide ( prevState, isMoveForward );	} catch (Exception ex) { Debug.LogException( ex ); }	
-				}
-			}
-		} 
-		
-		static void	StateShow		( State state, Boolean isMoveForward, Int32 Uid, Boolean nextWasShown )
+			openingBranchNode = openingBranchNode.FirstChild.GetLastSibling();
+		}
+
+		return;
+
+		static FlowNode	FindNearestCommonParent	( FlowNode a, FlowNode b )
 		{
-			state.SetUid( Uid );
- 
+			var parents1 = new HashSet<FlowNode>();
+			var current = a;
+
+			while (current != null)
+			{
+				parents1.Add(current);
+				current = current.Parent;
+			}
+
+			current = b;
+			while (current != null)
+			{
+				if (parents1.Contains(current))
+					return current;
+
+				current = current.Parent;
+			}
+
+			throw new InvalidOperationException("Graph broken, can not find common parent, it must be at least one common parent -> Root of the graph ");
+		}
+		
+		static void	NodeStateShow	( FlowNode nextNode, Boolean isMoveForward )
+		{
+			var nextWasShown		= nextNode.WasShown;
+			nextNode.State._node	= nextNode;
+			nextNode.State.SetUid	( nextNode.Uid );
+			nextNode.WasShown		= true;
+			
+			var state = nextNode.State;
+		
 			if( !nextWasShown && !isMoveForward )
 				try						{ state.DoShow( ); }
 				catch ( Exception ex )	{ Debug.LogException( ex );		}
@@ -296,8 +292,10 @@ public class FlowGraph
 			}
 			catch ( Exception ex ) { Debug.LogException( ex ); }
 		}
-		static void	StateHide		( State state, Boolean isMoveForward )
+		static void	NodeStateHide	( FlowNode prevNode, Boolean isMoveForward )
 		{
+			var state = prevNode.State;
+		
 			try
 			{
 				if( isMoveForward )	state.DoFwdHide( );
@@ -310,31 +308,29 @@ public class FlowGraph
 #if UNITY_EDITOR
 	public void DrawRuntimeUI( )
 	{
-		if ( !Application.isPlaying || _root == null || !_root.State )
+		if (!Application.isPlaying || _root == null || !_root.State)
 			return;
 		
 		var currStage = default(GameStage);
 
-		for (var node = _root; node != null; node = node.Forward)
+		// Draw root
+		GUILayout.Space( 10 );
+		GUILayout.BeginHorizontal();
 		{
-			var gameStage = node.State.GameStage;
+			GUILayout.Label( $"{_root.Uid:D3}", GUILayout.Width(30) );
+			GUILayout.Label( $"{(_root.IsActive ? "■" : "□")}", GUILayout.Width(20) );
+			GUILayout.Label( $"{_root.State.name.Replace( "State", "", StringComparison.OrdinalIgnoreCase ).Trim('_')}" );
+		}
+		GUILayout.EndHorizontal();
+		GUILayout.Space( 5 );
 		
-			if(gameStage != currStage)
-			{
-				currStage = gameStage;
-				GUILayout.EndVertical( );
-				GUILayout.EndHorizontal( );
+		for (var node = _root.Forward; node != null; node = node.Forward)
+		{
+			if (node.State is GameStage)
 				GUILayout.Space( 5 );
-		
-				GUILayout.Label( gameStage.name );
-				GUILayout.Space( 2 );
-
-				GUILayout.BeginHorizontal( );
-				GUILayout.Space( 16 );
-				GUILayout.BeginVertical( );
-			}
-			
+				
 			GUILayout.BeginHorizontal();
+			GUILayout.Space( node.State is GameStage ? 10 : 26 );
 			GUILayout.Label( $"{node.Uid:D3}", GUILayout.Width(30) );
 			GUILayout.Label( $"{(node.IsActive ? "■" : "□")}", GUILayout.Width(20) );
 			GUILayout.Label( $"{node.State.name.Replace( "State", "", StringComparison.OrdinalIgnoreCase ).Trim('_')} {(node.OpenParams != null ? "op:" + node.OpenParams : "")}" );

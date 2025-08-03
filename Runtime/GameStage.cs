@@ -40,8 +40,16 @@
 
 			return RootHandle;
 		}
+		public		StateHandle			CloseAllStates		( )							
+		{
+			if( _node.FirstChild == null )
+				return Handle;
 		
-		public		void				RemoveFromHistoryAfterClose	( )
+			Graph.RemoveNodesUpTo( _node );
+			return Handle;
+		}
+		
+		public		void				RemoveFromHistoryAfterHide	( )
 		{
 			Do( gameObject ).Forget();
 			static async UniTask Do	( GameObject go )
@@ -91,11 +99,6 @@
 		protected internal override	Transform	GetSubStatesContainer	()
 		{
 			return _statesContainer;
-		}
-
-		public record struct Opener( OpenCtx Ctx ) : IOpener
-		{
-			public	StateHandle	Open	( GameContext parentContext = null ) => Ctx.Open(parentContext);
 		}
 		
 #if UNITY_EDITOR

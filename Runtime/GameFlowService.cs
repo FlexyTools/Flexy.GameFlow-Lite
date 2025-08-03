@@ -22,7 +22,7 @@ namespace Flexy.GameFlow
 		public				void			OrderedInit			( GameContext ctx )
 		{
 			Debug.Log( $"[GameFlowService] Init" );
-			ReadLibrary( );
+			ReadLibrary();
 			_graph = new(this, _rootStateRef);
 		}
 		protected virtual	void			Update				( )
@@ -69,7 +69,7 @@ namespace Flexy.GameFlow
 			return new() { Ctx = new( FindOpener( wndType ), src ) };
 		}
 
-		private			void				ReadLibrary		( )
+		private			void				ReadLibrary			( )
 		{
 			Debug.Log( $"[GameFlowService] BuildRegistry: start..." );
 
