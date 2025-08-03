@@ -76,7 +76,7 @@ namespace Flexy.GameFlow
 			guidPos.xMin = guidPos.xMax-65;
 
 			GUI.enabled = false;
-			UnityEditor.EditorGUI.TextField(guidPos, guidProp.hash128Value.ToString()[..7]);
+			UnityEditor.EditorGUI.TextField(guidPos, guidProp.hash128Value.ToString());
 			GUI.enabled = true;
 		}
 	}
