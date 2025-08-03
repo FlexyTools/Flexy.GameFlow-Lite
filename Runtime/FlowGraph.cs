@@ -18,7 +18,7 @@ public class FlowGraph
 			statePrefab.gameObject.SetActive( activeSelf );
 		
 			state.name = "[GS] " + state.name.Replace( "(Clone)", "" );
-			state.SetSelfRef( rootStateRef );
+			state.PrefabRef = rootStateRef;
 		
 			_root = new FlowNode
 			{
@@ -58,8 +58,8 @@ public class FlowGraph
 	{
 		var newNode			= SpawnStateAndNode( stateRef, openParams, callSource, parent, isLocked, spawnIn );
 		
-		if (parentContext != null && newNode.State is GameStage gs)
-			gs.SetContext( parentContext );
+		if (newNode.State is GameStage gs)
+			gs.Setup( _service, parentContext );
 		
 		return newNode.Handle;
 	}
@@ -132,7 +132,7 @@ public class FlowGraph
 		_doTransition = false;
 		DoStateTransitions();
 	}
-	public		FlowNode		SpawnStateAndNode		( AssetRef<State> stateRef, Object openParams, State callSource, FlowNode? parent, Boolean isLocked, Scene spawnIn )
+	public		FlowNode		SpawnStateAndNode		( AssetRef<State> stateRef, Object openParams, State callSource, FlowNode? parent, Boolean isLocked,  Scene spawnIn )
 	{
 		_stateInstances.TryGetValue( stateRef, out var state );
 		
@@ -159,7 +159,7 @@ public class FlowGraph
 			if (parent == null)
 			{
 				var stage = !callSource ? (GameStage)_root.FirstChild.GetLastSibling().State : callSource.GameStage;
-				parent = stage._node;
+				parent = stage.Node;
 		
 				if( state == stage.MainState )	
 					return stage.OpenMainState(openParams).Node;		
@@ -177,7 +177,7 @@ public class FlowGraph
 
 		_stateInstances[stateRef] = state;
 		state.name = state.name.Replace( "(Clone)", "" );
-		state.SetSelfRef( stateRef );
+		state.PrefabRef = stateRef;
 		
 		var nextNode = new FlowNode
 		{

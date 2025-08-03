@@ -5,17 +5,17 @@ namespace Flexy.GameFlow
 	{
 		[SerializeField] FlexyEvent		_showing;
 		[SerializeField] FlexyEvent		_hiding;
-
-		private		AssetRef<State>		_prefabRef;
+		
 		internal	FlowNode			_node;
+		
+		public		AssetRef<State>		PrefabRef	{get; internal set;}
 		
 		public		FlowNode			Node		=> _node;
 		public		Object				OpenParams	=> _node.OpenParams;
 		public		StateHandle			Handle		=> new(_node);
-		public		AssetRef<State>		PrefabRef	=> _prefabRef;
 		
 		public		Boolean				IsOpened	=> _node?.IsOpened ?? false;
-		public		Boolean				IsActive	=> _node?.IsShowed ?? false;
+		public		Boolean				IsShowed	=> _node?.IsShowed ?? false;
 		
 		public		GameStage			GameStage	
 		{
@@ -29,8 +29,8 @@ namespace Flexy.GameFlow
 			}
 		}
 		
-		protected internal virtual Boolean		TryGoBack				( )	=> true;
-		protected internal virtual Transform	GetSubStatesContainer	( ) => null;
+		protected internal virtual	Boolean		TryGoBack				( )	=> !_node.IsLocked;
+		protected internal virtual	Transform	GetSubStatesContainer	( ) => null;
 		
 		internal			void	DoShow			( )	
 		{ 
@@ -38,7 +38,7 @@ namespace Flexy.GameFlow
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 			
 			if ( ReadyForBind )
-				StateRebindAll ( );
+				RebindAllHierarchy ( );
 			
 			_showing.Raise( this );
 		}
@@ -64,29 +64,36 @@ namespace Flexy.GameFlow
 		protected virtual	void	OnBackShow		( )	{ }
 		protected virtual	void	OnHide			( )	{ }
 		
-		internal			void	SetSelfRef		( AssetRef<State> stateRef )	=> _prefabRef = stateRef;
-		
 		[Callable] public	void	Close			( )	
 		{
 			_node.Close();
 		}
-
-		public				void	StateRebindAll	( )	
+		public				void	CloseAndDestroy	( )	
 		{
-			foreach ( var bindableBehaviour in gameObject.GetComponentsInChildren<APropertyBindableBehaviour>( ) )
+			Close();
+			DestroyWhenStateWillHide(_node).Forget();
+			return;
+
+			static async UniTaskVoid DestroyWhenStateWillHide( FlowNode node )
 			{
-				if ( bindableBehaviour.gameObject == gameObject )	bindableBehaviour.MakeBindReadyAndRebindAll( );
-				else												bindableBehaviour.RebindAll( );				
+				await UniTask.WaitWhile( () => node.State.gameObject.activeSelf );
+				Destroy( node.State.gameObject );
 			}
 		}
-		public override		String	ToString		( )	
+
+		public				void	RebindAllHierarchy	( )	
 		{
-			return $"{gameObject.name} {(IsOpened?" opened":" closed")}{(OpenParams != null ? $" op:{OpenParams}" : "")}";
+			foreach ( var bb in gameObject.GetComponentsInChildren<APropertyBindableBehaviour>() )
+			{
+				if ( bb.gameObject == gameObject )	bb.MakeBindReadyAndRebindAll();
+				else								bb.RebindAll();
+			}
 		}
-		
+		public override		String	ToString			( ) => _node.ToString();
+
 		public record struct Opener( OpenCtx Ctx ) : IOpenerB
 		{
-			public	StateHandle	Open	( ) => Ctx.Open();
+			public		StateHandle		Open	( ) => Ctx.Open();
 		}
 	}
 	
@@ -98,7 +105,7 @@ namespace Flexy.GameFlow
 		public		State		State		=> Node.State;
 
 		public			StateHandle	Close		( ) => !IsValid ? default : Node.Close();
-		public override	String		ToString	( ) => $"StateHandle {Node.State.name}";
+		public override	String		ToString	( ) => $"StateHandle {Node.State}";
 	}
 	
 	[AttributeUsage(AttributeTargets.Method)]

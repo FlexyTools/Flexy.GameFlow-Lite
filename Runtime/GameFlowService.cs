@@ -12,20 +12,18 @@ namespace Flexy.GameFlow
 		[SerializeField]	UnityEngine.InputSystem.InputActionReference	_backInputAction;
 		#endif
 
-		private				FlowGraph		_graph;
+		private readonly	Dictionary<String, AssetRef<State>>	_statesDict = new ( 256 );
+		private readonly	Dictionary<AssetRef<State>, String>	_statesDictReverse = new ( 256 );
 
-		private	readonly	List<FlowLibrary.StateRef>			_flattenedLibrary = new ( 64 );
-		private readonly	Dictionary<String, AssetRef<State>>	_stateRefByType = new ( 64 );
+		public				FlowGraph		Graph				{ get; private set; }
 
-		public				FlowGraph		Graph			=> _graph;
-		
-		public				void			OrderedInit			( GameContext ctx )
+		public				void			OrderedInit			( GameContext ctx )	
 		{
 			Debug.Log( $"[GameFlowService] Init" );
 			ReadLibrary();
-			_graph = new(this, _rootStateRef);
+			Graph = new(this, _rootStateRef);
 		}
-		protected virtual	void			Update				( )
+		protected virtual	void			Update				( )					
 		{
 	        // Check if Back (esc or equivalent on other platforms) was pressed this frame
 	        if (_backInputHandling == EBackInputHandling.OldInputManager)
@@ -45,112 +43,64 @@ namespace Flexy.GameFlow
 			}
 		}
 		
-		public			State.Opener		GetOpener_FromId			( String cropId, State src )
+		public			State.Opener		GetOpener_FromId			( String croppedOrFullId, State src )	
 		{
-			for ( var i = 0; i < _flattenedLibrary.Count; i++ )
-			{
-				var stateRef = _flattenedLibrary[i];
-
-				if ( stateRef.Ref.Uid.ToString().StartsWith( cropId ) )
-					return new() { Ctx = new( stateRef.Ref, src ) };
-			}
-
-			return default;
+			return new() { Ctx = new( _statesDict.GetValueOrDefault(croppedOrFullId), src ) };
 		}
-		public			State.Opener		GetOpener_FromStateType<T>	( State src ) where T : State
+		public			State.Opener		GetOpener_FromStateType<T>	( State src ) where T : State			
 		{
 			return new() { Ctx = new( FindOpener( typeof(T) ), src ) };
 		}
-		public			T					GetOpener_FromOpenerType<T>	( State src ) where T : struct, IOpener
+		public			T					GetOpener_FromOpenerType<T>	( State src ) where T : struct, IOpener	
 		{
-			var declaringType		= typeof(T).DeclaringType;
-			var wndType				= declaringType;
-
-			return new() { Ctx = new( FindOpener( wndType ), src ) };
+			return new() { Ctx = new( FindOpener( typeof(T).DeclaringType ), src ) };
+		}
+		public			String				GetRefTypeName				( AssetRef<State> stateRef )			
+		{
+			_statesDictReverse.TryGetValue(stateRef, out var name);
+			return name;
 		}
 
-		private			void				ReadLibrary			( )
+		private			void				ReadLibrary			( )					
 		{
-			Debug.Log( $"[GameFlowService] BuildRegistry: start..." );
+			Debug.Log( $"[GameFlowService] ReadLibrary: start..." );
 
-			_flattenedLibrary.Clear();
-			_flattenedLibrary.AddRange( _rootFlowLibrary.CollectStates().Distinct() );
+			var allRegisteredStates = new List<FlowLibrary.StateRef>( _rootFlowLibrary.CollectStates().Distinct().OrderBy(i => i.TypeFullName) );
 
-			var states			= _flattenedLibrary;
-			var assemblies		= AppDomain.CurrentDomain.GetAssemblies().ToList();
-			var lastAssembly	= assemblies[0];
-
-			for ( var i = 0; i < states.Count; i++ )
+			foreach (var statePair in allRegisteredStates)
 			{
-				var state	= states[i];
-
-				if( state.Ref.IsNone || String.IsNullOrWhiteSpace( state.TypeFullName ) )
-					continue;
-
-				if( _stateRefByType.ContainsKey( state.TypeFullName ) )
-					continue;
-
-				if( String.IsNullOrWhiteSpace( state.TypeFullName ) )
+				if (statePair.Ref.IsNone || String.IsNullOrWhiteSpace( statePair.TypeFullName ))
 				{
-					Debug.LogError( $"[GameFlowService] BuildRegistry: {state.Ref} has no type full name! Skipping" );
+					Debug.LogError( $"[GameFlowService] ReadLibrary: invalid entry: ref:{statePair.Ref} name:{statePair.TypeFullName}" );
 					continue;
 				}
+				
+				var fullName = statePair.TypeFullName;
+				var shortName = fullName[(fullName.LastIndexOf('.')+1)..];
+				var refStr = statePair.Ref.ToString()[..32];
+				var refStr2 = refStr[..7];
 
-				if( lastAssembly.GetType( state.TypeFullName, false, true ) is { } type )
-				{
-					RegisterState( i, state, type );
-					continue;
-				}
-
-				foreach ( var a in assemblies )
-				{
-					lastAssembly = a;
-
-					if( a.GetType( state.TypeFullName, false, true ) is {} t )
-					{
-						RegisterState( i, state, t );
-						break;
-					}
-				}
-
-				continue;
-
-				void RegisterState( Int32 index, FlowLibrary.StateRef wnd, Type wndType )
-				{
-					Debug.Log( $"[GameFlowService] BuildRegistry: {wnd.TypeFullName} \t=> {wndType.Name}" );
-					_stateRefByType.Add( wnd.TypeFullName, wnd.Ref );
-					var rw = _flattenedLibrary[index];
-					rw.Type = wndType;
-					_flattenedLibrary[index] = rw;
-				}
+				Debug.Log( $"[GameFlowService] ReadLibrary   {refStr.Replace("[", "  [").Insert(7, "  ")} => {fullName.Insert(fullName.LastIndexOf('.')+1, "  ")}" );
+				
+				_statesDict.TryAdd( fullName, statePair.Ref );
+				_statesDict.TryAdd( shortName, statePair.Ref );
+				_statesDict.TryAdd( refStr, statePair.Ref );
+				_statesDict.TryAdd( refStr2, statePair.Ref );
 			}
 
-			Debug.Log( $"[GameFlowService] BuildRegistry: done" );
+			foreach (var pair in allRegisteredStates)
+				_statesDictReverse.Add(pair.Ref, pair.TypeFullName);	
+
+			Debug.Log( $"[GameFlowService] ReadLibrary: done" );
 		}
-		private			AssetRef<State>		FindOpener			( Type typeToFind )
+		private			AssetRef<State>		FindOpener			( Type typeToFind )	
 		{
-			if( _stateRefByType.TryGetValue( typeToFind.FullName, out var state ) )
-				return state;
-
-			do
-			{
-				foreach (var stateRef in _flattenedLibrary)
-				{
-					if ( !typeToFind.IsAssignableFrom( stateRef.Type ) )
-						continue;
-
-					_stateRefByType.Add( typeToFind.FullName, stateRef.Ref );
-
-					return stateRef.Ref;
-				}
-
-				typeToFind = typeToFind.BaseType;
-			}
-			while ( typeToFind != typeof(State) );
-
+			if (_statesDict.TryGetValue(typeToFind.FullName, out var refState) || _statesDict.TryGetValue(typeToFind.Name, out refState))
+				return refState;
+				
 			return default;
 		}
-
+		
 		private enum EBackInputHandling
 		{
 			Disabled,
@@ -166,7 +116,7 @@ namespace Flexy.GameFlow
 				return;
 
 			GUILayout.Space( 16 );
-			_graph.DrawRuntimeUI();
+			Graph.DrawRuntimeUI();
 		}
 		#endif
 	}

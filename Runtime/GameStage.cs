@@ -6,13 +6,11 @@
 		[SerializeField] AssetRef<State>	_mainStateRef;
 		[SerializeField] Transform			_statesContainer;
 
+		public		GameFlowService		Service				{get; private set;}
 		public		GameContext			Context				{get; private set;}
-		public		FlowGraph			Graph				=> _node.Graph;
-		public		FlowNode			Node				=> _node;
-		public		StateHandle			RootHandle			=> _node.Handle;
-
-		public		State				CurrentState		=> Graph.MainLineTip.State;
-		public		State				ActiveState			=> Graph.MainLineActive.State;
+		
+		public		State				CurrentState		=> _node.Graph.MainLineTip.State;
+		public		State				ActiveState			=> _node.Graph.MainLineActive.State;
 		public		Boolean				AtStageRoot			=> _node.IsShowed;
 
 		public		AssetRef<State>		MainStateRef		=> _mainStateRef;
@@ -20,45 +18,43 @@
 		public		StateHandle			MainHandle			=> _node.FirstChild?.Handle ?? default;
 		
 		public		Transform			StatesContainer		=> _statesContainer;
-		
-		internal void SetContext(GameContext ctx) => Context = ctx;
-		
-		public		StateHandle			OpenMainState		( Object openParams = null )
-		{
-			if( _node.FirstChild == null )
-			{
-				// main substate never was opened yet so just open it
-				var handle = Graph.Open( _mainStateRef, this, openParams, parent:_node, isLocked:true );
-				Debug.Log( $"[GameStage] {name} => Open Root State: {handle.State.name}" );
-			}
-			else
-			{
-				// loader is somewhere in history so just return to it
-				Debug.Log( $"[GameStage] {name} => Open Main State: {_node.State.name}" );
-				Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node, openParams );
-			}
 
-			return RootHandle;
+		public		void				Setup				( GameFlowService service, GameContext? parentContext )	
+		{
+			Service = service;
+		
+			var ctx = gameObject.GetComponent<GameContext>();
+
+			if( !ctx )
+				// Create new context for GameState
+				ctx = gameObject.AddComponent<GameContext>();
+		
+			ctx.SetParent( parentContext );
+			ctx.SetService( this );
+		
+			Context = ctx;
 		}
-		public		StateHandle			CloseAllStates		( )							
+		public		StateHandle			OpenMainState		( Object openParams = null )	
+		{
+			Debug.Log( $"[GameStage] {name} => Open Main State: {Service.GetRefTypeName(_mainStateRef)}" );
+		
+			if( _node.FirstChild == null )
+				// main substate never was opened yet so just open it
+				return _node.Graph.Open( _mainStateRef, this, openParams, parent:_node, isLocked:true );
+			
+			// loader is somewhere in history so just return to it
+			_node.Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node.FirstChild, openParams );
+			return _node.FirstChild.Handle;
+		}
+		public		StateHandle			CloseAllStates		( )								
 		{
 			if( _node.FirstChild == null )
 				return Handle;
 		
-			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node );
+			_node.Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node );
 			return Handle;
 		}
 		
-		public		void				RemoveFromHistoryAfterHide	( )
-		{
-			Do( gameObject ).Forget();
-			static async UniTask Do	( GameObject go )
-			{ 
-				await UniTask.WaitWhile( () => go.activeInHierarchy );
-				Destroy( go );
-			}
-		}
-
 		public		void				MoveToLoadedScene	( Scene loadedScene )		
 		{
 			SceneManager.MoveGameObjectToScene( gameObject, loadedScene );
@@ -66,41 +62,12 @@
 		}
 		public		void				MoveToServiceScene	( )							
 		{
-			SceneManager.MoveGameObjectToScene( gameObject, Graph.Service.gameObject.scene );
+			SceneManager.MoveGameObjectToScene( gameObject, _node.Graph.Service.gameObject.scene );
 		}
 		
-		protected override	void		OnShow	( )		
-		{
-			Debug.Log( $"[GameStage] Init: {name}" );
-			name	= "[GS] " + name;
-		
-			// Setup GameContext
-			{
-				var ctx = gameObject.GetComponent<GameContext>( );
+		protected override				void		OnShow					( ) => OpenMainState();
+		protected internal override		Transform	GetSubStatesContainer	( ) => _statesContainer;
 
-				if( !ctx )
-					// Create new context for GameState
-					ctx = gameObject.AddComponent<GameContext>( );
-			
-				if (OpenParams is GameContext gc)	
-					ctx.SetParent( gc );
-					
-				ctx.SetService( this );
-			
-				Context = ctx;
-			}
-		
-			OpenMainState();
-		
-			base.OnShow();
-		}
-		
-		protected internal virtual	Boolean		TryGoBack				()	=> false;
-		protected internal override	Transform	GetSubStatesContainer	()
-		{
-			return _statesContainer;
-		}
-		
 #if UNITY_EDITOR
 		[RuntimeInspectorUI( Repaint = true )]
 		internal void DrawRuntimeUI( ) => _node.Graph.DrawRuntimeUI();

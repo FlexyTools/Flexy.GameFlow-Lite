@@ -22,7 +22,6 @@ namespace Flexy.GameFlow
 		{
 			public	String				TypeFullName;
 			public 	AssetRef<State>		Ref;
-			public	Type				Type;
 
 			public override String ToString() => $"{Ref}  {TypeFullName}";
 		}
