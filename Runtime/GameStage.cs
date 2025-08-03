@@ -13,7 +13,7 @@
 
 		public		State				CurrentState		=> Graph.MainLineTip.State;
 		public		State				ActiveState			=> Graph.MainLineActive.State;
-		public		Boolean				AtStageRoot			=> _node.IsActive;
+		public		Boolean				AtStageRoot			=> _node.IsShowed;
 
 		public		AssetRef<State>		MainStateRef		=> _mainStateRef;
 		public		State				MainState			=> _node.FirstChild?.State;
@@ -28,14 +28,14 @@
 			if( _node.FirstChild == null )
 			{
 				// main substate never was opened yet so just open it
-				var handle = Graph.Open( _mainStateRef, this, openParams, parent:_node );
+				var handle = Graph.Open( _mainStateRef, this, openParams, parent:_node, isLocked:true );
 				Debug.Log( $"[GameStage] {name} => Open Root State: {handle.State.name}" );
 			}
 			else
 			{
 				// loader is somewhere in history so just return to it
 				Debug.Log( $"[GameStage] {name} => Open Main State: {_node.State.name}" );
-				Graph.RemoveNodesUpTo( _node, openParams );
+				Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node, openParams );
 			}
 
 			return RootHandle;
@@ -45,7 +45,7 @@
 			if( _node.FirstChild == null )
 				return Handle;
 		
-			Graph.RemoveNodesUpTo( _node );
+			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node );
 			return Handle;
 		}
 		

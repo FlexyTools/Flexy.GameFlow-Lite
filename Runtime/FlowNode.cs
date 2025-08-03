@@ -7,10 +7,9 @@ public class FlowNode
 	public	Int32		Uid				{get; internal set;}
 	public	Boolean		WasShown		{get; internal set;} // used to call OnShow in case first show will be BackShow
 	public	Boolean		IsLocked		{get; internal set;}
-	public	Boolean		IsOpened		{get; internal set;}
 	public	Object		OpenParams		{get; internal set;}
 	public	State		State			{get; internal set;}
-
+	
 	public	FlowNode?	PrevSibling		{get; internal set;}
 	public	FlowNode?	NextSibling		{get; internal set;}
 	public	FlowNode?	Back			{get; internal set;}
@@ -18,13 +17,14 @@ public class FlowNode
 	public	FlowNode?	Parent			{get; internal set;}
 	public	FlowNode?	FirstChild		{get; internal set;}
 	
-	public	StateHandle	Handle			=> new(Uid, this);
-	public	Boolean		IsActive		=> IsOpened && State.gameObject.activeInHierarchy;
-	public	FlowNode?	LeftNode		=> PrevSibling ?? Back ?? Parent;
-	
+	public	StateHandle	Handle			=> new(this);
+	public	Boolean		IsValid			=> Back?.Forward == this;
+	public	Boolean		IsOpened		=> IsValid;
+	public	Boolean		IsShowed		=> IsOpened && State.gameObject.activeInHierarchy;
+
 	public override	String	ToString		( )	
 	{
-		return $"{Uid:D3} {(IsActive ? "■ " : "□ ")} {State.name.Replace( "State", "", StringComparison.OrdinalIgnoreCase ).Trim('_')} {(OpenParams != null ? "op:" + OpenParams : "")}";
+		return $"{Uid:D3} {(IsShowed ? "■ " : "□ ")} {State.name.Replace( "State", "", StringComparison.OrdinalIgnoreCase ).Trim('_')} {(OpenParams != null ? "op:" + OpenParams : "")}";
 	}
 
 	public	StateHandle		Close			( )	

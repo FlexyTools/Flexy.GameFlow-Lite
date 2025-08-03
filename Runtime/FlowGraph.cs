@@ -54,9 +54,9 @@ public class FlowGraph
 	public		FlowNode		MainLineActive			=> _mainLineActive;
 	public		FlowNode		MainLineTip				=> _mainLineTip;
 
-	public		StateHandle		Open					( AssetRef<State> stateRef, State callSource, Object openParams = null, Scene spawnIn = default, GameContext parentContext = null, FlowNode? parent = null )
+	public		StateHandle		Open					( AssetRef<State> stateRef, State callSource, Object openParams = null, FlowNode? parent = null, Boolean isLocked = false, Scene spawnIn = default, GameContext parentContext = null )
 	{
-		var newNode			= SpawnStateAndNode( stateRef, openParams, callSource, spawnIn, parent );
+		var newNode			= SpawnStateAndNode( stateRef, openParams, callSource, parent, isLocked, spawnIn );
 		
 		if (parentContext != null && newNode.State is GameStage gs)
 			gs.SetContext( parentContext );
@@ -64,36 +64,58 @@ public class FlowGraph
 		return newNode.Handle;
 	}
 
+	internal	StateHandle		GoBack					( )
+	{
+		if (_mainLineTip != _root && _mainLineTip.State.TryGoBack())
+			RemoveNodesUpTo( _mainLineTip, _mainLineTip.Back );
+
+		return _mainLineTip.Handle;
+	}
 	internal	void			RemoveNode				( StateHandle handle )
 	{
-		if ( !handle.IsValid || handle.Node == _root )
+		if (!handle.IsValid || handle.Node == _root)
 			return;
 
-		if( handle.Node == _mainLineTip )
-			RemoveNodesUpTo( _mainLineTip.Back );
+		RemoveNodesUpTo( _mainLineTip, _mainLineTip.Back );
 	}
-	internal	void			RemoveNodesUpTo			( FlowNode target, Object openParams = null, Boolean skipCurrent = false )
+	internal	void			RemoveNodesUpTo			( FlowNode source, FlowNode target, Object openParams = null, Boolean skipCurrent = false )
 	{
-		var first	= _root;
-		var iter	= _mainLineTip;
+		if (source == null)
+			return;
+	
+		var iter	= source;
 
 		if (skipCurrent)
 			iter = iter.Back;
 
 		while (iter != target)
 		{
-			if (iter == null) return;
-			if (iter == first) break;
+			if (iter == _root) 
+				break;
 
 			var toRemove= iter;
 			iter		= iter.Back!;
 			
+			if (toRemove == _mainLineTip)
+				_mainLineTip  = iter;
+			
 			var b = toRemove.Back;
 			var f = toRemove.Forward;
-			
 			b.Forward = f;
+			
+			if (b.FirstChild == toRemove)
+				b.FirstChild = toRemove.NextSibling;
+			
+			if (b.NextSibling == toRemove)
+				b.NextSibling = toRemove.NextSibling;
+			
 			if (f is not null)
+			{
 				f.Back = b;
+				
+				if (f.PrevSibling == toRemove)
+					f.PrevSibling = toRemove.PrevSibling;
+			}
 		}
 
 		if (iter == null) 
@@ -102,16 +124,7 @@ public class FlowGraph
 		if (openParams != null)
 			iter.OpenParams = openParams;
 
-		_mainLineTip = iter;
-
-		ScheduleSwitchStates( );
-	}
-	internal	StateHandle		GoBack					( )
-	{
-		if (_mainLineTip != _root && _mainLineTip.State.TryGoBack())
-			RemoveNodesUpTo( _mainLineTip.Back );
-
-		return _mainLineTip.Handle;
+		ScheduleSwitchStates();
 	}
 	
 	public		void			TransitionNow			( )
@@ -120,9 +133,9 @@ public class FlowGraph
 			return;
 		
 		_doTransition = false;
-		TransitionState();
+		DoStateTransitions();
 	}
-	public		FlowNode		SpawnStateAndNode		( AssetRef<State> stateRef, Object openParams, State callSource, Scene spawnIn, FlowNode? parent )
+	public		FlowNode		SpawnStateAndNode		( AssetRef<State> stateRef, Object openParams, State callSource, FlowNode? parent, Boolean isLocked, Scene spawnIn )
 	{
 		_stateInstances.TryGetValue( stateRef, out var state );
 		
@@ -175,7 +188,7 @@ public class FlowGraph
 			Uid			= _uidNext++,
 			State		= state, 
 			OpenParams	= openParams, 
-			IsLocked	= false,
+			IsLocked	= isLocked,
 		};
 		
 		nextNode.PrevSibling = parent.FirstChild.GetLastSibling();
@@ -214,12 +227,12 @@ public class FlowGraph
 
 			_doTransition	= false;
 
-			try						{ TransitionState(); }
+			try						{ DoStateTransitions(); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
 	}
 	
-	private 		void		TransitionState					( )	
+	private 		void		DoStateTransitions				( )	
 	{
 		var prevNode		= _mainLineActive; 
 		var nextNode		= _mainLineTip;
@@ -276,7 +289,6 @@ public class FlowGraph
 		{
 			var nextWasShown		= nextNode.WasShown;
 			nextNode.State._node	= nextNode;
-			nextNode.State.SetUid	( nextNode.Uid );
 			nextNode.WasShown		= true;
 			
 			var state = nextNode.State;
@@ -318,7 +330,7 @@ public class FlowGraph
 		GUILayout.BeginHorizontal();
 		{
 			GUILayout.Label( $"{_root.Uid:D3}", GUILayout.Width(30) );
-			GUILayout.Label( $"{(_root.IsActive ? "■" : "□")}", GUILayout.Width(20) );
+			GUILayout.Label( $"{(_root.IsShowed ? "■" : "□")}", GUILayout.Width(20) );
 			GUILayout.Label( $"{_root.State.name.Replace( "State", "", StringComparison.OrdinalIgnoreCase ).Trim('_')}" );
 		}
 		GUILayout.EndHorizontal();
@@ -332,7 +344,7 @@ public class FlowGraph
 			GUILayout.BeginHorizontal();
 			GUILayout.Space( node.State is GameStage ? 10 : 26 );
 			GUILayout.Label( $"{node.Uid:D3}", GUILayout.Width(30) );
-			GUILayout.Label( $"{(node.IsActive ? "■" : "□")}", GUILayout.Width(20) );
+			GUILayout.Label( $"{(node.IsShowed ? "■" : "□")}", GUILayout.Width(20) );
 			GUILayout.Label( $"{node.State.name.Replace( "State", "", StringComparison.OrdinalIgnoreCase ).Trim('_')} {(node.OpenParams != null ? "op:" + node.OpenParams : "")}" );
 			GUILayout.EndHorizontal();
 		}

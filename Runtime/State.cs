@@ -7,17 +7,15 @@ namespace Flexy.GameFlow
 		[SerializeField] FlexyEvent		_hiding;
 
 		private		AssetRef<State>		_prefabRef;
-		private		Int32				_uid;
 		internal	FlowNode			_node;
 		
-		public		Int32				Uid			=> _uid;
 		public		FlowNode			Node		=> _node;
 		public		Object				OpenParams	=> _node.OpenParams;
-		public		StateHandle			Handle		=> new(_uid, _node);
+		public		StateHandle			Handle		=> new(_node);
 		public		AssetRef<State>		PrefabRef	=> _prefabRef;
 		
 		public		Boolean				IsOpened	=> _node?.IsOpened ?? false;
-		public		Boolean				IsActive	=> _node?.IsActive ?? false;
+		public		Boolean				IsActive	=> _node?.IsShowed ?? false;
 		
 		public		GameStage			GameStage	
 		{
@@ -67,11 +65,10 @@ namespace Flexy.GameFlow
 		protected virtual	void	OnHide			( )	{ }
 		
 		internal			void	SetSelfRef		( AssetRef<State> stateRef )	=> _prefabRef = stateRef;
-		internal			void	SetUid			( Int32 uid )					=> _uid	= uid;
 		
 		[Callable] public	void	Close			( )	
 		{
-			_node.Graph.RemoveNode( Handle );
+			_node.Close();
 		}
 
 		public				void	StateRebindAll	( )	
@@ -93,16 +90,15 @@ namespace Flexy.GameFlow
 		}
 	}
 	
-	public readonly record struct StateHandle( Int32 Uid, FlowNode Node )
+	public readonly record struct StateHandle( FlowNode Node )
 	{
 		internal	FlowNode	Node		{get;}			= Node; 
-		internal	Int32		Uid			{get;}			= Uid;
 		
-		public 		Boolean 	IsValid		=> Node?.Uid == Uid;
+		public 		Boolean 	IsValid		=> Node.IsValid;
 		public		State		State		=> Node.State;
 
-		public			StateHandle	Close		( ) => !IsValid ? default : Node.Close( );
-		public override	String		ToString	( ) => $"StateHandle {Node.State.name} version:{Uid}";
+		public			StateHandle	Close		( ) => !IsValid ? default : Node.Close();
+		public override	String		ToString	( ) => $"StateHandle {Node.State.name}";
 	}
 	
 	[AttributeUsage(AttributeTargets.Method)]
