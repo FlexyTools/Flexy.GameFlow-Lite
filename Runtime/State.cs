@@ -32,7 +32,7 @@ namespace Flexy.GameFlow
 		protected internal virtual	Boolean		TryGoBack				( )	=> !_node.IsLocked;
 		protected internal virtual	Transform	GetSubStatesContainer	( ) => null;
 		
-		internal			void	DoShow			( )	
+		internal			void	DoShow				( )	
 		{ 
 			try						{ OnShow( ); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
@@ -42,17 +42,17 @@ namespace Flexy.GameFlow
 			
 			_showing.Raise( this );
 		}
-		internal			void	DoFwdHide		( )	
+		internal			void	DoFwdHide			( )	
 		{
 			try						{ OnFwdHide( ); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
-		internal			void	DoBackShow		( )	
+		internal			void	DoBackShow			( )	
 		{
 			try						{ OnBackShow( ); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
-		internal			void	DoHide			( )	
+		internal			void	DoHide				( )	
 		{
 			try						{ OnHide( ); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
@@ -61,30 +61,30 @@ namespace Flexy.GameFlow
 			_node = null;
 		}
 		
-		internal			void	DoFirstChildShow( )	
+		internal			void	DoFirstChildShow	( )	
 		{
-			try						{ OnBeforeFirstChildShow(); }
+			try						{ OnFirstChildShow(); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
-		internal			void	DoLastChildHide	( )	
+		internal			void	DoLastChildHide		( )	
 		{
-			try						{ OnAfterLastChildHide(); }
+			try						{ OnLastChildHide(); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
 		
-		protected virtual	void	OnShow			( )	{ }
-		protected virtual	void	OnFwdHide		( )	{ }
-		protected virtual	void	OnBackShow		( )	{ }
-		protected virtual	void	OnHide			( )	{ }
+		protected virtual	void	OnShow				( )	{ }
+		protected virtual	void	OnFwdHide			( )	{ }
+		protected virtual	void	OnBackShow			( )	{ }
+		protected virtual	void	OnHide				( )	{ }
 		
-		protected virtual	void	OnBeforeFirstChildShow	( )	{ }
-		protected virtual	void	OnAfterLastChildHide	( )	{ }
+		protected virtual	void	OnFirstChildShow	( )	{ }
+		protected virtual	void	OnLastChildHide		( )	{ }
 		
-		[Callable] public	void	Close			( )	
+		[Callable] public	void	Close				( )	
 		{
 			_node.Close();
 		}
-		public				void	CloseAndDestroy	( )	
+		public				void	CloseAndDestroy		( )	
 		{
 			Close();
 			DestroyWhenStateWillHide(_node).Forget();

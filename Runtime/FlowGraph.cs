@@ -201,11 +201,11 @@ public class FlowGraph
 		
 		return nextNode;
 	}
+	
 	public			void		ScheduleSwitchStates			( )	
 	{
 		_doTransition	= true;
 	}
-
 	private async	UniTask		SwitchStatesAsyncInfiniteLoop	( )	
 	{
 		while (Application.isPlaying && _root != null && _root.State)
@@ -223,7 +223,6 @@ public class FlowGraph
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
 	}
-	
 	private 		void		DoStateTransitions				( )	
 	{
 		var prevNode		= _mainLineActive; 
