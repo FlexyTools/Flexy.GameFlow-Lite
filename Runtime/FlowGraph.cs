@@ -90,8 +90,8 @@ public class FlowGraph
 			if (iter == _root) 
 				break;
 
-			var toRemove= iter;
-			iter		= iter.Back!;
+			var toRemove	= iter;
+			iter			= iter.Back!;
 			
 			if (toRemove.FirstChild != null)
 				RemoveNodesUpTo( toRemove.FirstChild.GetLastSibling(), toRemove );
@@ -99,23 +99,14 @@ public class FlowGraph
 			if (toRemove == _mainLineTip)
 				_mainLineTip  = iter;
 			
-			var b = toRemove.Back;
-			var f = toRemove.Forward;
-			b.Forward = f;
+			if (toRemove.Back != null)		toRemove.Back.Forward = toRemove.Forward;
+			if (toRemove.Forward != null)	toRemove.Forward.Back = toRemove.Back;
 			
-			if (b.FirstChild == toRemove)
-				b.FirstChild = toRemove.NextSibling;
+			if (toRemove.Parent.FirstChild == toRemove)
+				toRemove.Parent.FirstChild = toRemove.NextSibling;
 			
-			if (b.NextSibling == toRemove)
-				b.NextSibling = toRemove.NextSibling;
-			
-			if (f is not null)
-			{
-				f.Back = b;
-				
-				if (f.PrevSibling == toRemove)
-					f.PrevSibling = toRemove.PrevSibling;
-			}
+			if (toRemove.PrevSibling != null) toRemove.PrevSibling.NextSibling = toRemove.NextSibling;
+			if (toRemove.NextSibling != null) toRemove.NextSibling.PrevSibling = toRemove.PrevSibling;
 		}
 
 		if (iter == null) 
@@ -147,10 +138,11 @@ public class FlowGraph
 		if (stateInstanceOrPrefab is GameStage gs)
 		{
 			parent = _root;
+			isLocked = true;
 			
 			if (!state)
 			{
-				var activeSelf	= stateInstanceOrPrefab.gameObject.activeSelf;
+				var activeSelf = stateInstanceOrPrefab.gameObject.activeSelf;
 				stateInstanceOrPrefab.gameObject.SetActive( false );
 				state = (State)UnityEngine.Object.Instantiate( stateInstanceOrPrefab, spawnIn.IsValid() ? spawnIn : Service.gameObject.scene );
 				state.transform.SetSiblingIndex(0);
