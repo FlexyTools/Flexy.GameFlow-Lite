@@ -248,16 +248,20 @@ public class FlowGraph
 
 			closingBranchNode = closingBranchNode.Parent;
 			
-			if (closingBranchNode.FirstChild == null)
+			if (!isMoveForward && closingBranchNode.FirstChild == null)
 				closingBranchNode.State.DoLastChildHide();
 		}
 		
 		var openingBranchNode = commonParent.FirstChild.GetLastSibling();
+		
+		if (openingBranchNode == null)
+			_mainLineActive = commonParent;
+		
 		while (openingBranchNode != null)
 		{
 			_mainLineActive = openingBranchNode;
 		
-			if (openingBranchNode.Parent.FirstChild.NextSibling == null)
+			if (isMoveForward && openingBranchNode.Parent.FirstChild.NextSibling == null)
 				openingBranchNode.Parent.State.DoFirstChildShow();
 		
 			try{ NodeStateShow( openingBranchNode, isMoveForward );		} catch (Exception ex) { Debug.LogException( ex ); }

@@ -63,12 +63,12 @@ namespace Flexy.GameFlow
 		
 		internal			void	DoFirstChildShow( )	
 		{
-			try						{ OnHide( ); }
+			try						{ OnBeforeFirstChildShow(); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
 		internal			void	DoLastChildHide	( )	
 		{
-			try						{ OnHide( ); }
+			try						{ OnAfterLastChildHide(); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
 		
@@ -77,8 +77,8 @@ namespace Flexy.GameFlow
 		protected virtual	void	OnBackShow		( )	{ }
 		protected virtual	void	OnHide			( )	{ }
 		
-		protected virtual	void	OnFirstChildShow( )	{ }
-		protected virtual	void	OnLastChildHide	( )	{ }
+		protected virtual	void	OnBeforeFirstChildShow	( )	{ }
+		protected virtual	void	OnAfterLastChildHide	( )	{ }
 		
 		[Callable] public	void	Close			( )	
 		{
