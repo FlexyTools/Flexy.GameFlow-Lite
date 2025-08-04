@@ -44,11 +44,13 @@ namespace Flexy.GameFlow
 		}
 		internal			void	DoFwdHide		( )	
 		{
-			OnFwdHide( );
+			try						{ OnFwdHide( ); }
+			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
 		internal			void	DoBackShow		( )	
 		{
-			OnBackShow( );
+			try						{ OnBackShow( ); }
+			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
 		internal			void	DoHide			( )	
 		{
@@ -59,10 +61,24 @@ namespace Flexy.GameFlow
 			_node = null;
 		}
 		
+		internal			void	DoFirstChildShow( )	
+		{
+			try						{ OnHide( ); }
+			catch ( Exception ex )	{ Debug.LogException( ex ); }
+		}
+		internal			void	DoLastChildHide	( )	
+		{
+			try						{ OnHide( ); }
+			catch ( Exception ex )	{ Debug.LogException( ex ); }
+		}
+		
 		protected virtual	void	OnShow			( )	{ }
 		protected virtual	void	OnFwdHide		( )	{ }
 		protected virtual	void	OnBackShow		( )	{ }
 		protected virtual	void	OnHide			( )	{ }
+		
+		protected virtual	void	OnFirstChildShow( )	{ }
+		protected virtual	void	OnLastChildHide	( )	{ }
 		
 		[Callable] public	void	Close			( )	
 		{

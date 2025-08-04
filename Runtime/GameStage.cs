@@ -54,6 +54,11 @@
 			_node.Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node );
 			return Handle;
 		}
+		[Callable] public	void		Close				( )										
+		{
+			CloseAllStates();
+			_node.Close();
+		}
 		
 		public		void				MoveToLoadedScene	( Scene loadedScene )		
 		{

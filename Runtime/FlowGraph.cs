@@ -93,6 +93,9 @@ public class FlowGraph
 			var toRemove= iter;
 			iter		= iter.Back!;
 			
+			if (toRemove.FirstChild != null)
+				RemoveNodesUpTo( toRemove.FirstChild.GetLastSibling(), toRemove );
+			
 			if (toRemove == _mainLineTip)
 				_mainLineTip  = iter;
 			
@@ -244,12 +247,18 @@ public class FlowGraph
 			try{ NodeStateHide( closingBranchNode, isMoveForward );		} catch (Exception ex) { Debug.LogException( ex ); }
 
 			closingBranchNode = closingBranchNode.Parent;
+			
+			if (closingBranchNode.FirstChild == null)
+				closingBranchNode.State.DoLastChildHide();
 		}
 		
 		var openingBranchNode = commonParent.FirstChild.GetLastSibling();
 		while (openingBranchNode != null)
 		{
 			_mainLineActive = openingBranchNode;
+		
+			if (openingBranchNode.Parent.FirstChild.NextSibling == null)
+				openingBranchNode.Parent.State.DoFirstChildShow();
 		
 			try{ NodeStateShow( openingBranchNode, isMoveForward );		} catch (Exception ex) { Debug.LogException( ex ); }
 			try{ openingBranchNode.State.gameObject.SetActive( true );	} catch (Exception ex) { Debug.LogException( ex ); }
@@ -261,23 +270,14 @@ public class FlowGraph
 
 		static FlowNode	FindNearestCommonParent	( FlowNode a, FlowNode b )
 		{
-			var parents1 = new HashSet<FlowNode>();
-			var current = a;
+			var aSet = new HashSet<FlowNode>();
 
-			while (current != null)
-			{
-				parents1.Add(current);
-				current = current.Parent;
-			}
+			for ( ; a != null; a = a.Parent)
+				aSet.Add( a );
 
-			current = b;
-			while (current != null)
-			{
-				if (parents1.Contains(current))
-					return current;
-
-				current = current.Parent;
-			}
+			for ( ; b != null; b = b.Parent)
+				if (aSet.Contains( b ))
+					return b;
 
 			throw new InvalidOperationException("Graph broken, can not find common parent, it must be at least one common parent -> Root of the graph ");
 		}
