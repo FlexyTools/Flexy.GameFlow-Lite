@@ -6,6 +6,8 @@
 		[SerializeField] AssetRef<State>	_mainStateRef;
 		[SerializeField] Transform			_statesContainer;
 
+		internal readonly	Dictionary<AssetRef<State>, State>	_stateInstances	= new( 32 );
+
 		public		GameFlowService		Service				{get; private set;}
 		public		GameContext			Context				{get; private set;}
 		

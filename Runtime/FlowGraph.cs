@@ -128,7 +128,12 @@ public class FlowGraph
 	}
 	public		FlowNode		SpawnStateAndNode		( AssetRef<State> stateRef, Object openParams, State callSource, FlowNode? parent, Boolean isLocked,  Scene spawnIn )
 	{
-		_stateInstances.TryGetValue( stateRef, out var state );
+		var state = default(State);
+		var instances = callSource?.GameStage?._stateInstances;
+		instances?.TryGetValue( stateRef, out state );
+
+		if (!state)
+			_stateInstances.TryGetValue( stateRef, out state );
 		
 		var stateInstanceOrPrefab = state;
 		
@@ -137,6 +142,7 @@ public class FlowGraph
 		
 		if (stateInstanceOrPrefab is GameStage gs)
 		{
+			instances = _stateInstances;
 			parent = _root;
 			isLocked = true;
 			
@@ -170,7 +176,7 @@ public class FlowGraph
 			}
 		}
 
-		_stateInstances[stateRef] = state;
+		instances[stateRef] = state;
 		state.name = state.name.Replace( "(Clone)", "" );
 		state.PrefabRef = stateRef;
 		
