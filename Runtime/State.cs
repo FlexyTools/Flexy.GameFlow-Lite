@@ -38,8 +38,9 @@ namespace Flexy.GameFlow
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 			
 			if ( ReadyForBind )
-				RebindAllHierarchy ( );
-			
+				try						{ RebindAllHierarchy ( ); }
+				catch ( Exception ex )	{ Debug.LogException( ex ); }
+				
 			_showing.Raise( this );
 		}
 		internal			void	DoFwdHide			( )	
@@ -115,10 +116,13 @@ namespace Flexy.GameFlow
 	
 	public readonly record struct StateHandle( FlowNode Node )
 	{
-		internal	FlowNode	Node		{get;}			= Node; 
+		public		FlowNode	Node		{get;} = Node; 
 		
 		public 		Boolean 	IsValid		=> Node.IsValid;
 		public		State		State		=> Node.State;
+
+		public		Boolean		IsOpened	=> Node?.IsOpened ?? false;
+		public		Boolean		IsShowed	=> Node?.IsShowed ?? false;
 
 		public			StateHandle	Close		( ) => !IsValid ? default : Node.Close();
 		public override	String		ToString	( ) => $"StateHandle {Node.State}";
