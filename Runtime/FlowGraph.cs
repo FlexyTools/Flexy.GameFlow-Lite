@@ -161,10 +161,10 @@ public class FlowGraph
 			{
 				var stage = !callSource ? (GameStage)_root.FirstChild.GetLastSibling().State : callSource.GameStage;
 				parent = stage.Node;
-		
-				if( state == stage.MainState )	
-					return stage.OpenMainState(openParams).Node;		
 			}
+			
+			if (parent.State is GameStage gs2 && gs2.MainStateRef == stateRef && gs2.MainState != null)
+				return gs2.OpenMainState(openParams).Node;		
 			
 			if (!state)
 			{
