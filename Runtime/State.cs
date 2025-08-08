@@ -17,17 +17,7 @@ namespace Flexy.GameFlow
 		public		Boolean				IsOpened	=> _node?.IsOpened ?? false;
 		public		Boolean				IsShowed	=> _node?.IsShowed ?? false;
 		
-		public		GameStage			GameStage	
-		{
-			get
-			{
-				for (var current = _node; current != null; current = current.Parent)
-					if (current.State is GameStage gs)
-						return gs;
-						
-				return null;
-			}
-		}
+		public		GameStage			GameStage	=> _node.GameStageNode.State as GameStage;
 		
 		protected internal virtual	Boolean		TryGoBack				( )	=> !_node.IsLocked;
 		protected internal virtual	Transform	GetSubStatesContainer	( ) => null;

@@ -22,6 +22,18 @@ public class FlowNode
 	public	Boolean		IsOpened		=> IsValid;
 	public	Boolean		IsShowed		=> IsOpened && State.gameObject.activeInHierarchy;
 
+	public	FlowNode	GameStageNode	
+	{
+		get
+		{
+			for (var current = this; current != null; current = current.Parent)
+				if (current.State is GameStage gs)
+					return current;
+						
+			return null;
+		}
+	}
+
 	public override	String	ToString		( )	
 	{
 		return $"{Uid:D3} {(IsShowed ? "■ " : "□ ")} {State.name.Replace( "State", "", StringComparison.OrdinalIgnoreCase ).Trim('_')} {(OpenParams != null ? "op:" + OpenParams : "")}";

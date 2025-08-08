@@ -157,11 +157,7 @@ public class FlowGraph
 		}
 		else
 		{
-			if (parent == null)
-			{
-				var stage = !callSource ? (GameStage)_root.FirstChild.GetLastSibling().State : callSource.GameStage;
-				parent = stage.Node;
-			}
+			parent ??= callSource ? callSource.GameStage._node : _root.FirstChild.GetLastSibling();
 			
 			if (parent.State is GameStage gs2 && gs2.MainStateRef == stateRef && gs2.MainState != null)
 				return gs2.OpenMainState(openParams).Node;		
@@ -174,6 +170,9 @@ public class FlowGraph
 				state = UnityEngine.Object.Instantiate( stateInstanceOrPrefab, stateContainer );
 				stateInstanceOrPrefab.gameObject.SetActive( activeSelf );
 			}
+			
+			if (instances == null)
+				instances = ((GameStage)parent.GameStageNode.State)._stateInstances;
 		}
 
 		instances[stateRef] = state;
