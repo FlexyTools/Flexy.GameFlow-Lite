@@ -8,7 +8,7 @@
 
 		internal readonly	Dictionary<AssetRef<State>, State>	_stateInstances	= new( 32 );
 
-		public		GameFlowService		Service				{get; private set;}
+		public		Service_GameFlow		Service				{get; private set;}
 		public		GameContext			Context				{get; private set;}
 		
 		public		State				CurrentState		=> _node.Graph.MainLineTip.State;
@@ -21,7 +21,7 @@
 		
 		public		Transform			StatesContainer		=> _statesContainer;
 
-		public		void				Setup				( GameFlowService service, GameContext? parentContext )	
+		public		void				Setup				( Service_GameFlow service, GameContext? parentContext )	
 		{
 			Service = service;
 		

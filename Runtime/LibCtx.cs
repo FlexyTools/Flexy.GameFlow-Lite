@@ -2,7 +2,7 @@
 
 public record struct LibCtx ( State Src )
 {
-	public GameFlowService	Service			=> Src.Node.Graph.Service;
+	public Service_GameFlow	Service			=> Src.Node.Graph.Service;
 
 	public State.Opener		GetByUid		( String id )					=> Service.GetOpener_FromId( id, Src );
 	public State.Opener		GetState<T>		( )	where T: State				=> Service.GetOpener_FromStateType<T>( Src );

@@ -2,7 +2,7 @@ namespace Flexy.GameFlow;
 
 public class FlowGraph
 {
-	public FlowGraph	( GameFlowService service, AssetRef<State> rootStateRef )
+	public FlowGraph	( Service_GameFlow service, AssetRef<State> rootStateRef )
 	{
 		_service = service;
 		_uidNext = 0;
@@ -39,7 +39,7 @@ public class FlowGraph
 		SwitchStatesAsyncInfiniteLoop().Forget();
 	}
 
-	private				GameFlowService						_service;
+	private				Service_GameFlow						_service;
 	private				FlowNode							_root;
 	private				FlowNode							_mainLineTip		= null!;
 	private				FlowNode							_mainLineActive		= null!;
@@ -48,7 +48,7 @@ public class FlowGraph
 	private		Int32			_uidNext = 1;
 	private		Boolean			_doTransition;
 
-	public		GameFlowService	Service					=> _service;
+	public		Service_GameFlow	Service					=> _service;
 	public		FlowNode		Root					=> _root;
 
 	public		FlowNode		MainLineActive			=> _mainLineActive;

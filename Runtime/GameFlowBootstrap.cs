@@ -70,7 +70,7 @@ namespace Flexy.GameFlow
 			}
 			#endif
 
-			var service		= gctx.GetService<GameFlowService>( );
+			var service		= gctx.GetService<Service_GameFlow>( );
 
             if (_statesToOpen.Length > 1)
 	            foreach (var state in _statesToOpen[..^1])
