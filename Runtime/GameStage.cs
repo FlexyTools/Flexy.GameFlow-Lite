@@ -8,11 +8,11 @@
 
 		internal readonly	Dictionary<AssetRef<State>, State>	_stateInstances	= new( 32 );
 
-		public		Service_GameFlow		Service				{get; private set;}
+		public		Service_GameFlow	Service				{get; private set;}
 		public		GameContext			Context				{get; private set;}
 		
-		public		State				CurrentState		=> _node.Graph.MainLineTip.State;
-		public		State				ActiveState			=> _node.Graph.MainLineActive.State;
+		public		State				CurrentState		=> Graph.MainLineTip.State;
+		public		State				ActiveState			=> Graph.MainLineActive.State;
 		public		Boolean				AtStageRoot			=> _node.IsShowed;
 
 		public		AssetRef<State>		MainStateRef		=> _mainStateRef;
@@ -38,14 +38,17 @@
 		}
 		public		StateHandle			OpenMainState		( Object openParams = null )	
 		{
+			if (_mainStateRef.IsNone)
+				return default;
+		
 			Debug.Log( $"[GameStage] {name} => Open Main State: {Service.GetRefTypeName(_mainStateRef)}" );
 		
 			if( _node.FirstChild == null )
 				// main substate never was opened yet so just open it
-				return _node.Graph.Open( _mainStateRef, this, openParams, parent:_node, isLocked:true );
+				return Graph.Open( _mainStateRef, this, openParams, parent:_node, isLocked:true );
 			
 			// loader is somewhere in history so just return to it
-			_node.Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node.FirstChild, openParams );
+			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node.FirstChild, openParams );
 			return _node.FirstChild.Handle;
 		}
 		public		StateHandle			CloseAllStates		( )								
@@ -53,10 +56,10 @@
 			if( _node.FirstChild == null )
 				return Handle;
 		
-			_node.Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node );
+			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node );
 			return Handle;
 		}
-		[Callable] public	void		Close				( )										
+		[Callable] public	void		Close				( )								
 		{
 			CloseAllStates();
 			_node.Close();
@@ -69,7 +72,7 @@
 		}
 		public		void				MoveToServiceScene	( )							
 		{
-			SceneManager.MoveGameObjectToScene( gameObject, _node.Graph.Service.gameObject.scene );
+			SceneManager.MoveGameObjectToScene( gameObject, Graph.Service.gameObject.scene );
 		}
 		
 		protected override				void		OnShow					( ) => OpenMainState();
@@ -77,7 +80,7 @@
 
 #if UNITY_EDITOR
 		[RuntimeInspectorGui( Repaint = true )]
-		internal void DrawRuntimeUI( ) => _node.Graph.DrawRuntimeUI();
+		internal void DrawRuntimeUI( ) => Graph.DrawRuntimeUI();
 #endif
 	}
 }
