@@ -7,9 +7,8 @@ namespace Flexy.GameFlow
 		[FormerlySerializedAs("_lib")] 
 		[SerializeField]	FlowLibrary		_rootFlowLibrary;
 		[SerializeField]	AssetRef<State> _rootStateRef;
-		[SerializeField]	EBackInputHandling	_backInputHandling = EBackInputHandling.OldInputManager;
 		#if UNITY_INPUT_SYSTEM
-		[SerializeField]	UnityEngine.InputSystem.InputActionReference	_backInputAction;
+		[SerializeField]	UnityEngine.InputSystem.InputActionReference	_backInputActionRef;
 		#endif
 
 		private readonly	Dictionary<String, AssetRef<State>>	_statesDict = new ( 256 );
@@ -25,22 +24,10 @@ namespace Flexy.GameFlow
 		}
 		protected virtual	void			Update				( )					
 		{
-	        // Check if Back (esc or equivalent on other platforms) was pressed this frame
-	        if (_backInputHandling == EBackInputHandling.OldInputManager)
-		    {
-		        if (Input.GetKeyDown( KeyCode.Escape ))
-			        Graph.GoBack();
-			}
-	        else if (_backInputHandling == EBackInputHandling.NewInputSystem)
-			{
-				#if UNITY_INPUT_SYSTEM
-				if (_backInputAction.ToInputAction().WasPressedThisFrame())
-					MainStateHistory.GoBack();
-				#else
-				Debug.LogError( "Input System Package is not enabled in project" );
-				#endif
-				
-			}
+			#if UNITY_INPUT_SYSTEM
+			if (_backInputActionRef?.ToInputAction().WasPressedThisFrame())
+				Graph.GoBack();
+			#endif
 		}
 		
 		public			State.Opener		GetOpener_FromId			( String croppedOrFullId, State src )	
@@ -101,15 +88,8 @@ namespace Flexy.GameFlow
 			return default;
 		}
 		
-		private enum EBackInputHandling
-		{
-			Disabled,
-			OldInputManager,
-			NewInputSystem
-		}
-		
 		#if UNITY_EDITOR
-		[RuntimeInspectorUI( Repaint = true)]
+		[RuntimeInspectorGui( Repaint = true )]
 		private void DrawRuntimeUI( )
 		{
 			if (!Application.isPlaying)

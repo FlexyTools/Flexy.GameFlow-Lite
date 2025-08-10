@@ -6,11 +6,14 @@ namespace Flexy.GameFlow
 		[SerializeField] FlexyEvent		_showing;
 		[SerializeField] FlexyEvent		_hiding;
 		
+		internal	FlowGraph			_graph;
 		internal	FlowNode			_node;
+		internal	AssetRef<State>		_prefabRef;
 		
-		public		AssetRef<State>		PrefabRef	{get; internal set;}
-		
+		public		FlowGraph			Graph		=> _graph;
 		public		FlowNode			Node		=> _node;
+		public		AssetRef<State>		PrefabRef	=> _prefabRef;
+		
 		public		Object				OpenParams	=> _node.OpenParams;
 		public		StateHandle			Handle		=> new(_node);
 		

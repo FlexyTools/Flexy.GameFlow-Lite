@@ -76,7 +76,7 @@
 		protected internal override		Transform	GetSubStatesContainer	( ) => _statesContainer;
 
 #if UNITY_EDITOR
-		[RuntimeInspectorUI( Repaint = true )]
+		[RuntimeInspectorGui( Repaint = true )]
 		internal void DrawRuntimeUI( ) => _node.Graph.DrawRuntimeUI();
 #endif
 	}

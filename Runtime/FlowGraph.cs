@@ -18,7 +18,8 @@ public class FlowGraph
 			statePrefab.gameObject.SetActive( activeSelf );
 		
 			state.name = "[GS] " + state.name.Replace( "(Clone)", "" );
-			state.PrefabRef = rootStateRef;
+			state._prefabRef = rootStateRef;
+			state._graph = this;
 		
 			_root = new FlowNode
 			{
@@ -39,7 +40,7 @@ public class FlowGraph
 		SwitchStatesAsyncInfiniteLoop().Forget();
 	}
 
-	private				Service_GameFlow						_service;
+	private				Service_GameFlow					_service;
 	private				FlowNode							_root;
 	private				FlowNode							_mainLineTip		= null!;
 	private				FlowNode							_mainLineActive		= null!;
@@ -48,12 +49,16 @@ public class FlowGraph
 	private		Int32			_uidNext = 1;
 	private		Boolean			_doTransition;
 
-	public		Service_GameFlow	Service					=> _service;
-	public		FlowNode		Root					=> _root;
+	public		Service_GameFlow Service				=> _service;
+	public		FlowNode		 Root					=> _root;
 
 	public		FlowNode		MainLineActive			=> _mainLineActive;
 	public		FlowNode		MainLineTip				=> _mainLineTip;
 
+	public		StateHandle		Open					( AssetRef<GameStage> stageRef, GameContext parentContext = null, Object openParams = null, Scene spawnIn = default )
+	{
+		return Open( new AssetRef<State>(stageRef.Uid, stageRef.SubId), null, openParams, null, true, spawnIn, parentContext );	
+	}
 	public		StateHandle		Open					( AssetRef<State> stateRef, State callSource, Object openParams = null, FlowNode? parent = null, Boolean isLocked = false, Scene spawnIn = default, GameContext parentContext = null )
 	{
 		var newNode			= SpawnStateAndNode( stateRef, openParams, callSource, parent, isLocked, spawnIn );
@@ -150,9 +155,12 @@ public class FlowGraph
 			{
 				var activeSelf = stateInstanceOrPrefab.gameObject.activeSelf;
 				stateInstanceOrPrefab.gameObject.SetActive( false );
+				
 				state = (State)UnityEngine.Object.Instantiate( stateInstanceOrPrefab, spawnIn.IsValid() ? spawnIn : Service.gameObject.scene );
 				state.transform.SetSiblingIndex(0);
+				
 				stateInstanceOrPrefab.gameObject.SetActive( activeSelf );
+				stateInstanceOrPrefab.gameObject.ClearEditorDirty();
 			}
 		}
 		else
@@ -166,9 +174,12 @@ public class FlowGraph
 			{
 				var activeSelf	= stateInstanceOrPrefab.gameObject.activeSelf;
 				stateInstanceOrPrefab.gameObject.SetActive( false );
+				
 				var stateContainer = parent.State.GetSubStatesContainer();
 				state = UnityEngine.Object.Instantiate( stateInstanceOrPrefab, stateContainer );
+				
 				stateInstanceOrPrefab.gameObject.SetActive( activeSelf );
+				stateInstanceOrPrefab.gameObject.ClearEditorDirty();
 			}
 			
 			if (instances == null)
@@ -177,7 +188,8 @@ public class FlowGraph
 
 		instances[stateRef] = state;
 		state.name = state.name.Replace( "(Clone)", "" );
-		state.PrefabRef = stateRef;
+		state._prefabRef = stateRef;
+		state._graph = this;
 		
 		var nextNode = new FlowNode
 		{

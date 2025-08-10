@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Reflection;
-using UnityEngine.SceneManagement;
 
 namespace Flexy.GameFlow
 {
@@ -8,11 +7,13 @@ namespace Flexy.GameFlow
 	public class GameFlowBootstrap : MonoBehaviour
 	{
 		[SerializeField]	protected GameContext			_globalContext;
-        [SerializeField]	protected AssetRef<State>[]		_statesToOpen;
+        [FormerlySerializedAs("_statesToOpen")] 
+        [SerializeField]	protected AssetRef<State>[]		_bootstrapContext;
+        [SerializeField]	protected AssetRef<State>		_bootstrapTarget;
 
 		private static GameFlowBootstrap _ref;
 
-		private void Awake()
+		private void Awake( )
 		{
 			// Almost very first Awake in scene thanks to DefaultExecutionOrder
 			var isDuplicate = (Boolean)_ref;
@@ -26,9 +27,9 @@ namespace Flexy.GameFlow
 			_ref = this;
 			DontDestroyOnLoad( gameObject );
 			
-			Debug.Log( $"[GameFlowBootstrap] [Frame:{Time.frameCount}] ----------- ===========   Game GameFlowBootstrap Begin   =========== -----------" );
+			Debug.Log( $"[GameFlowBootstrap] [Frame:{Time.frameCount}] ----------- ===========   GameFlow Bootstrap Begin   =========== -----------" );
 			Boot();
-			Debug.Log( $"[GameFlowBootstrap] [Frame:{Time.frameCount}] ----------- ===========   Game GameFlowBootstrap End   =========== -----------" );
+			Debug.Log( $"[GameFlowBootstrap] [Frame:{Time.frameCount}] ----------- ===========   GameFlow Bootstrap End   =========== -----------" );
 		}
 
 		protected virtual void Boot( )
@@ -36,6 +37,7 @@ namespace Flexy.GameFlow
 			_globalContext.gameObject.SetActive( false );
 			var gctx	= Instantiate( _globalContext );
 			_globalContext.gameObject.SetActive( true );
+			_globalContext.gameObject.ClearEditorDirty();
 			
 			gctx.name	= _globalContext.name;
 
@@ -53,31 +55,28 @@ namespace Flexy.GameFlow
 
 			#if UNITY_EDITOR
 			{
-				if (_statesToOpen.Length > 0 && Core.Editor.TestCaseDropdown.TryGetTestCaseToLaunch( "State", out var testCaseName ))
+				if (_bootstrapContext.Length > 0 && Core.Editor.TestCaseDropdown.TryGetTestCaseToLaunch( "State", out var testCaseName ))
 				{
 					Debug.Log( "" );
 					Debug.Log( "" );
-					Debug.Log( $"GameState: TEST LAUNCH    -    {testCaseName}" );
+					Debug.Log( $"[GameFlowBootstrap] TEST LAUNCH    -    {testCaseName}" );
 					Debug.Log( "" );
 					Debug.Log( "" );
 
-					var stateToOpen = _statesToOpen[^1];
-
-					var wnd		= stateToOpen.LoadAssetSync();
-					var m		= wnd.GetType().GetMethod( testCaseName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance );
-					openParams	= m?.Invoke( wnd, null );
+					var state	= _bootstrapTarget.LoadAssetSync();
+					var m		= state.GetType().GetMethod( testCaseName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance );
+					openParams	= m?.Invoke( state, null );
 				}
 			}
 			#endif
 
 			var service		= gctx.GetService<Service_GameFlow>( );
 
-            if (_statesToOpen.Length > 1)
-	            foreach (var state in _statesToOpen[..^1])
-		            service.Graph.Open( state, null );
+            foreach (var state in _bootstrapContext)
+	            service.Graph.Open( state, null );
             
-            if (_statesToOpen.Length > 0)
-				service.Graph.Open( _statesToOpen[^1], null, openParams );
+            if (!_bootstrapTarget.IsNone)
+				service.Graph.Open( _bootstrapTarget, null, openParams );
 
 			// Show first state synchronously
 			service.Graph.TransitionNow();
@@ -96,7 +95,7 @@ namespace Flexy.GameFlow
 				var rootGos			= activeScene.GetRootGameObjects( );
 				var bootstraps		= rootGos.Select( go => go.GetComponent<GameFlowBootstrap>() ).Where( c => c is not null );
 				var bootstrap		= bootstraps.FirstOrDefault();
-				var subStateToOpen	= bootstrap?._statesToOpen[^1] ?? default; 
+				var subStateToOpen	= bootstrap?._bootstrapTarget ?? default; 
 
 				if ( !bootstrap || subStateToOpen.IsNone )
 					yield break;
