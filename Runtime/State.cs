@@ -1,7 +1,7 @@
 ﻿
 namespace Flexy.GameFlow
 {
-	public abstract class State : APropertyBindableBehaviour
+	public abstract class State : BindableBehaviour
 	{
 		[SerializeField] FlexyEvent		_showing;
 		[SerializeField] FlexyEvent		_hiding;
@@ -90,7 +90,7 @@ namespace Flexy.GameFlow
 
 		public				void	RebindAllHierarchy	( )	
 		{
-			foreach ( var bb in gameObject.GetComponentsInChildren<APropertyBindableBehaviour>() )
+			foreach ( var bb in gameObject.GetComponentsInChildren<BindableBehaviour>() )
 			{
 				if ( bb.gameObject == gameObject )	bb.MakeBindReadyAndRebindAll();
 				else								bb.RebindAll();

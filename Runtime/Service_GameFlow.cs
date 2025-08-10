@@ -2,7 +2,7 @@
 
 namespace Flexy.GameFlow
 {
-	public class Service_GameFlow : APropertyBindableBehaviour, IService
+	public class Service_GameFlow : BindableBehaviour, IService
 	{
 		[FormerlySerializedAs("_lib")] 
 		[SerializeField]	FlowLibrary		_rootFlowLibrary;
