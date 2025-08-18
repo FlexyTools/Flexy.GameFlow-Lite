@@ -10,7 +10,7 @@ internal static class LiteTransitions
 		if (prevNode == nextNode)
 			return;
 	
-		var isMoveForward	= nextNode.Uid > prevNode.Uid;
+		var isMoveForward	= IsForward(prevNode, nextNode);
 		var commonParent	= FindNearestCommonParent( prevNode, nextNode );
 
 		var closingBranchNode = prevNode;
@@ -44,6 +44,16 @@ internal static class LiteTransitions
 		}
 	}
 	
+	private static	Boolean		IsForward				( FlowNode prev, FlowNode next )						
+	{
+		for (var iter = prev.Forward; iter != null; iter = iter.Forward)
+		{
+			if (iter == next)
+				return true;
+		}
+		
+		return false;
+	}
 	private static	FlowNode	FindNearestCommonParent	( FlowNode a, FlowNode b )								
 	{
 		var aSet = new HashSet<FlowNode>();

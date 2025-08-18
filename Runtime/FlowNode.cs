@@ -4,7 +4,6 @@ public class FlowNode
 {
 	public	FlowGraph	Graph			{get; internal set;}
 
-	public	Int32		Uid				{get; internal set;}
 	public	Boolean		WasShown		{get; internal set;} // used to call OnShow in case first show will be BackShow
 	public	Boolean		IsLocked		{get; internal set;}
 	public	Object		OpenParams		{get; internal set;}
@@ -36,7 +35,7 @@ public class FlowNode
 
 	public override	String	ToString		( )	
 	{
-		return $"{Uid:D3} {(IsShowed ? "■ " : "□ ")} {State.name.Replace( "State", "", StringComparison.OrdinalIgnoreCase ).Trim('_')} {(OpenParams != null ? "op:" + OpenParams : "")}";
+		return $"{(IsShowed ? "■ " : "□ ")} {State.name.Replace( "State", "", StringComparison.OrdinalIgnoreCase ).Trim('_')} {(OpenParams != null ? "op:" + OpenParams : "")}";
 	}
 
 	public	StateHandle		Close			( )	

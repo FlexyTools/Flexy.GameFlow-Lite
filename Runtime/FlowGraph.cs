@@ -5,7 +5,6 @@ public class FlowGraph
 	public FlowGraph	( Service_GameFlow service, AssetRef<State> rootStateRef )
 	{
 		_service = service;
-		_uidNext = 0;
 		
 		// Spawn Root State and node
 		{
@@ -24,7 +23,6 @@ public class FlowGraph
 			_root = new FlowNode
 			{
 				Graph		= this,
-				Uid			= _uidNext++,
 				State		= state, 
 				OpenParams	= null, 
 				IsLocked	= true,
@@ -46,7 +44,6 @@ public class FlowGraph
 	private				FlowNode							_mainLineActive		= null!;
 	private readonly	Dictionary<AssetRef<State>, State>	_stateInstances		= new( 32 );
 
-	private		Int32			_uidNext = 1;
 	private		Boolean			_doTransition;
 
 	public		Service_GameFlow Service				=> _service;
@@ -194,7 +191,6 @@ public class FlowGraph
 		var nextNode = new FlowNode
 		{
 			Graph		= this,
-			Uid			= _uidNext++,
 			State		= state, 
 			OpenParams	= openParams, 
 			IsLocked	= isLocked,
@@ -257,7 +253,6 @@ public class FlowGraph
 		GUILayout.Space( 10 );
 		GUILayout.BeginHorizontal();
 		{
-			GUILayout.Label( $"{_root.Uid:D3}", GUILayout.Width(30) );
 			GUILayout.Label( $"{(_root.IsShowed ? "■" : "□")}", GUILayout.Width(20) );
 			GUILayout.Label( $"{_root.State.name.Replace( "State", "", StringComparison.OrdinalIgnoreCase ).Trim('_')}" );
 		}
@@ -271,7 +266,6 @@ public class FlowGraph
 				
 			GUILayout.BeginHorizontal();
 			GUILayout.Space( node.State is GameStage ? 10 : 26 );
-			GUILayout.Label( $"{node.Uid:D3}", GUILayout.Width(30) );
 			GUILayout.Label( $"{(node.IsShowed ? "■" : "□")}", GUILayout.Width(20) );
 			GUILayout.Label( $"{node.State.name.Replace( "State", "", StringComparison.OrdinalIgnoreCase ).Trim('_')} {(node.OpenParams != null ? "op:" + node.OpenParams : "")}" );
 			GUILayout.EndHorizontal();
