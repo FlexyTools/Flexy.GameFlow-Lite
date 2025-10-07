@@ -55,7 +55,7 @@ namespace Flexy.GameFlow
 
 			#if UNITY_EDITOR
 			{
-				if (_bootstrapContext.Length > 0 && Core.Editor.TestCaseDropdown.TryGetTestCaseToLaunch( "State", out var testCaseName ))
+				if (_bootstrapContext.Length > 0 && Core.Editor.ToolbarControls.TestCaseDropdown.TryGetTestCaseToLaunch( "State", out var testCaseName ))
 				{
 					Debug.Log( "" );
 					Debug.Log( "" );
@@ -87,7 +87,7 @@ namespace Flexy.GameFlow
 		[UnityEditor.InitializeOnLoad]
 		public static class BootstrapTestCasesProvider
 		{
-			static BootstrapTestCasesProvider( ) => Core.Editor.TestCaseDropdown.AddTestProvider( "State", GetTestRuns );
+			static BootstrapTestCasesProvider( ) => Core.Editor.ToolbarControls.TestCaseDropdown.AddTestProvider( "State", GetTestRuns );
 
 			private static IEnumerable<String> GetTestRuns( )
 			{

@@ -1,5 +1,4 @@
-﻿
-namespace Flexy.GameFlow
+﻿namespace Flexy.GameFlow
 {
 	public abstract class State : BindableBehaviour
 	{

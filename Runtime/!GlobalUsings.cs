@@ -3,9 +3,11 @@ global using System.Collections.Generic;
 
 global using Flexy.Core;
 global using Flexy.Core.Actions;
+global using Flexy.Core.Binding;
+global using Flexy.Core.Extensions;
+global using Flexy.Core.GameContexts;
 global using Flexy.AssetRefs;
 global using Flexy.AssetRefs.LoadExtensions;
-global using Flexy.Core.Binding;
 
 global using UnityEngine;
 global using UnityEngine.Serialization;
