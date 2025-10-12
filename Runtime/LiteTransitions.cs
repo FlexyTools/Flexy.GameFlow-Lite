@@ -88,7 +88,7 @@ internal static class LiteTransitions
 		
 		if( !nextWasShown && !isMoveForward )
 			try						{ state.DoShow( ); }
-			catch ( Exception ex )	{ Debug.LogException( ex );		}
+			catch ( Exception ex )	{ Debug.LogException( ex ); }
 
 		try
 		{
