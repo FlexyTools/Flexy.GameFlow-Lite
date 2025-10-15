@@ -1,6 +1,6 @@
 ﻿namespace Flexy.GameFlow
 {
-	public class GameStage: State
+	public class GameStage: State, IService
 	{
 		[FormerlySerializedAs("_rootStateRef")]
 		[SerializeField] AssetRef<State>	_mainStateRef;
@@ -8,7 +8,7 @@
 
 		internal readonly	Dictionary<AssetRef<State>, State>	_stateInstances	= new( 32 );
 
-		public		Service_GameFlow	Service				{get; private set;}
+		public		Service_GameFlow	Flow				{get; private set;}
 		public		GameContext			Context				{get; private set;}
 		
 		public		State				CurrentState		=> Graph.MainLineTip.State;
@@ -21,9 +21,11 @@
 		
 		public		Transform			StatesContainer		=> _statesContainer;
 
-		public		void				Setup				( Service_GameFlow service, GameContext? parentContext )	
+		public		void				Init				( Service_GameFlow flow, GameContext? parentContext )	
 		{
-			Service = service;
+			Debug.Log( $"[GameStage] {name} - Spawned", this );
+		
+			Flow = flow;
 		
 			var ctx = gameObject.GetComponent<GameContext>();
 
@@ -32,16 +34,21 @@
 				ctx = gameObject.AddComponent<GameContext>();
 		
 			ctx.SetParent( parentContext );
-			ctx.SetService( this );
 		
 			Context = ctx;
+			
+			// Force awake stage and all components on it
+			gameObject.SetActive(true);
+			gameObject.SetActive(false);
 		}
+		public		void				OrderedInit			( GameContext ctx) { }
+		
 		public		StateHandle			OpenMainState		( Object openParams = null )	
 		{
 			if (_mainStateRef.IsNone)
 				return default;
 		
-			Debug.Log( $"[GameStage] {name} => Open Main State: {Service.GetRefTypeName(_mainStateRef)}" );
+			Debug.Log( $"[GameStage] {name} => Open Main State: {Flow.GetRefTypeName(_mainStateRef)}" );
 		
 			if( _node.FirstChild == null )
 				// main substate never was opened yet so just open it

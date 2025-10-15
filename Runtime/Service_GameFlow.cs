@@ -25,7 +25,7 @@ namespace Flexy.GameFlow
 		protected virtual	void			Update				( )					
 		{
 			#if UNITY_INPUT_SYSTEM
-			if (_backInputActionRef?.ToInputAction().WasPressedThisFrame())
+			if (_backInputActionRef?.ToInputAction().WasPressedThisFrame() ?? false)
 				Graph.GoBack();
 			#endif
 		}

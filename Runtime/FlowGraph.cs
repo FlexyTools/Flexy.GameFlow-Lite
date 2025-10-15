@@ -61,7 +61,7 @@ public class FlowGraph
 		var newNode			= SpawnStateAndNode( stateRef, openParams, callSource, parent, isLocked, spawnIn );
 		
 		if (newNode.State is GameStage gs)
-			gs.Setup( _service, parentContext );
+			gs.Init( _service, parentContext );
 		
 		return newNode.Handle;
 	}

@@ -40,7 +40,7 @@ namespace Flexy.GameFlow
 			_globalContext.gameObject.ClearEditorDirty();
 			
 			gctx.name	= _globalContext.name;
-
+			
 			foreach ( var launchService in gameObject.GetComponents<MonoBehaviour>( ) )
 			{
 				if( launchService == this )
@@ -51,7 +51,7 @@ namespace Flexy.GameFlow
 			
 			gctx.gameObject.SetActive(true);
 
-			var openParams		= default(Object);
+			var openParams	= default(Object);
 
 			#if UNITY_EDITOR
 			{
@@ -70,16 +70,16 @@ namespace Flexy.GameFlow
 			}
 			#endif
 
-			var service		= gctx.GetService<Service_GameFlow>( );
+			var flow		= gctx.GetService<Service_GameFlow>()!;
 
             foreach (var state in _bootstrapContext)
-	            service.Graph.Open( state, null );
+	            flow.Graph.Open( state, null );
             
             if (!_bootstrapTarget.IsNone)
-				service.Graph.Open( _bootstrapTarget, null, openParams );
+	            flow.Graph.Open( _bootstrapTarget, null, openParams );
 
 			// Show first state synchronously
-			service.Graph.TransitionNow();
+			flow.Graph.TransitionNow();
 		}
 		
 
