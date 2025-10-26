@@ -20,7 +20,7 @@
 		public		StateHandle			MainHandle			=> _node.FirstChild?.Handle ?? default;
 		
 		public		Transform			StatesContainer		=> _statesContainer;
-
+		
 		public		void				Init				( Service_GameFlow flow, GameContext? parentContext )	
 		{
 			Debug.Log( $"[GameStage] {name} - Spawned", this );
@@ -50,7 +50,7 @@
 		
 			Debug.Log( $"[GameStage] {name} => Open Main State: {Flow.GetRefTypeName(_mainStateRef)}" );
 		
-			if( _node.FirstChild == null )
+			if (_node.FirstChild == null)
 				// main substate never was opened yet so just open it
 				return Graph.Open( _mainStateRef, this, openParams, parent:_node, isLocked:true );
 			
@@ -72,18 +72,24 @@
 			_node.Close();
 		}
 		
-		public		void				MoveToLoadedScene	( Scene loadedScene )		
+		public		void				MoveToLoadedScene	( Scene loadedScene )	
 		{
 			SceneManager.MoveGameObjectToScene( gameObject, loadedScene );
 			GameStage.transform.SetSiblingIndex(0);
 		}
-		public		void				MoveToServiceScene	( )							
+		public		void				MoveToServiceScene	( )						
 		{
 			SceneManager.MoveGameObjectToScene( gameObject, Graph.Service.gameObject.scene );
 		}
 		
-		protected override				void		OnShow					( ) => OpenMainState();
-		protected internal override		Transform	GetSubStatesContainer	( ) => _statesContainer;
+		protected override void			OnShow				( )						
+		{
+			if (Node.FirstChild == null) 
+				OpenMainState();
+		}
+		
+		protected internal override		AssetRef<State>		MainSubStateRef			=> _mainStateRef;
+		protected internal override		Transform			GetSubStatesContainer	( ) => _statesContainer;
 
 #if UNITY_EDITOR
 		[RuntimeInspectorGui( Repaint = true )]

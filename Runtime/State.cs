@@ -9,20 +9,22 @@
 		internal	FlowNode			_node;
 		internal	AssetRef<State>		_prefabRef;
 		
-		public		FlowGraph			Graph		=> _graph;
-		public		FlowNode			Node		=> _node;
-		public		AssetRef<State>		PrefabRef	=> _prefabRef;
+		public		FlowGraph			Graph			=> _graph;
+		public		FlowNode			Node			=> _node;
+		public		AssetRef<State>		PrefabRef		=> _prefabRef;
 		
-		public		Object				OpenParams	=> _node.OpenParams;
-		public		StateHandle			Handle		=> new(_node);
+		public		Object				OpenParams		=> _node.OpenParams;
+		public		StateHandle			Handle			=> new(_node);
 		
-		public		Boolean				IsOpened	=> _node?.IsOpened ?? false;
-		public		Boolean				IsShowed	=> _node?.IsShowed ?? false;
+		public		Boolean				IsOpened		=> _node?.IsOpened ?? false;
+		public		Boolean				IsShowed		=> _node?.IsShowed ?? false;
+		public		Boolean				AnySubStateOpened=> _node?.FirstChild != null;
 		
-		public		GameStage			GameStage	=> _node.GameStageNode.State as GameStage;
+		public		GameStage			GameStage		=> _node.GameStageNode.State as GameStage;
 		
-		protected internal virtual	Boolean		TryGoBack				( )	=> !_node.IsLocked;
-		protected internal virtual	Transform	GetSubStatesContainer	( ) => null;
+		protected internal virtual	AssetRef<State>		MainSubStateRef			=> default;
+		protected internal virtual	Boolean				TryGoBack				( )	=> !_node.IsLocked;
+		protected internal virtual	Transform			GetSubStatesContainer	( ) => null;
 		
 		internal			void	DoShow				( )	
 		{ 

@@ -16,8 +16,8 @@ internal static class LiteTransitions
 		var closingBranchNode = prevNode;
 		while (closingBranchNode != commonParent)
 		{
-			try{ closingBranchNode.State.gameObject.SetActive( false );	} catch (Exception ex) { Debug.LogException( ex ); }
-			try{ NodeStateHide( closingBranchNode, isMoveForward );		} catch (Exception ex) { Debug.LogException( ex ); }
+			try{ closingBranchNode.State.gameObject.SetActive(false);	} catch (Exception ex) { Debug.LogException(ex); }
+			try{ NodeStateHide(closingBranchNode, isMoveForward);		} catch (Exception ex) { Debug.LogException(ex); }
 
 			closingBranchNode = closingBranchNode.Parent;
 			
@@ -37,8 +37,8 @@ internal static class LiteTransitions
 			if (isMoveForward && openingBranchNode.Parent.FirstChild.NextSibling == null)
 				openingBranchNode.Parent.State.DoFirstChildShow();
 		
-			try{ NodeStateShow( openingBranchNode, isMoveForward );		} catch (Exception ex) { Debug.LogException( ex ); }
-			try{ openingBranchNode.State.gameObject.SetActive( true );	} catch (Exception ex) { Debug.LogException( ex ); }
+			try{ NodeStateShow( openingBranchNode, isMoveForward );		} catch (Exception ex) { Debug.LogException(ex); }
+			try{ openingBranchNode.State.gameObject.SetActive( true );	} catch (Exception ex) { Debug.LogException(ex); }
 			
 			openingBranchNode = openingBranchNode.FirstChild.GetLastSibling();
 		}
@@ -86,15 +86,15 @@ internal static class LiteTransitions
 			
 		var state = nextNode.State;
 		
-		if( !nextWasShown && !isMoveForward )
-			try						{ state.DoShow( ); }
-			catch ( Exception ex )	{ Debug.LogException( ex ); }
+		if (!nextWasShown && !isMoveForward)
+			try						{ state.DoShow(); }
+			catch (Exception ex)	{ Debug.LogException(ex); }
 
 		try
 		{
-			if( isMoveForward ) state.DoShow( );
-			else				state.DoBackShow( );
+			if (isMoveForward)	state.DoShow();
+			else				state.DoBackShow();
 		}
-		catch ( Exception ex ) { Debug.LogException( ex ); }
+		catch (Exception ex) { Debug.LogException(ex); }
 	}
 }

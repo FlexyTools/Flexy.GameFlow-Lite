@@ -128,7 +128,7 @@ public class FlowGraph
 		_doTransition = false;
 		DoStateTransitions();
 	}
-	public		FlowNode		SpawnStateAndNode		( AssetRef<State> stateRef, Object openParams, State callSource, FlowNode? parent, Boolean isLocked,  Scene spawnIn )
+	private		FlowNode		SpawnStateAndNode		( AssetRef<State> stateRef, Object openParams, State callSource, FlowNode? parent, Boolean isLocked, Scene spawnIn )
 	{
 		var state = default(State);
 		var instances = callSource?.GameStage?._stateInstances;
@@ -142,7 +142,7 @@ public class FlowGraph
 		if (!stateInstanceOrPrefab)
 			stateInstanceOrPrefab = stateRef.LoadAssetSync();
 		
-		if (stateInstanceOrPrefab is GameStage gs)
+		if (stateInstanceOrPrefab is GameStage _)
 		{
 			instances = _stateInstances;
 			parent = _root;
@@ -164,8 +164,22 @@ public class FlowGraph
 		{
 			parent ??= callSource ? callSource.GameStage._node : _root.FirstChild.GetLastSibling();
 			
-			if (parent.State is GameStage gs2 && gs2.MainStateRef == stateRef && gs2.MainState != null)
-				return gs2.OpenMainState(openParams).Node;		
+			// If we have main substate
+			if (!parent.MainSubStateRef.IsNone)
+			{
+				// Open main substate if it is not opened yet and we try to open other state
+				if (stateRef != parent.MainSubStateRef && parent.FirstChild == null)
+				{
+					SpawnStateAndNode(parent.MainSubStateRef, null, callSource, parent, isLocked, spawnIn);
+				}
+				
+				// Close all states up to main if it exists we try to open it
+				else if (stateRef == parent.MainSubStateRef && parent.FirstChild != null)
+				{
+					RemoveNodesUpTo( parent.FirstChild.GetLastSibling(), parent.FirstChild, openParams );
+					return parent.FirstChild;
+				}
+			}		
 			
 			if (!state)
 			{
@@ -190,13 +204,15 @@ public class FlowGraph
 		
 		var nextNode = new FlowNode
 		{
-			Graph		= this,
-			State		= state, 
-			OpenParams	= openParams, 
-			IsLocked	= isLocked,
+			Graph			= this,
+			StateRef		= stateRef,
+			MainSubStateRef	= state.MainSubStateRef,
+			State			= state, 
+			OpenParams		= openParams, 
+			IsLocked		= isLocked,
+			PrevSibling 	= parent.FirstChild.GetLastSibling()
 		};
-		
-		nextNode.PrevSibling = parent.FirstChild.GetLastSibling();
+
 		if (nextNode.PrevSibling != null)
 			nextNode.PrevSibling.NextSibling = nextNode;
 		
@@ -215,7 +231,7 @@ public class FlowGraph
 		return nextNode;
 	}
 	
-	public			void		ScheduleSwitchStates			( )	
+	private			void		ScheduleSwitchStates			( )	
 	{
 		_doTransition	= true;
 	}

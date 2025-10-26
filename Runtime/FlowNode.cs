@@ -2,26 +2,30 @@ namespace Flexy.GameFlow;
 
 public class FlowNode
 {
-	public	FlowGraph	Graph			{get; internal set;}
+	public	FlowGraph		Graph			{get; internal set;}
 
-	public	Boolean		WasShown		{get; internal set;} // used to call OnShow in case first show will be BackShow
-	public	Boolean		IsLocked		{get; internal set;}
-	public	Object		OpenParams		{get; internal set;}
-	public	State		State			{get; internal set;}
+	public	AssetRef<State>	StateRef		{get; internal set;}
+	public	AssetRef<State>	MainSubStateRef {get; internal set;}
+	public	State?			State			{get; internal set;} // View of logical node (can be unloaded)
 	
-	public	FlowNode?	PrevSibling		{get; internal set;}
-	public	FlowNode?	NextSibling		{get; internal set;}
-	public	FlowNode?	Back			{get; internal set;}
-	public	FlowNode?	Forward			{get; internal set;}
-	public	FlowNode?	Parent			{get; internal set;}
-	public	FlowNode?	FirstChild		{get; internal set;}
+	public	Boolean			WasShown		{get; internal set;} // used to call OnShow in case first show will be BackShow
+	public	Boolean			IsLocked		{get; internal set;} // locked nodes will not be closed on CloseAll (e.g. MainState Node)
+	public	Object?			OpenParams		{get; internal set;} // parameters state opened with
+	public	Object?			UserNodeData	{get; internal set;} // optional user data that will survive state unload and reload
 	
-	public	StateHandle	Handle			=> new(this);
-	public	Boolean		IsValid			=> Graph.Root == this || Back?.Forward == this;
-	public	Boolean		IsOpened		=> IsValid;
-	public	Boolean		IsShowed		=> IsOpened && State.gameObject.activeInHierarchy;
-
-	public	FlowNode	GameStageNode	
+	public	FlowNode?		PrevSibling		{get; internal set;}
+	public	FlowNode?		NextSibling		{get; internal set;}
+	public	FlowNode?		Back			{get; internal set;}
+	public	FlowNode?		Forward			{get; internal set;}
+	public	FlowNode?		Parent			{get; internal set;}
+	public	FlowNode?		FirstChild		{get; internal set;}
+	
+	public	StateHandle		Handle			=> new(this);
+	public	Boolean			IsValid			=> Graph.Root == this || Back?.Forward == this;
+	public	Boolean			IsOpened		=> IsValid;
+	public	Boolean			IsShowed		=> IsOpened && State && State.Node == this && State.gameObject.activeInHierarchy;
+	
+	public	FlowNode		GameStageNode	
 	{
 		get
 		{
