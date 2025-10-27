@@ -10,15 +10,7 @@
 		public		Service_GameFlow	Flow				{get; private set;}
 		public		GameContext			Context				{get; private set;}
 		
-		public		State				CurrentState		=> Graph.MainLineTip.State;
-		public		State				ActiveState			=> Graph.MainLineActive.State;
-		public		Boolean				AtStageRoot			=> _node.IsShowed;
-
-		public		AssetRef<State>		MainStateRef		=> _mainStateRef;
-		public		State				MainState			=> _node.FirstChild?.State;
-		public		StateHandle			MainHandle			=> _node.FirstChild?.Handle ?? default;
-		
-		public		Transform			StatesContainer		=> _statesContainer;
+		public		Boolean				AtStageRoot			=> _graph.MainLineActive.State == this;
 		
 		public		void				Init				( Service_GameFlow flow, GameContext? parentContext )	
 		{
@@ -41,22 +33,6 @@
 			gameObject.SetActive(false);
 		}
 		public		void				OrderedInit			( GameContext ctx) { }
-		
-		public		StateHandle			OpenMainState		( Object openParams = null )		
-		{
-			if (_mainStateRef.IsNone)
-				return default;
-		
-			Debug.Log( $"[GameStage] {name} => Open Main State: {Flow.GetRefTypeName(_mainStateRef)}" );
-		
-			if (_node.FirstChild == null)
-				// main substate never was opened yet so just open it
-				return Graph.Open( _mainStateRef, this, openParams, parent:_node, isLocked:true );
-			
-			// loader is somewhere in history so just return to it
-			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node.FirstChild, openParams );
-			return _node.FirstChild.Handle;
-		}
 		
 		public		void				MoveToLoadedScene	( Scene loadedScene )	
 		{

@@ -20,6 +20,8 @@
 		public		Boolean				IsShowed		=> _node?.IsShowed ?? false;
 		public		Boolean				AnySubStateOpened=> _node?.FirstChild != null;
 		
+		public		State				MainSubState	=> _node.FirstChild?.State;
+		public		StateHandle			MainSubHandle	=> _node.FirstChild?.Handle ?? default;
 		public		GameStage			GameStage		=> _node.GameStageNode.State as GameStage;
 		
 		protected internal virtual	AssetRef<State>		MainSubStateRef			=> default;
@@ -75,6 +77,21 @@
 		protected virtual	void	OnFirstChildShow	( )	{ }
 		protected virtual	void	OnLastChildHide		( )	{ }
 		
+		public			StateHandle	OpenMainState		( Object openParams = null )		
+		{
+			if (MainSubStateRef.IsNone)
+				return default;
+		
+			Debug.Log( $"[GameStage] {name} => Open Main State: {GameStage.Flow.GetRefTypeName(MainSubStateRef)}" );
+		
+			if (_node.FirstChild == null)
+				// main substate never was opened yet so just open it
+				return Graph.Open( MainSubStateRef, this, openParams, parent:_node, isLocked:true );
+			
+			// loader is somewhere in history so just return to it
+			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node.FirstChild, openParams );
+			return _node.FirstChild.Handle;
+		}
 		[Callable] public	void	Close				( )	
 		{
 			_node.Close();

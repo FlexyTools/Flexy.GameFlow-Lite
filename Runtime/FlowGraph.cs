@@ -49,9 +49,9 @@ public class FlowGraph
 	public		Service_GameFlow Service				=> _service;
 	public		FlowNode		 Root					=> _root;
 
-	public		FlowNode		MainLineActive			=> _mainLineActive;
 	public		FlowNode		MainLineTip				=> _mainLineTip;
-
+	public		FlowNode		MainLineActive			=> _mainLineActive;
+	
 	public		StateHandle		Open					( AssetRef<GameStage> stageRef, GameContext parentContext = null, Object openParams = null, Scene spawnIn = default )
 	{
 		return Open( new AssetRef<State>(stageRef.Uid, stageRef.SubId), null, openParams, null, true, spawnIn, parentContext );	
