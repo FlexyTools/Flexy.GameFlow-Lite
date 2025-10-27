@@ -2,11 +2,10 @@
 {
 	public class GameStage: State, IService
 	{
-		[FormerlySerializedAs("_rootStateRef")]
 		[SerializeField] AssetRef<State>	_mainStateRef;
 		[SerializeField] Transform			_statesContainer;
 
-		internal readonly	Dictionary<AssetRef<State>, State>	_stateInstances	= new( 32 );
+		internal readonly	Dictionary<AssetRef<State>, State>	_stateInstances	= new(32);
 
 		public		Service_GameFlow	Flow				{get; private set;}
 		public		GameContext			Context				{get; private set;}
@@ -43,7 +42,7 @@
 		}
 		public		void				OrderedInit			( GameContext ctx) { }
 		
-		public		StateHandle			OpenMainState		( Object openParams = null )	
+		public		StateHandle			OpenMainState		( Object openParams = null )		
 		{
 			if (_mainStateRef.IsNone)
 				return default;
@@ -57,19 +56,6 @@
 			// loader is somewhere in history so just return to it
 			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node.FirstChild, openParams );
 			return _node.FirstChild.Handle;
-		}
-		public		StateHandle			CloseAllStates		( )								
-		{
-			if( _node.FirstChild == null )
-				return Handle;
-		
-			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node );
-			return Handle;
-		}
-		[Callable] public	void		Close				( )								
-		{
-			CloseAllStates();
-			_node.Close();
 		}
 		
 		public		void				MoveToLoadedScene	( Scene loadedScene )	

@@ -42,7 +42,7 @@ public class FlowGraph
 	private				FlowNode							_root;
 	private				FlowNode							_mainLineTip		= null!;
 	private				FlowNode							_mainLineActive		= null!;
-	private readonly	Dictionary<AssetRef<State>, State>	_stateInstances		= new( 32 );
+	private readonly	Dictionary<AssetRef<State>, State>	_stateInstances		= new(32);
 
 	private		Boolean			_doTransition;
 
@@ -162,19 +162,30 @@ public class FlowGraph
 		}
 		else
 		{
-			parent ??= callSource ? callSource.GameStage._node : _root.FirstChild.GetLastSibling();
+			if (parent == null)
+			{
+				if (callSource)
+					parent = callSource.GameStage?._node is {IsValid:true} stage ? stage : null;
+				
+				parent ??= _root.FirstChild.GetLastSibling();
+			}
+			
 			
 			// If we have main substate
 			if (!parent.MainSubStateRef.IsNone)
 			{
+				var isOpeningMainState = stateRef == parent.MainSubStateRef; 
+				if (isOpeningMainState)
+					isLocked = true;
+			
 				// Open main substate if it is not opened yet and we try to open other state
-				if (stateRef != parent.MainSubStateRef && parent.FirstChild == null)
+				if (!isOpeningMainState && parent.FirstChild == null)
 				{
-					SpawnStateAndNode(parent.MainSubStateRef, null, callSource, parent, isLocked, spawnIn);
+					SpawnStateAndNode(parent.MainSubStateRef, null, callSource, parent, true, spawnIn);
 				}
 				
 				// Close all states up to main if it exists we try to open it
-				else if (stateRef == parent.MainSubStateRef && parent.FirstChild != null)
+				else if (isOpeningMainState && parent.FirstChild != null)
 				{
 					RemoveNodesUpTo( parent.FirstChild.GetLastSibling(), parent.FirstChild, openParams );
 					return parent.FirstChild;

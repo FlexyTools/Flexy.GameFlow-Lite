@@ -9,7 +9,7 @@ public class FlowNode
 	public	State?			State			{get; internal set;} // View of logical node (can be unloaded)
 	
 	public	Boolean			WasShown		{get; internal set;} // used to call OnShow in case first show will be BackShow
-	public	Boolean			IsLocked		{get; internal set;} // locked nodes will not be closed on CloseAll (e.g. MainState Node)
+	public	Boolean			IsLocked		{get; internal set;} // we can not go back from locked node only close
 	public	Object?			OpenParams		{get; internal set;} // parameters state opened with
 	public	Object?			UserNodeData	{get; internal set;} // optional user data that will survive state unload and reload
 	

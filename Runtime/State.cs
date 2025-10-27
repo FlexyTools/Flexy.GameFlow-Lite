@@ -91,6 +91,26 @@
 				Destroy( node.State.gameObject );
 			}
 		}
+		public			StateHandle	CloseSubStates		( Boolean closeMainState = false )	
+		{
+			if (_node.FirstChild == null)
+				return Handle;
+		
+			var target = _node;
+		
+			if (!closeMainState && !_node.MainSubStateRef.IsNone)
+			{
+				if (_node.FirstChild != null)
+					target = _node.FirstChild;
+			}
+			else
+			{
+				_node.MainSubStateRef = default;
+			}
+		
+			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), target );
+			return Handle;
+		}
 
 		public				void	RebindAllHierarchy	( )	
 		{
