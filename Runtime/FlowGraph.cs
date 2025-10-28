@@ -32,6 +32,7 @@ public class FlowGraph
 			_mainLineActive = _root;
 			_mainLineTip = _root;
 			
+			state._node = _root;
 			state.gameObject.SetActive( true );
 		}
 		
