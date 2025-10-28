@@ -6,14 +6,14 @@ namespace Flexy.GameFlow
 	[DefaultExecutionOrder(Int16.MinValue+100)]
 	public class GameFlowBootstrap : MonoBehaviour
 	{
-		[SerializeField]	protected GameContext			_globalContext;
+		[SerializeField]	protected GameContext			_globalContext = null!;
         [FormerlySerializedAs("_statesToOpen")] 
-        [SerializeField]	protected AssetRef<State>[]		_bootstrapContext;
+        [SerializeField]	protected AssetRef<State>[]		_bootstrapContext = null!;
         [SerializeField]	protected AssetRef<State>		_bootstrapTarget;
 
-		private static GameFlowBootstrap _ref;
+		private static GameFlowBootstrap? _ref;
 
-		private void Awake( )
+		private				void	Awake	( )		
 		{
 			// Almost very first Awake in scene thanks to DefaultExecutionOrder
 			var isDuplicate = (Boolean)_ref;
@@ -31,8 +31,7 @@ namespace Flexy.GameFlow
 			Boot();
 			Debug.Log( $"[GameFlowBootstrap] [Frame:{Time.frameCount}] ----------- ===========   GameFlow Bootstrap End   =========== -----------" );
 		}
-
-		protected virtual void Boot( )
+		protected virtual	void	Boot	( )		
 		{
 			_globalContext.gameObject.SetActive( false );
 			var gctx	= Instantiate( _globalContext );
@@ -64,7 +63,7 @@ namespace Flexy.GameFlow
 					Debug.Log( "" );
 
 					var state	= _bootstrapTarget.LoadAssetSync();
-					var m		= state.GetType().GetMethod( testCaseName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance );
+					var m		= state?.GetType().GetMethod( testCaseName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance );
 					openParams	= m?.Invoke( state, null );
 				}
 			}
@@ -81,7 +80,6 @@ namespace Flexy.GameFlow
 			// Show first state synchronously
 			flow.Graph.TransitionNow();
 		}
-		
 
 #if UNITY_EDITOR
 		[UnityEditor.InitializeOnLoad]

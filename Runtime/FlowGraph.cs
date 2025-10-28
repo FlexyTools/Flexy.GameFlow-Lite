@@ -8,15 +8,18 @@ public class FlowGraph
 		
 		// Spawn Root State and node
 		{
-			var statePrefab		= rootStateRef.LoadAssetSync();
-			var activeSelf		= statePrefab.gameObject.activeSelf;
-			statePrefab.gameObject.SetActive( false );
+			var rootPrefab		= rootStateRef.LoadAssetSync();
+			
+			if (!rootPrefab)
+				throw new ArgumentException("[FlowGraph] rootStateRef is invalid", nameof(rootStateRef));
+			
+			var activeSelf		= rootPrefab.gameObject.activeSelf;
+			rootPrefab.gameObject.SetActive( false );
+			var state = UnityEngine.Object.Instantiate( rootPrefab, service.transform );
+			rootPrefab.gameObject.SetActive(activeSelf);
+			rootPrefab.gameObject.ClearEditorDirty();
 		
-			var state = UnityEngine.Object.Instantiate( statePrefab, service.transform );
-		
-			statePrefab.gameObject.SetActive( activeSelf );
-		
-			state.name = "[GS] " + state.name.Replace( "(Clone)", "" );
+			state.name = "[GS] " + state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_');
 			state._prefabRef = rootStateRef;
 			state._graph = this;
 		
@@ -39,10 +42,11 @@ public class FlowGraph
 		SwitchStatesAsyncInfiniteLoop().Forget();
 	}
 
-	private				Service_GameFlow					_service;
-	private				FlowNode							_root;
-	private				FlowNode							_mainLineTip		= null!;
-	private				FlowNode							_mainLineActive		= null!;
+	private				Service_GameFlow	_service;
+	private				FlowNode			_root;
+	private				FlowNode			_mainLineTip		= null!;
+	private				FlowNode			_mainLineActive		= null!;
+	
 	private readonly	Dictionary<AssetRef<State>, State>	_stateInstances		= new(32);
 
 	private		Boolean			_doTransition;
@@ -53,11 +57,11 @@ public class FlowGraph
 	public		FlowNode		MainLineTip				=> _mainLineTip;
 	public		FlowNode		MainLineActive			=> _mainLineActive;
 	
-	public		StateHandle		Open					( AssetRef<GameStage> stageRef, GameContext parentContext = null, Object openParams = null, Scene spawnIn = default )
+	public		StateHandle		Open					( AssetRef<GameStage> stageRef, GameContext? parentContext = null, Object? openParams = null, Scene spawnIn = default )
 	{
 		return Open( new AssetRef<State>(stageRef.Uid, stageRef.SubId), null, openParams, null, true, spawnIn, parentContext );	
 	}
-	public		StateHandle		Open					( AssetRef<State> stateRef, State callSource, Object openParams = null, FlowNode? parent = null, Boolean isLocked = false, Scene spawnIn = default, GameContext parentContext = null )
+	public		StateHandle		Open					( AssetRef<State> stateRef, State? callSource, Object? openParams = null, FlowNode? parent = null, Boolean isLocked = false, Scene spawnIn = default, GameContext? parentContext = null )
 	{
 		var newNode			= SpawnStateAndNode( stateRef, openParams, callSource, parent, isLocked, spawnIn );
 		
@@ -69,16 +73,17 @@ public class FlowGraph
 
 	internal	StateHandle		GoBack					( )
 	{
-		if (_mainLineTip != _root && _mainLineTip.State.TryGoBack())
+		if (_mainLineTip != _root && _mainLineTip.Back != null && (_mainLineTip.State?.TryGoBack() ?? false))
 			RemoveNodesUpTo( _mainLineTip, _mainLineTip.Back );
 
 		return _mainLineTip.Handle;
 	}
 	internal	void			RemoveNode				( FlowNode node )
 	{
-		RemoveNodesUpTo( node, node.Back );
+		if (node.Back != null)
+			RemoveNodesUpTo( node, node.Back );
 	}
-	internal	void			RemoveNodesUpTo			( FlowNode source, FlowNode target, Object openParams = null, Boolean skipCurrent = false )
+	internal	void			RemoveNodesUpTo			( FlowNode source, FlowNode target, Object? openParams = null, Boolean skipCurrent = false )
 	{
 		if (source is not { IsValid: true } || source == _root)
 			return;
@@ -88,13 +93,13 @@ public class FlowGraph
 		if (skipCurrent)
 			iter = iter.Back;
 
-		while (iter != target)
+		while (iter != null && iter != target)
 		{
 			if (iter == _root) 
 				break;
 
 			var toRemove	= iter;
-			iter			= iter.Back!;
+			iter			= iter.Back;
 			
 			if (toRemove.FirstChild != null)
 				RemoveNodesUpTo( toRemove.FirstChild.GetLastSibling(), toRemove );
@@ -103,7 +108,7 @@ public class FlowGraph
 				_mainLineTip  = iter;
 			
 			if (toRemove.Back != null)		toRemove.Back.Forward = toRemove.Forward;
-			if (toRemove.Forward != null)	toRemove.Forward.Back = toRemove.Back;
+			if (toRemove.Forward != null)	toRemove.Forward.Back = toRemove.Back!;
 			
 			if (toRemove.Parent.FirstChild == toRemove)
 				toRemove.Parent.FirstChild = toRemove.NextSibling;
@@ -129,7 +134,7 @@ public class FlowGraph
 		_doTransition = false;
 		DoStateTransitions();
 	}
-	private		FlowNode		SpawnStateAndNode		( AssetRef<State> stateRef, Object openParams, State callSource, FlowNode? parent, Boolean isLocked, Scene spawnIn )
+	private		FlowNode		SpawnStateAndNode		( AssetRef<State> stateRef, Object? openParams, State? callSource, FlowNode? parent, Boolean isLocked, Scene spawnIn )
 	{
 		var state = default(State);
 		var instances = callSource?.GameStage?._stateInstances;
@@ -142,6 +147,9 @@ public class FlowGraph
 		
 		if (!stateInstanceOrPrefab)
 			stateInstanceOrPrefab = stateRef.LoadAssetSync();
+		
+		if (!stateInstanceOrPrefab)
+			throw new ArgumentException("[FlowGraph] stateRef is invalid", nameof(stateRef));
 		
 		if (stateInstanceOrPrefab is GameStage _)
 		{
@@ -168,9 +176,8 @@ public class FlowGraph
 				if (callSource)
 					parent = callSource.GameStage?._node is {IsValid:true} stage ? stage : null;
 				
-				parent ??= _root.FirstChild.GetLastSibling();
+				parent ??= _root.FirstChild!.GetLastSibling();
 			}
-			
 			
 			// If we have main substate
 			if (!parent.MainSubStateRef.IsNone)
@@ -198,7 +205,7 @@ public class FlowGraph
 				var activeSelf	= stateInstanceOrPrefab.gameObject.activeSelf;
 				stateInstanceOrPrefab.gameObject.SetActive( false );
 				
-				var stateContainer = parent.State.GetSubStatesContainer();
+				var stateContainer = parent.State!.GetSubStatesContainer();
 				state = UnityEngine.Object.Instantiate( stateInstanceOrPrefab, stateContainer );
 				
 				stateInstanceOrPrefab.gameObject.SetActive( activeSelf );
@@ -206,11 +213,11 @@ public class FlowGraph
 			}
 			
 			if (instances == null)
-				instances = ((GameStage)parent.GameStageNode.State)._stateInstances;
+				instances = ((GameStage)parent.GameStageNode.State!)._stateInstances;
 		}
 
 		instances[stateRef] = state;
-		state.name = state.name.Replace( "(Clone)", "" );
+		state.name = state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_');
 		state._prefabRef = stateRef;
 		state._graph = this;
 		
@@ -219,10 +226,10 @@ public class FlowGraph
 			Graph			= this,
 			StateRef		= stateRef,
 			MainSubStateRef	= state.MainSubStateRef,
-			State			= state, 
+			State			= state,
 			OpenParams		= openParams, 
 			IsLocked		= isLocked,
-			PrevSibling 	= parent.FirstChild.GetLastSibling()
+			PrevSibling 	= parent.FirstChild.GetLastSiblingOrNull()
 		};
 
 		if (nextNode.PrevSibling != null)
@@ -272,17 +279,15 @@ public class FlowGraph
 #if UNITY_EDITOR
 	public void DrawRuntimeUI( )
 	{
-		if (!Application.isPlaying || _root == null || !_root.State)
+		if (!Application.isPlaying || !_root.State)
 			return;
 		
-		var currStage = default(GameStage);
-
 		// Draw root
 		GUILayout.Space( 10 );
 		GUILayout.BeginHorizontal();
 		{
 			GUILayout.Label( $"{(_root.IsShowed ? "■" : "□")}", GUILayout.Width(20) );
-			GUILayout.Label( $"{_root.State.name.Replace( "State", "", StringComparison.OrdinalIgnoreCase ).Trim('_')}" );
+			GUILayout.Label( $"{_root.State.name}" );
 		}
 		GUILayout.EndHorizontal();
 		GUILayout.Space( 5 );
@@ -295,7 +300,7 @@ public class FlowGraph
 			GUILayout.BeginHorizontal();
 			GUILayout.Space( node.State is GameStage ? 10 : 26 );
 			GUILayout.Label( $"{(node.IsShowed ? "■" : "□")}", GUILayout.Width(20) );
-			GUILayout.Label( $"{node.State.name.Replace( "State", "", StringComparison.OrdinalIgnoreCase ).Trim('_')} {(node.OpenParams != null ? "op:" + node.OpenParams : "")}" );
+			GUILayout.Label( $"{node.State.name} {(node.OpenParams != null ? "op:" + node.OpenParams : "")}" );
 			GUILayout.EndHorizontal();
 		}
 	}

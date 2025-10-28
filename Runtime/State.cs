@@ -5,28 +5,28 @@
 		[SerializeField] FlexyEvent		_showing;
 		[SerializeField] FlexyEvent		_hiding;
 		
-		internal	FlowGraph			_graph;
-		internal	FlowNode			_node;
+		internal	FlowGraph			_graph = null!;
+		internal	FlowNode			_node  = null!; // Can be null only when unused but loaded, so no one can access it in this state
 		internal	AssetRef<State>		_prefabRef;
 		
 		public		FlowGraph			Graph			=> _graph;
 		public		FlowNode			Node			=> _node;
 		public		AssetRef<State>		PrefabRef		=> _prefabRef;
 		
-		public		Object				OpenParams		=> _node.OpenParams;
+		public		Object?				OpenParams		=> _node.OpenParams;
 		public		StateHandle			Handle			=> new(_node);
 		
 		public		Boolean				IsOpened		=> _node?.IsOpened ?? false;
 		public		Boolean				IsShowed		=> _node?.IsShowed ?? false;
 		public		Boolean				AnySubStateOpened=> _node?.FirstChild != null;
 		
-		public		State				MainSubState	=> _node.FirstChild?.State;
+		public		State?				MainSubState	=> _node.FirstChild?.State;
 		public		StateHandle			MainSubHandle	=> _node.FirstChild?.Handle ?? default;
-		public		GameStage			GameStage		=> _node.GameStageNode.State as GameStage;
+		public		GameStage			GameStage		=> (GameStage)_node.GameStageNode.State;
 		
 		protected internal virtual	AssetRef<State>		MainSubStateRef			=> default;
 		protected internal virtual	Boolean				TryGoBack				( )	=> !_node.IsLocked;
-		protected internal virtual	Transform			GetSubStatesContainer	( ) => null;
+		protected internal virtual	Transform?			GetSubStatesContainer	( ) => null;
 		
 		internal			void	DoShow				( )	
 		{ 
@@ -55,7 +55,7 @@
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 			
 			_hiding.Raise( this );
-			_node = null;
+			_node = null!;
 		}
 		
 		internal			void	DoFirstChildShow	( )	
@@ -77,7 +77,7 @@
 		protected virtual	void	OnFirstChildShow	( )	{ }
 		protected virtual	void	OnLastChildHide		( )	{ }
 		
-		public			StateHandle	OpenMainState		( Object openParams = null )		
+		public			StateHandle	OpenMainState		( Object? openParams = null )		
 		{
 			if (MainSubStateRef.IsNone)
 				return default;
@@ -123,8 +123,7 @@
 		
 			if (!closeMainState && !_node.MainSubStateRef.IsNone)
 			{
-				if (_node.FirstChild != null)
-					target = _node.FirstChild;
+				target = _node.FirstChild;
 			}
 			else
 			{

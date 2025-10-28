@@ -25,7 +25,7 @@ internal static class LiteTransitions
 				closingBranchNode.State.DoLastChildHide();
 		}
 		
-		var openingBranchNode = commonParent.FirstChild.GetLastSibling();
+		var openingBranchNode = commonParent.FirstChild!.GetLastSibling();
 		
 		if (openingBranchNode == null)
 			mainLineActive = commonParent;
@@ -34,13 +34,13 @@ internal static class LiteTransitions
 		{
 			mainLineActive = openingBranchNode;
 		
-			if (isMoveForward && openingBranchNode.Parent.FirstChild.NextSibling == null)
+			if (isMoveForward && openingBranchNode.Parent.FirstChild!.NextSibling == null)
 				openingBranchNode.Parent.State.DoFirstChildShow();
 		
 			try{ NodeStateShow( openingBranchNode, isMoveForward );		} catch (Exception ex) { Debug.LogException(ex); }
 			try{ openingBranchNode.State.gameObject.SetActive( true );	} catch (Exception ex) { Debug.LogException(ex); }
 			
-			openingBranchNode = openingBranchNode.FirstChild.GetLastSibling();
+			openingBranchNode = openingBranchNode.FirstChild.GetLastSiblingOrNull();
 		}
 	}
 	

@@ -3,12 +3,12 @@
 	public class GameStage: State, IService
 	{
 		[SerializeField] AssetRef<State>	_mainStateRef;
-		[SerializeField] Transform			_statesContainer;
+		[SerializeField] Transform			_statesContainer = null!;
 
 		internal readonly	Dictionary<AssetRef<State>, State>	_stateInstances	= new(32);
 
-		public		Service_GameFlow	Flow				{get; private set;}
-		public		GameContext			Context				{get; private set;}
+		public		Service_GameFlow	Flow				{get; private set;} = null!;
+		public		GameContext			Context				{get; private set;} = null!;
 		
 		public		Boolean				AtStageRoot			=> _graph.MainLineActive.State == this;
 		
@@ -24,7 +24,8 @@
 				// Create new context for GameState
 				ctx = gameObject.AddComponent<GameContext>();
 		
-			ctx.SetParent( parentContext );
+			if (parentContext != null)
+				ctx.SetParent( parentContext );
 		
 			Context = ctx;
 			

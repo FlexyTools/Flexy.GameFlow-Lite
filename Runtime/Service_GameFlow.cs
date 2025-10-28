@@ -5,16 +5,16 @@ namespace Flexy.GameFlow
 	public class Service_GameFlow : BindableBehaviour, IService
 	{
 		[FormerlySerializedAs("_lib")] 
-		[SerializeField]	FlowLibrary		_rootFlowLibrary;
+		[SerializeField]	FlowLibrary		_rootFlowLibrary = null!;
 		[SerializeField]	AssetRef<State> _rootStateRef;
 		#if UNITY_INPUT_SYSTEM
-		[SerializeField]	UnityEngine.InputSystem.InputActionReference	_backInputActionRef;
+		[SerializeField]	UnityEngine.InputSystem.InputActionReference?	_backInputActionRef;
 		#endif
 
 		private readonly	Dictionary<String, AssetRef<State>>	_statesDict = new ( 256 );
 		private readonly	Dictionary<AssetRef<State>, String>	_statesDictReverse = new ( 256 );
 
-		public				FlowGraph		Graph				{ get; private set; }
+		public				FlowGraph		Graph				{ get; private set; } = null!;
 
 		public				void			OrderedInit			( GameContext ctx )	
 		{

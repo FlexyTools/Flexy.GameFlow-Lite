@@ -6,22 +6,20 @@ namespace Flexy.GameFlow
     [CreateAssetMenu(fileName = "GameFlow.lib.asset", menuName = "Flexy/GameFlows/Library")]
 	public class FlowLibrary : ScriptableObject, IAssetRefsSource
 	{
-		[SerializeField]	FlowLibrary[]	_dependencies;
-		
-		[FormerlySerializedAs("_windows")]
-		[SerializeField]	StateRef[]				_states;
+		[SerializeField]	FlowLibrary[]	_dependencies	= null!;
+		[SerializeField]	StateRef[]		_states			= null!;
 
 		private void				OnValidate		( )
 		{
 			for (var i = 0; i < _states.Length; i++)
-				_states[i].TypeFullName = AssetsLoader.EditorLoadAsset( _states[i].Ref )?.GetType( ).FullName;
+				_states[i].TypeFullName = AssetsLoader.EditorLoadAsset( _states[i].Ref )?.GetType().FullName ?? "";
 		}
 
 		[Serializable]
 		public record struct StateRef
 		{
-			public	String				TypeFullName;
-			public 	AssetRef<State>		Ref;
+			public	String			TypeFullName;
+			public 	AssetRef<State>	Ref;
 
 			public override String ToString() => $"{Ref}  {TypeFullName}";
 		}
@@ -44,7 +42,7 @@ namespace Flexy.GameFlow
 #if UNITY_EDITOR
 			// Actualize TypeFullNames while in editor
 			for (var i = 0; i < _states.Length; i++)
-				_states[i].TypeFullName = AssetsLoader.EditorLoadAsset( _states[i].Ref )?.GetType( ).FullName;
+				_states[i].TypeFullName = AssetsLoader.EditorLoadAsset( _states[i].Ref )?.GetType( ).FullName ?? "";
 #endif
 
 			list.AddRange( _states );
@@ -87,6 +85,6 @@ namespace Flexy.GameFlow
 
 	public readonly record struct OpenCtx( AssetRef<State> StateRef, State CallSrc )
 	{
-		public StateHandle Open		( Object openParams = null )	=> CallSrc.Node.Graph.Open(StateRef, CallSrc, openParams);
+		public StateHandle Open		( Object? openParams = null )	=> CallSrc.Node.Graph.Open(StateRef, CallSrc, openParams);
 	}
 }
