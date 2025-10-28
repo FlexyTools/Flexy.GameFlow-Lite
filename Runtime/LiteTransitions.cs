@@ -25,7 +25,7 @@ internal static class LiteTransitions
 				closingBranchNode.State.DoLastChildHide();
 		}
 		
-		var openingBranchNode = commonParent.FirstChild!.GetLastSibling();
+		var openingBranchNode = commonParent.FirstChild.GetLastSiblingOrNull();
 		
 		if (openingBranchNode == null)
 			mainLineActive = commonParent;
