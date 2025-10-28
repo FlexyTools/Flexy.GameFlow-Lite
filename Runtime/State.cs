@@ -98,6 +98,12 @@
 		}
 		public				void	CloseAndDestroy		( )	
 		{
+			if (_node == null)
+			{
+				Destroy( gameObject );
+				return;
+			}
+		
 			Close();
 			DestroyWhenStateWillHide(_node).Forget();
 			return;
