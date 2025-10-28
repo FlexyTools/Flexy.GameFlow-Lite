@@ -19,7 +19,7 @@ public class FlowGraph
 			rootPrefab.gameObject.SetActive(activeSelf);
 			rootPrefab.gameObject.ClearEditorDirty();
 		
-			state.name = "[GS] " + state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_');
+			state.name = "[Root] " + state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_');
 			state._prefabRef = rootStateRef;
 			state._graph = this;
 		
@@ -42,26 +42,26 @@ public class FlowGraph
 		SwitchStatesAsyncInfiniteLoop().Forget();
 	}
 
-	private				Service_GameFlow	_service;
-	private				FlowNode			_root;
-	private				FlowNode			_mainLineTip		= null!;
-	private				FlowNode			_mainLineActive		= null!;
+	private	Service_GameFlow	_service;
+	private	FlowNode			_root;
+	private	FlowNode			_mainLineTip		= null!;
+	private	FlowNode			_mainLineActive		= null!;
 	
 	private readonly	Dictionary<AssetRef<State>, State>	_stateInstances		= new(32);
 
 	private		Boolean			_doTransition;
 
-	public		Service_GameFlow Service				=> _service;
-	public		FlowNode		 Root					=> _root;
+	public		Service_GameFlow Service		=> _service;
+	public		FlowNode		 Root			=> _root;
 
-	public		FlowNode		MainLineTip				=> _mainLineTip;
-	public		FlowNode		MainLineActive			=> _mainLineActive;
+	public		FlowNode		MainLineTip		=> _mainLineTip;
+	public		FlowNode		MainLineActive	=> _mainLineActive;
 	
-	public		StateHandle		Open					( AssetRef<GameStage> stageRef, GameContext? parentContext = null, Object? openParams = null, Scene spawnIn = default )
+	public		StateHandle		Open	( AssetRef<GameStage> stageRef, GameContext? parentContext = null, Object? openParams = null, Scene spawnIn = default )																		
 	{
 		return Open( new AssetRef<State>(stageRef.Uid, stageRef.SubId), null, openParams, null, true, spawnIn, parentContext );	
 	}
-	public		StateHandle		Open					( AssetRef<State> stateRef, State? callSource, Object? openParams = null, FlowNode? parent = null, Boolean isLocked = false, Scene spawnIn = default, GameContext? parentContext = null )
+	public		StateHandle		Open	( AssetRef<State> stateRef, State? callSource, Object? openParams = null, FlowNode? parent = null, Boolean isLocked = false, Scene spawnIn = default, GameContext? parentContext = null )	
 	{
 		var newNode			= SpawnStateAndNode( stateRef, openParams, callSource, parent, isLocked, spawnIn );
 		
@@ -71,19 +71,19 @@ public class FlowGraph
 		return newNode.Handle;
 	}
 
-	internal	StateHandle		GoBack					( )
+	internal	StateHandle		GoBack			( )																								
 	{
 		if (_mainLineTip != _root && _mainLineTip.Back != null && (_mainLineTip.State?.TryGoBack() ?? false))
 			RemoveNodesUpTo( _mainLineTip, _mainLineTip.Back );
 
 		return _mainLineTip.Handle;
 	}
-	internal	void			RemoveNode				( FlowNode node )
+	internal	void			RemoveNode		( FlowNode node )																				
 	{
 		if (node.Back != null)
 			RemoveNodesUpTo( node, node.Back );
 	}
-	internal	void			RemoveNodesUpTo			( FlowNode source, FlowNode target, Object? openParams = null, Boolean skipCurrent = false )
+	internal	void			RemoveNodesUpTo	( FlowNode source, FlowNode target, Object? openParams = null, Boolean skipCurrent = false )	
 	{
 		if (source is not { IsValid: true } || source == _root)
 			return;
@@ -126,7 +126,7 @@ public class FlowGraph
 		ScheduleSwitchStates();
 	}
 	
-	public		void			TransitionNow			( )
+	public		void			TransitionNow		( )																														
 	{
 		if (!_doTransition) 
 			return;
@@ -134,7 +134,7 @@ public class FlowGraph
 		_doTransition = false;
 		DoStateTransitions();
 	}
-	private		FlowNode		SpawnStateAndNode		( AssetRef<State> stateRef, Object? openParams, State? callSource, FlowNode? parent, Boolean isLocked, Scene spawnIn )
+	private		FlowNode		SpawnStateAndNode	( AssetRef<State> stateRef, Object? openParams, State? callSource, FlowNode? parent, Boolean isLocked, Scene spawnIn )	
 	{
 		var state = default(State);
 		var instances = callSource?.GameStage?._stateInstances;
@@ -217,9 +217,14 @@ public class FlowGraph
 		}
 
 		instances[stateRef] = state;
-		state.name = state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_');
+		state.name = state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_').Trim(' ');
 		state._prefabRef = stateRef;
 		state._graph = this;
+		
+		var niceName = state.name;
+		var spaceIndex = niceName.IndexOf(' ');
+		if (spaceIndex < niceName.Length - 1)
+			state.name = niceName.Insert(spaceIndex, "]").Insert(0, "[");
 		
 		var nextNode = new FlowNode
 		{
@@ -250,11 +255,11 @@ public class FlowGraph
 		return nextNode;
 	}
 	
-	private			void		ScheduleSwitchStates			( )	
+	private			void		ScheduleSwitchStates			( )		
 	{
 		_doTransition	= true;
 	}
-	private async	UniTask		SwitchStatesAsyncInfiniteLoop	( )	
+	private async	UniTask		SwitchStatesAsyncInfiniteLoop	( )		
 	{
 		while (Application.isPlaying && _root != null && _root.State)
 		{
@@ -271,7 +276,7 @@ public class FlowGraph
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
 	}
-	private 		void		DoStateTransitions				( )	
+	private 		void		DoStateTransitions				( )		
 	{
 		LiteTransitions.DoStateTransitions( ref _mainLineActive, _mainLineTip );
 	}
