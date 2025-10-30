@@ -26,7 +26,7 @@
 		
 		protected internal virtual	AssetRef<State>		MainSubStateRef			=> default;
 		protected internal virtual	Boolean				TryGoBack				( )	=> !_node.IsLocked;
-		protected internal virtual	Transform?			GetSubStatesContainer	( ) => null;
+		protected internal virtual	State				InstantiateSubState		( State prefab ) => throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
 		
 		internal			void	DoShow				( )	
 		{ 

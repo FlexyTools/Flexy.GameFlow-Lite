@@ -52,8 +52,8 @@
 		}
 		
 		protected internal override		AssetRef<State>		MainSubStateRef			=> _mainStateRef;
-		protected internal override		Transform			GetSubStatesContainer	( ) => _statesContainer;
-
+		protected internal override		State				InstantiateSubState		( State prefab ) => Instantiate(prefab, _statesContainer);
+		
 #if UNITY_EDITOR
 		[RuntimeInspectorGui( Repaint = true )]
 		internal void DrawRuntimeUI( ) => Graph.DrawRuntimeUI();

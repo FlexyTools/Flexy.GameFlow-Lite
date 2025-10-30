@@ -19,9 +19,9 @@ public class FlowGraph
 			rootPrefab.gameObject.SetActive(activeSelf);
 			rootPrefab.gameObject.ClearEditorDirty();
 		
-			state.name = "[Root] " + state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_');
-			state._prefabRef = rootStateRef;
-			state._graph = this;
+			state.name			= "[Root] " + state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_');
+			state._prefabRef	= rootStateRef;
+			state._graph		= this;
 		
 			_root = new FlowNode
 			{
@@ -32,8 +32,8 @@ public class FlowGraph
 				WasShown	= true
 			};
 
-			_mainLineActive = _root;
-			_mainLineTip = _root;
+			_mainLineActive	= _root;
+			_mainLineTip	= _root;
 			
 			state._node = _root;
 			state.gameObject.SetActive( true );
@@ -137,7 +137,7 @@ public class FlowGraph
 	private		FlowNode		SpawnStateAndNode	( AssetRef<State> stateRef, Object? openParams, State? callSource, FlowNode? parent, Boolean isLocked, Scene spawnIn )	
 	{
 		var state = default(State);
-		var instances = callSource?.GameStage?._stateInstances;
+		var instances = callSource?.GameStage._stateInstances;
 		instances?.TryGetValue( stateRef, out state );
 
 		if (!state)
@@ -153,20 +153,21 @@ public class FlowGraph
 		
 		if (stateInstanceOrPrefab is GameStage _)
 		{
-			instances = _stateInstances;
-			parent = _root;
-			isLocked = true;
+			instances	= _stateInstances;
+			parent		= _root;
+			isLocked	= true;
 			
 			if (!state)
 			{
-				var activeSelf = stateInstanceOrPrefab.gameObject.activeSelf;
-				stateInstanceOrPrefab.gameObject.SetActive( false );
+				var statePrefab	= stateInstanceOrPrefab;
+				var activeSelf	= statePrefab.gameObject.activeSelf;
+				statePrefab.gameObject.SetActive( false );
 				
-				state = (State)UnityEngine.Object.Instantiate( stateInstanceOrPrefab, spawnIn.IsValid() ? spawnIn : Service.gameObject.scene );
+				state = (State)UnityEngine.Object.Instantiate( statePrefab, spawnIn.IsValid() ? spawnIn : Service.gameObject.scene );
 				state.transform.SetSiblingIndex(0);
 				
-				stateInstanceOrPrefab.gameObject.SetActive( activeSelf );
-				stateInstanceOrPrefab.gameObject.ClearEditorDirty();
+				statePrefab.gameObject.SetActive( activeSelf );
+				statePrefab.gameObject.ClearEditorDirty();
 			}
 		}
 		else
@@ -186,15 +187,14 @@ public class FlowGraph
 				if (isOpeningMainState)
 					isLocked = true;
 			
-				// Open main substate if it is not opened yet and we try to open other state
 				if (!isOpeningMainState && parent.FirstChild == null)
 				{
+					// In case main state not spawned and we try to open not main state => Open main substate first
 					SpawnStateAndNode(parent.MainSubStateRef, null, callSource, parent, true, spawnIn);
 				}
-				
-				// Close all states up to main if it exists we try to open it
 				else if (isOpeningMainState && parent.FirstChild != null)
 				{
+					// In case main state exists just Close all states up to main 
 					RemoveNodesUpTo( parent.FirstChild.GetLastSibling(), parent.FirstChild, openParams );
 					return parent.FirstChild;
 				}
@@ -202,18 +202,18 @@ public class FlowGraph
 			
 			if (!state)
 			{
-				var activeSelf	= stateInstanceOrPrefab.gameObject.activeSelf;
-				stateInstanceOrPrefab.gameObject.SetActive( false );
+				var statePrefab = stateInstanceOrPrefab;
+				var activeSelf	= statePrefab.gameObject.activeSelf;
+				statePrefab.gameObject.SetActive(false);
 				
-				var stateContainer = parent.State!.GetSubStatesContainer();
-				state = UnityEngine.Object.Instantiate( stateInstanceOrPrefab, stateContainer );
+				state = parent.State.InstantiateSubState(statePrefab);
 				
-				stateInstanceOrPrefab.gameObject.SetActive( activeSelf );
-				stateInstanceOrPrefab.gameObject.ClearEditorDirty();
+				statePrefab.gameObject.SetActive(activeSelf);
+				statePrefab.gameObject.ClearEditorDirty();
 			}
 			
 			if (instances == null)
-				instances = ((GameStage)parent.GameStageNode.State!)._stateInstances;
+				instances = ((GameStage)parent.GameStageNode.State)._stateInstances;
 		}
 
 		instances[stateRef] = state;
@@ -261,7 +261,7 @@ public class FlowGraph
 	}
 	private async	UniTask		SwitchStatesAsyncInfiniteLoop	( )		
 	{
-		while (Application.isPlaying && _root != null && _root.State)
+		while (Application.isPlaying && _root.State)
 		{
 			// Change view at last update (before animations)
 			// This will allow to make many changes in update and then only one view transition
