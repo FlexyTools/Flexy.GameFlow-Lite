@@ -99,14 +99,14 @@ namespace Flexy.GameFlow
 					yield break;
 
 				var subState = AssetsLoader.EditorLoadAsset( subStateToOpen );
-				if ( !subState )
+				if (!subState)
 					yield break;
 
-				var methods = subState.GetType( ).GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic );
+				var methods = subState!.GetType().GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic );
 
-				foreach ( var m in methods )
+				foreach (var m in methods)
 				{
-					if( m.GetCustomAttribute<StateTestAttribute>() != null )
+					if (m.GetCustomAttribute<StateTestAttribute>() != null)
 						yield return m.Name;
 				}
 			}

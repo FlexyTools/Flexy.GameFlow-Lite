@@ -13,7 +13,7 @@ public class FlowGraph
 			if (!rootPrefab)
 				throw new ArgumentException("[FlowGraph] rootStateRef is invalid", nameof(rootStateRef));
 			
-			var activeSelf		= rootPrefab.gameObject.activeSelf;
+			var activeSelf		= rootPrefab!.gameObject.activeSelf;
 			rootPrefab.gameObject.SetActive( false );
 			var state = UnityEngine.Object.Instantiate( rootPrefab, service.transform );
 			rootPrefab.gameObject.SetActive(activeSelf);
@@ -175,7 +175,7 @@ public class FlowGraph
 			if (parent == null)
 			{
 				if (callSource)
-					parent = callSource.GameStage?._node is {IsValid:true} stage ? stage : null;
+					parent = callSource!.GameStage._node is {IsValid:true} stage ? stage : null;
 				
 				parent ??= _root.FirstChild!.GetLastSibling();
 			}
@@ -203,7 +203,7 @@ public class FlowGraph
 			if (!state)
 			{
 				var statePrefab = stateInstanceOrPrefab;
-				var activeSelf	= statePrefab.gameObject.activeSelf;
+				var activeSelf	= statePrefab!.gameObject.activeSelf;
 				statePrefab.gameObject.SetActive(false);
 				
 				state = parent.State.InstantiateSubState(statePrefab);
@@ -216,8 +216,8 @@ public class FlowGraph
 				instances = ((GameStage)parent.GameStageNode.State)._stateInstances;
 		}
 
-		instances[stateRef] = state;
-		state.name = state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_').Trim(' ');
+		instances[stateRef] = state!;
+		state!.name = state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_').Trim(' ');
 		state._prefabRef = stateRef;
 		state._graph = this;
 		
