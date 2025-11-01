@@ -157,11 +157,31 @@
 		public 		Boolean 	IsValid		=> Node.IsValid;
 		public		State		State		=> Node.State;
 
-		public		Boolean		IsOpened	=> Node?.IsOpened ?? false;
-		public		Boolean		IsShowed	=> Node?.IsShowed ?? false;
+		public		Boolean		IsOpened	=> Node.IsOpened;
+		public		Boolean		IsShowed	=> Node.IsShowed;
 
 		public			StateHandle	Close		( ) => !IsValid ? default : Node.Close();
 		public override	String		ToString	( ) => $"StateHandle {Node.State}";
+	}
+	
+	public readonly record struct ResultHandle<T>( StateHandle Handle )
+	{
+		public			StateHandle	Handle		{get;}	= Handle;
+		public async	UniTask<T>	WaitResult	( )		
+		{
+			var node	= Handle.Node;
+			var result	= (IStateWithResult<T>)node.State;
+			
+			while (node.IsOpened || node.IsShowed)
+				await UniTask.NextFrame(PlayerLoopTiming.LastUpdate);
+				
+			return result.GetResult();
+		} 
+	}
+	
+	public interface IStateWithResult<T>
+	{
+		public T GetResult();
 	}
 	
 	[AttributeUsage(AttributeTargets.Method)]
