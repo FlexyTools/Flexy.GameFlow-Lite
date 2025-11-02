@@ -2,6 +2,7 @@
 
 namespace Flexy.GameFlow
 {
+	[RequireComponent(typeof(GameContext))]
 	public class Service_GameFlow : BindableBehaviour, IService
 	{
 		[FormerlySerializedAs("_lib")] 

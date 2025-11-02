@@ -6,8 +6,7 @@ namespace Flexy.GameFlow
 	[DefaultExecutionOrder(Int16.MinValue+100)]
 	public class GameFlowBootstrap : MonoBehaviour
 	{
-		[SerializeField]	protected GameContext			_globalContext = null!;
-        [FormerlySerializedAs("_statesToOpen")] 
+		[SerializeField]	protected Service_GameFlow		_flowService = null!;
         [SerializeField]	protected AssetRef<State>[]		_bootstrapContext = null!;
         [SerializeField]	protected AssetRef<State>		_bootstrapTarget;
 
@@ -33,12 +32,13 @@ namespace Flexy.GameFlow
 		}
 		protected virtual	void	Boot	( )		
 		{
-			_globalContext.gameObject.SetActive( false );
-			var gctx	= Instantiate( _globalContext );
-			_globalContext.gameObject.SetActive( true );
-			_globalContext.gameObject.ClearEditorDirty();
+			_flowService.gameObject.SetActive( false );
+			var gameFlow	= Instantiate( _flowService );
+			_flowService.gameObject.SetActive( true );
+			_flowService.gameObject.ClearEditorDirty();
 			
-			gctx.name	= _globalContext.name;
+			gameFlow.name	= _flowService.name;
+			var gctx		= gameFlow.GetComponent<GameContext>();
 			
 			foreach ( var launchService in gameObject.GetComponents<MonoBehaviour>( ) )
 			{
@@ -48,7 +48,7 @@ namespace Flexy.GameFlow
 				gctx.SetService( launchService );
 			}
 			
-			gctx.gameObject.SetActive(true);
+			gameFlow.gameObject.SetActive(true);
 
 			var openParams	= default(Object);
 
@@ -69,16 +69,14 @@ namespace Flexy.GameFlow
 			}
 			#endif
 
-			var flow		= gctx.GetService<Service_GameFlow>()!;
-
             foreach (var state in _bootstrapContext)
-	            flow.Graph.Open( state, null );
+	            gameFlow.Graph.Open( state, null );
             
             if (!_bootstrapTarget.IsNone)
-	            flow.Graph.Open( _bootstrapTarget, null, openParams );
+	            gameFlow.Graph.Open( _bootstrapTarget, null, openParams );
 
 			// Show first state synchronously
-			flow.Graph.TransitionNow();
+			gameFlow.Graph.TransitionNow();
 		}
 
 #if UNITY_EDITOR
