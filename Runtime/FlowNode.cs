@@ -11,7 +11,8 @@ public class FlowNode
 	public	Boolean			WasShown		{get; internal set;} // used to call OnShow in case first show will be BackShow
 	public	Boolean			IsLocked		{get; internal set;} // we can not go back from locked node only close
 	public	Object?			OpenParams		{get; internal set;} // parameters state opened with
-	public	Object?			UserNodeData	{get; internal set;} // optional user data that will survive state unload and reload
+	public	Object?			StateData		{get; internal set;} // optional state data can be stored by state implementation
+	public	Object?			UserData		{get; internal set;} // optional user data for (link additional data from outside the state)
 	
 	public	FlowNode?		PrevSibling		{get; internal set;}
 	public	FlowNode?		NextSibling		{get; internal set;}
