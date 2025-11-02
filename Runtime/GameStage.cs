@@ -1,5 +1,6 @@
 ﻿namespace Flexy.GameFlow
 {
+	[RequireComponent(typeof(GameContext))]
 	public class GameStage: State, IService
 	{
 		[SerializeField] AssetRef<State>	_mainStateRef;
@@ -7,33 +8,25 @@
 
 		internal readonly	Dictionary<AssetRef<State>, State>	_stateInstances	= new(32);
 
-		public		Service_GameFlow	Flow				{get; private set;} = null!;
 		public		GameContext			Context				{get; private set;} = null!;
 		
+		public		Service_GameFlow	Flow				=> _node.Graph.Service;
 		public		Boolean				AtStageRoot			=> _graph.MainLineActive.State == this;
 		
-		public		void				Init				( Service_GameFlow flow, GameContext? parentContext )	
+		public		void				Init				( GameContext? parentContext )	
 		{
 			Debug.Log( $"[GameStage] {name} - Spawned", this );
 		
-			Flow = flow;
-		
-			var ctx = gameObject.GetComponent<GameContext>();
-
-			if( !ctx )
-				// Create new context for GameState
-				ctx = gameObject.AddComponent<GameContext>();
+			Context = gameObject.GetComponent<GameContext>();
 		
 			if (parentContext != null)
-				ctx.SetParent( parentContext );
-		
-			Context = ctx;
+				Context.SetParent( parentContext );
 			
 			// Force awake stage and all components on it
 			gameObject.SetActive(true);
 			gameObject.SetActive(false);
 		}
-		public		void				OrderedInit			( GameContext ctx) { }
+		public		void				OrderedInit			( GameContext ctx ) { }
 		
 		public		void				MoveToLoadedScene	( Scene loadedScene )	
 		{

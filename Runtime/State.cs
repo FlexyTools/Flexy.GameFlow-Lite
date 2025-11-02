@@ -88,7 +88,7 @@
 				// main substate never was opened yet so just open it
 				return Graph.Open( MainSubStateRef, this, openParams, parent:_node, isLocked:true );
 			
-			// loader is somewhere in history so just return to it
+			// main substate is somewhere in history so just return to it
 			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node.FirstChild, openParams );
 			return _node.FirstChild.Handle;
 		}

@@ -16,3 +16,4 @@ global using UnityEngine.SceneManagement;
 global using Cysharp.Threading.Tasks;
 
 global using Object = System.Object;
+global using UObject = UnityEngine.Object;

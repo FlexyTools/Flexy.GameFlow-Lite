@@ -47,7 +47,7 @@ public class FlowGraph
 	private	FlowNode			_mainLineTip		= null!;
 	private	FlowNode			_mainLineActive		= null!;
 	
-	private readonly	Dictionary<AssetRef<State>, State>	_stateInstances		= new(32);
+	private readonly	Dictionary<AssetRef<State>, State>	_globalStateInstances		= new(32);
 
 	private		Boolean			_doTransition;
 
@@ -66,7 +66,7 @@ public class FlowGraph
 		var newNode			= SpawnStateAndNode( stateRef, openParams, callSource, parent, isLocked, spawnIn );
 		
 		if (newNode.State is GameStage gs)
-			gs.Init( _service, parentContext );
+			gs.Init( parentContext );
 		
 		return newNode.Handle;
 	}
@@ -141,7 +141,7 @@ public class FlowGraph
 		instances?.TryGetValue( stateRef, out state );
 
 		if (!state)
-			_stateInstances.TryGetValue( stateRef, out state );
+			_globalStateInstances.TryGetValue( stateRef, out state );
 		
 		var stateInstanceOrPrefab = state;
 		
@@ -153,7 +153,7 @@ public class FlowGraph
 		
 		if (stateInstanceOrPrefab is GameStage _)
 		{
-			instances	= _stateInstances;
+			instances	= _globalStateInstances;
 			parent		= _root;
 			isLocked	= true;
 			
@@ -165,6 +165,7 @@ public class FlowGraph
 				
 				state = (State)UnityEngine.Object.Instantiate( statePrefab, spawnIn.IsValid() ? spawnIn : Service.gameObject.scene );
 				state.transform.SetSiblingIndex(0);
+				NicifyStateName(state);
 				
 				statePrefab.gameObject.SetActive( activeSelf );
 				statePrefab.gameObject.ClearEditorDirty();
@@ -207,6 +208,7 @@ public class FlowGraph
 				statePrefab.gameObject.SetActive(false);
 				
 				state = parent.State.InstantiateSubState(statePrefab);
+				NicifyStateName(state);
 				
 				statePrefab.gameObject.SetActive(activeSelf);
 				statePrefab.gameObject.ClearEditorDirty();
@@ -217,14 +219,8 @@ public class FlowGraph
 		}
 
 		instances[stateRef] = state!;
-		state!.name = state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_').Trim(' ');
-		state._prefabRef = stateRef;
+		state!._prefabRef = stateRef;
 		state._graph = this;
-		
-		var niceName = state.name;
-		var spaceIndex = niceName.IndexOf(' ');
-		if (spaceIndex < niceName.Length - 1)
-			state.name = niceName.Insert(spaceIndex, "]").Insert(0, "[");
 		
 		var nextNode = new FlowNode
 		{
@@ -253,6 +249,18 @@ public class FlowGraph
 		ScheduleSwitchStates();
 		
 		return nextNode;
+		
+		static void NicifyStateName(State state)
+		{
+			try
+			{
+				var niceName = state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_').Trim(' ');
+				var spaceIndex = niceName.IndexOf(' ');
+				if (spaceIndex != -1 && spaceIndex < niceName.Length - 1)
+					state.name = niceName.Insert(spaceIndex, "]").Insert(0, "[");
+			}
+			catch (Exception ex) { Debug.LogException(ex); }
+		}
 	}
 	
 	private			void		ScheduleSwitchStates			( )		
