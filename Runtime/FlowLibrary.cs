@@ -10,25 +10,6 @@ namespace Flexy.GameFlow
 		[SerializeField]	FlowLibrary[]?	_dependencies	= null;
 		[SerializeField]	StateRef[]		_states			= null!;
 
-		private	void			OnValidate		( )		
-		{
-			if (_autoGrabMode is not EStateGrabMode.NoGrab)
-			{
-				EditorGrabStates(_autoGrabMode);
-			}
-			else
-			{
-				for (var i = 0; i < _states.Length; i++)
-				{
-					var newName = AssetsLoader.EditorLoadAsset( _states[i].Ref )?.GetType().FullName ?? "";
-					if (_states[i].TypeFullName != newName)
-					{
-						_states[i].TypeFullName = newName; 
-						UnityEditor.EditorUtility.SetDirty(this);
-					}
-				}
-			}
-		}
 		public	List<UObject>	CollectAssets	( )		
 		{
 			var list = _states.Select( UObject(w) => AssetsLoader.EditorLoadAsset(w.Ref)! ).ToList();
@@ -57,7 +38,27 @@ namespace Flexy.GameFlow
 			return list;
 		}
 
-#if UNITY_EDITOR		
+#if UNITY_EDITOR
+		private	void			OnValidate		( )		
+		{
+			if (_autoGrabMode is not EStateGrabMode.NoGrab)
+			{
+				EditorGrabStates(_autoGrabMode);
+			}
+			else
+			{
+				for (var i = 0; i < _states.Length; i++)
+				{
+					var newName = AssetsLoader.EditorLoadAsset( _states[i].Ref )?.GetType().FullName ?? "";
+					if (_states[i].TypeFullName != newName)
+					{
+						_states[i].TypeFullName = newName; 
+						UnityEditor.EditorUtility.SetDirty(this);
+					}
+				}
+			}
+		}
+		
 		[ContextMenu("Revalidate")]
 		internal	void	RevalidateStates					( )			
 		{
