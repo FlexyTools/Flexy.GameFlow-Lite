@@ -54,22 +54,22 @@ internal static class LiteTransitions
 		
 		return false;
 	}
-	private static	FlowNode	FindNearestCommonParent	( FlowNode a, FlowNode b )								
+	private static	FlowNode	FindNearestCommonParent	( FlowNode? nodeA, FlowNode? nodeB )					
 	{
 		var aSet = new HashSet<FlowNode>();
 
-		for ( ; a != null; a = a.Parent)
-			aSet.Add( a );
+		for ( ; nodeA != null; nodeA = nodeA.Parent)
+			aSet.Add( nodeA );
 
-		for ( ; b != null; b = b.Parent)
-			if (aSet.Contains( b ))
-				return b;
+		for ( ; nodeB != null; nodeB = nodeB.Parent)
+			if (aSet.Contains( nodeB ))
+				return nodeB;
 
 		throw new InvalidOperationException("Graph broken, can not find common parent, it must be at least one common parent -> Root of the graph ");
 	}
-	private static	void		NodeStateHide			( FlowNode prevNode, Boolean isMoveForward )			
+	private static	void		NodeStateHide			( FlowNode node, Boolean isMoveForward )				
 	{
-		var state = prevNode.State;
+		var state = node.State;
 		
 		try
 		{
@@ -78,18 +78,17 @@ internal static class LiteTransitions
 		}
 		catch ( Exception ex ) { Debug.LogException( ex ); }
 	}
-	private static	void		NodeStateShow			( FlowNode nextNode, Boolean isMoveForward )			
+	private static	void		NodeStateShow			( FlowNode node, Boolean isMoveForward )				
 	{
-		var nextWasShown		= nextNode.WasShown;
-		nextNode.State._node	= nextNode;
-		nextNode.WasShown		= true;
+		var state	= node.State;
+		state._node	= node;
 			
-		var state = nextNode.State;
-		
-		if (!nextWasShown && !isMoveForward)
+		if (!node.FullyInited && !isMoveForward)
 			try						{ state.DoShow(); }
 			catch (Exception ex)	{ Debug.LogException(ex); }
-
+		
+		node.FullyInited = true;
+		
 		try
 		{
 			if (isMoveForward)	state.DoShow();

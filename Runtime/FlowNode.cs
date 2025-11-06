@@ -8,18 +8,18 @@ public class FlowNode
 	public	AssetRef<State>	MainSubStateRef {get; internal set;}
 	public	State			State			{get; internal set;} = null!; // View of logical node
 	
-	public	Boolean			WasShown		{get; internal set;} // used to call OnShow in case first show will be BackShow
+	public	Boolean			FullyInited		{get; internal set;} // if it is false in OnShow than first show came from BackShow
 	public	Boolean			IsLocked		{get; internal set;} // we can not go back from locked node only close
 	public	Object?			OpenParams		{get; internal set;} // parameters state opened with
 	public	Object?			StateData		{get; internal set;} // optional state data can be stored by state implementation
 	public	Object?			UserData		{get; internal set;} // optional user data for (link additional data from outside the state)
 	
-	public	FlowNode?		PrevSibling		{get; internal set;}
-	public	FlowNode?		NextSibling		{get; internal set;}
-	public	FlowNode		Back			{get; internal set;} = null!;
-	public	FlowNode?		Forward			{get; internal set;}
 	public	FlowNode		Parent			{get; internal set;} = null!;
 	public	FlowNode?		FirstChild		{get; internal set;}
+	public	FlowNode?		PrevSibling		{get; internal set;}
+	public	FlowNode?		NextSibling		{get; internal set;}
+	public	FlowNode?		Back			{get; internal set;}
+	public	FlowNode?		Forward			{get; internal set;}
 	
 	public	StateHandle		Handle			=> new(this);
 	public	Boolean			IsValid			=> Graph.Root == this || Back?.Forward == this;

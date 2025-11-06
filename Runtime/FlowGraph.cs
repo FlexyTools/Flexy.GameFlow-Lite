@@ -27,9 +27,8 @@ public class FlowGraph
 			{
 				Graph		= this,
 				State		= state, 
-				OpenParams	= null, 
 				IsLocked	= true,
-				WasShown	= true
+				FullyInited	= true
 			};
 
 			_mainLineActive	= _root;
@@ -105,7 +104,7 @@ public class FlowGraph
 				RemoveNodesUpTo( toRemove.FirstChild.GetLastSibling(), toRemove );
 			
 			if (toRemove == _mainLineTip)
-				_mainLineTip  = iter;
+				_mainLineTip  = iter!;
 			
 			if (toRemove.Back != null)		toRemove.Back.Forward = toRemove.Forward;
 			if (toRemove.Forward != null)	toRemove.Forward.Back = toRemove.Back!;
