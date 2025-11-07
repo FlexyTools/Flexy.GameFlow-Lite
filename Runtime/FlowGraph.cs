@@ -36,6 +36,7 @@ public class FlowGraph
 			
 			state._node = _root;
 			state.gameObject.SetActive( true );
+			state.DoShow();
 		}
 		
 		SwitchStatesAsyncInfiniteLoop().Forget();
