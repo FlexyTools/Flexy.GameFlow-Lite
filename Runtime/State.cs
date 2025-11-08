@@ -16,9 +16,9 @@
 		public		Object?				OpenParams		=> _node.OpenParams;
 		public		StateHandle			Handle			=> new(_node);
 		
-		public		Boolean				IsOpened		=> _node?.IsOpened ?? false;
-		public		Boolean				IsShowed		=> _node?.IsShowed ?? false;
-		public		Boolean				AnySubStateOpened=> _node?.FirstChild != null;
+		public		Boolean				IsOpened		=> _node.IsOpened;
+		public		Boolean				IsShowed		=> _node.IsShowed;
+		public		Boolean				AnySubStateOpened=> _node.FirstChild != null;
 		
 		public		State?				MainSubState	=> _node.FirstChild?.State;
 		public		StateHandle			MainSubHandle	=> _node.FirstChild?.Handle ?? default;
@@ -77,7 +77,7 @@
 		protected virtual	void	OnFirstChildShow	( )	{ }
 		protected virtual	void	OnLastChildHide		( )	{ }
 		
-		public			StateHandle	OpenMainState		( Object? openParams = null )		
+		public		StateHandle		OpenMainState		( Object? openParams = null )		
 		{
 			if (MainSubStateRef.IsNone)
 				return default;
@@ -92,11 +92,11 @@
 			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node.FirstChild, openParams );
 			return _node.FirstChild.Handle;
 		}
-		[Callable] public	void	Close				( )	
+		[Callable] public	void	Close				( )									
 		{
 			_node.Close();
 		}
-		public				void	CloseAndDestroy		( )	
+		public				void	CloseAndDestroy		( )									
 		{
 			if (_node == null)
 			{
@@ -114,7 +114,7 @@
 				Destroy( node.State.gameObject );
 			}
 		}
-		public			StateHandle	CloseSubStates		( Boolean closeMainState = false )	
+		public		StateHandle		CloseSubStates		( Boolean closeMainState = false )	
 		{
 			if (_node.FirstChild == null)
 				return Handle;
@@ -179,7 +179,7 @@
 		} 
 	}
 	
-	public interface IStateWithResult<T>
+	public interface IStateWithResult<out T>
 	{
 		public T GetResult();
 	}
