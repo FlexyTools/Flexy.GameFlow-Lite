@@ -2,7 +2,7 @@ namespace Flexy.GameFlow;
 
 internal static class TransitionOperationBasis
 {
-	internal static	void		DoStateTransitions		( ref FlowNode mainLineActive, FlowNode mainLineTip )	
+	internal static	void		InstantTransition		( FlowNode mainLineActive, FlowNode mainLineTip )		
 	{
 		var prevNode		= mainLineActive; 
 		var nextNode		= mainLineTip;
@@ -28,11 +28,11 @@ internal static class TransitionOperationBasis
 		var openingBranchNode = commonParent.FirstChild.GetLastSiblingOrNull();
 		
 		if (openingBranchNode == null)
-			mainLineActive = commonParent;
+			nextNode.Graph._mainLineActive = commonParent;
 		
 		while (openingBranchNode != null)
 		{
-			mainLineActive = openingBranchNode;
+			nextNode.Graph._mainLineActive = openingBranchNode;
 		
 			if (isMoveForward && openingBranchNode.Parent.FirstChild!.NextSibling == null)
 				openingBranchNode.Parent.State.DoFirstChildShow();
@@ -44,7 +44,7 @@ internal static class TransitionOperationBasis
 		}
 	}
 	
-	private static	Boolean		IsForward				( FlowNode prev, FlowNode next )						
+	internal static	Boolean		IsForward				( FlowNode prev, FlowNode next )						
 	{
 		for (var iter = prev.Forward; iter != null; iter = iter.Forward)
 		{
@@ -54,7 +54,7 @@ internal static class TransitionOperationBasis
 		
 		return false;
 	}
-	private static	FlowNode	FindNearestCommonParent	( FlowNode? nodeA, FlowNode? nodeB )					
+	internal static	FlowNode	FindNearestCommonParent	( FlowNode? nodeA, FlowNode? nodeB )					
 	{
 		var aSet = new HashSet<FlowNode>();
 
@@ -67,7 +67,7 @@ internal static class TransitionOperationBasis
 
 		throw new InvalidOperationException("Graph broken, can not find common parent, it must be at least one common parent -> Root of the graph ");
 	}
-	private static	void		NodeStateHide			( FlowNode node, Boolean isMoveForward )				
+	internal static	void		NodeStateHide			( FlowNode node, Boolean isMoveForward )				
 	{
 		var state = node.State;
 		
@@ -78,7 +78,7 @@ internal static class TransitionOperationBasis
 		}
 		catch ( Exception ex ) { Debug.LogException( ex ); }
 	}
-	private static	void		NodeStateShow			( FlowNode node, Boolean isMoveForward )				
+	internal static	void		NodeStateShow			( FlowNode node, Boolean isMoveForward )				
 	{
 		var state	= node.State;
 		state._node	= node;

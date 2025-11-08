@@ -47,7 +47,7 @@ public class FlowGraph
 	private		Service_GameFlow _service;
 	private		FlowNode		_root;
 	private		FlowNode		_mainLineTip;
-	private		FlowNode		_mainLineActive;
+	internal	FlowNode		_mainLineActive;
 	private		Boolean			_doTransition;
 
 	public		Service_GameFlow Service		=> _service;
@@ -285,7 +285,7 @@ public class FlowGraph
 	}
 	private 		void		DoStateTransitions				( )		
 	{
-		TransitionOperationBasis.DoStateTransitions( ref _mainLineActive, _mainLineTip );
+		TransitionOperationBasis.InstantTransition( _mainLineActive, _mainLineTip );
 	}
 	
 #if UNITY_EDITOR
