@@ -2,11 +2,8 @@ namespace Flexy.GameFlow;
 
 internal static class TransitionOperationBasis
 {
-	internal static	void		InstantTransition		( FlowNode mainLineActive, FlowNode mainLineTip )		
+	internal static	void		InstantTransition		( FlowNode prevNode, FlowNode nextNode )		
 	{
-		var prevNode		= mainLineActive; 
-		var nextNode		= mainLineTip;
-	
 		if (prevNode == nextNode)
 			return;
 	
