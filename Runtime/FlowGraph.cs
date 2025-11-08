@@ -285,7 +285,7 @@ public class FlowGraph
 	}
 	private 		void		DoStateTransitions				( )		
 	{
-		TransitionsSimple.DoStateTransitions( ref _mainLineActive, _mainLineTip );
+		TransitionOperationBasis.DoStateTransitions( ref _mainLineActive, _mainLineTip );
 	}
 	
 #if UNITY_EDITOR

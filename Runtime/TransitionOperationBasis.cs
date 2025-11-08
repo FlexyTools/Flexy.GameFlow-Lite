@@ -1,6 +1,6 @@
 namespace Flexy.GameFlow;
 
-internal static class TransitionsSimple
+internal static class TransitionOperationBasis
 {
 	internal static	void		DoStateTransitions		( ref FlowNode mainLineActive, FlowNode mainLineTip )	
 	{
