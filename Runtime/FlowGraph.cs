@@ -136,8 +136,13 @@ public class FlowGraph
 	private		FlowNode		SpawnStateAndNode	( AssetRef<State> stateRef, Object? openParams, State? callSource, FlowNode? parent, Boolean isLocked, Scene spawnIn )	
 	{
 		var state = default(State);
-		var instances = callSource?.GameStage._stateInstances;
-		instances?.TryGetValue( stateRef, out state );
+		Dictionary<AssetRef<State>, State>? instances = default;
+		
+		if (callSource != null && callSource.GameStage._node is {IsValid:true})
+		{
+			instances = callSource.GameStage._stateInstances;
+			instances.TryGetValue( stateRef, out state );
+		}
 
 		if (!state)
 			_globalStateInstances.TryGetValue( stateRef, out state );
