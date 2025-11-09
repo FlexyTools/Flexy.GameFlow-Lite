@@ -41,11 +41,17 @@ internal static class TransitionOperationBasis
 		}
 	}
 	
-	internal static	Boolean		IsForward				( FlowNode prev, FlowNode next )						
+	internal static	Boolean		IsForward				( FlowNode? prev, FlowNode? next )						
 	{
-		for (var iter = prev.Forward; iter != null; iter = iter.Forward)
+		if (prev == null) // We open new separated state
+			return true;
+			
+		if (next == null) // We close last separated state
+			return false;
+	
+		for (var iter = next.Back; iter != null; iter = iter.Back)
 		{
-			if (iter == next)
+			if (iter == prev)
 				return true;
 		}
 		
