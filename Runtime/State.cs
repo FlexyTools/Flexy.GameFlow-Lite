@@ -181,7 +181,7 @@
 	
 	public interface IStateWithResult<out T>
 	{
-		public T GetResult();
+		public T GetResult( );
 	}
 	
 	[AttributeUsage(AttributeTargets.Method)]
