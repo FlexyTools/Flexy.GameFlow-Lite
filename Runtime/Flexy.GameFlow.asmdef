@@ -1,0 +1,30 @@
+{
+    "name": "Flexy.GameFlow",
+    "rootNamespace": "Flexy.GameFlow",
+    "references": [
+        "GUID:529b74b51f9df9847a64e490b76761e8",
+        "GUID:0c7c5eb5b8006c2449ad5b70f4947317",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:8f8cd9da846c03a4e94c08df4d8e4e10",
+        "GUID:2826e3e6e3f61fb4aae556019adc28e8",
+        "GUID:b0214a6008ed146ff8f122a6a9c2f6cc",
+        "GUID:343deaaf83e0cee4ca978e7df0b80d21",
+        "GUID:2bafac87e7f4b9b418d9448d219b01ab",
+        "GUID:75469ad4d38634e559750d17036d5f7c"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.10",
+            "define": "UNITY_INPUT_SYSTEM"
+        }
+    ],
+    "noEngineReferences": false
+}

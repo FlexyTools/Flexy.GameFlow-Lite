@@ -1,0 +1,24 @@
+{
+  "name": "fun.flexy.gameflow",
+  "displayName": "Flexy GameFlow",
+  "version": "5.0.0",
+  "unity": "2022.3",
+  "description": "Flexible GameStates System based on GameContexts with support of SplitScreen and NetworkMultipeer modes",
+  "keywords": [
+    "GameFlow",
+	"GameStage",
+	"GameState",
+	"Flow",
+	"Stage",
+    "State"
+  ],
+  "category": "GameState",
+  "author": {
+    "name": "Flexy Tools",
+    "email": "JesObertyukh@gmail.com",
+    "url": "https://github.com/FlexyTools/Flexy.GameFlow"
+  },
+  "dependencies": {
+    "fun.flexy.core": "5.0.0"
+  }
+}
