@@ -8,6 +8,7 @@
 		internal	FlowGraph			_graph = null!;
 		internal	FlowNode			_node  = null!; // Can be null only when unused but loaded, so no one can access it in this state
 		internal	AssetRef<State>		_prefabRef;
+		internal	State?				_parent;
 		
 		public		FlowGraph			Graph			=> _graph;
 		public		FlowNode			Node			=> _node;
@@ -26,7 +27,8 @@
 		
 		protected internal virtual	AssetRef<State>		MainSubStateRef			=> default;
 		protected internal virtual	Boolean				TryGoBack				( )	=> !_node.IsLocked;
-		protected internal virtual	State				InstantiateSubState		( State prefab ) => throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
+		protected internal virtual	State				InstantiateSubState		( State prefab )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
+		protected internal virtual	void				DestroySubState			( State instance )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
 		
 		internal			void	DoShow				( )	
 		{ 
@@ -100,7 +102,7 @@
 		{
 			if (_node == null)
 			{
-				Destroy( gameObject );
+				Graph.DestroyInstance(this);
 				return;
 			}
 		
@@ -110,8 +112,9 @@
 
 			static async UniTaskVoid DestroyWhenStateWillHide( FlowNode node )
 			{
-				await UniTask.WaitWhile( () => node.State.gameObject.activeSelf );
-				Destroy( node.State.gameObject );
+				var state = node.State;
+				await UniTask.WaitWhile( () => state.gameObject.activeSelf );
+				node.Graph.DestroyInstance(state);
 			}
 		}
 		public		StateHandle		CloseSubStates		( Boolean closeMainState = false )	

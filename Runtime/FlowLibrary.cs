@@ -129,6 +129,14 @@ namespace Flexy.GameFlow
 		}
 	}
 
+	public interface		IOpener : IOpenerB {}
+	public interface		IOpenerB { OpenCtx Ctx {get; protected internal set;} }
+
+	public readonly record struct OpenCtx( AssetRef<State> StateRef, State CallSrc )
+	{
+		public StateHandle Open		( Object? openParams = null )	=> CallSrc.Node.Graph.Open(StateRef, CallSrc, openParams);
+	}
+	
 #if UNITY_EDITOR
 	[UnityEditor.CustomEditor(typeof(FlowLibrary))]
 	public class FlowLibraryEditor : UnityEditor.Editor
@@ -165,12 +173,4 @@ namespace Flexy.GameFlow
 		}
 	}
 #endif
-
-	public interface		IOpener : IOpenerB {}
-	public interface		IOpenerB { OpenCtx Ctx {get; protected internal set;} }
-
-	public readonly record struct OpenCtx( AssetRef<State> StateRef, State CallSrc )
-	{
-		public StateHandle Open		( Object? openParams = null )	=> CallSrc.Node.Graph.Open(StateRef, CallSrc, openParams);
-	}
 }

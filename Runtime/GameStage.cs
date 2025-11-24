@@ -45,7 +45,17 @@
 		}
 		
 		protected internal override		AssetRef<State>		MainSubStateRef			=> _mainStateRef;
-		protected internal override		State				InstantiateSubState		( State prefab ) => Instantiate(prefab, _statesContainer);
+		protected internal override		State				InstantiateSubState		( State prefab )	
+		{
+			var state = Instantiate(prefab, _statesContainer); 
+			_stateInstances[prefab.PrefabRef] = state;
+			return state;
+		}
+		protected internal override		void				DestroySubState			( State instance )	
+		{
+			Destroy(instance.gameObject);
+			_stateInstances.Remove(instance.PrefabRef);
+		}
 		
 #if UNITY_EDITOR
 		[RuntimeInspectorGui( Repaint = true )]
