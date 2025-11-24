@@ -8,7 +8,7 @@
 		internal	FlowGraph			_graph = null!;
 		internal	FlowNode			_node  = null!; // Can be null only when unused but loaded, so no one can access it in this state
 		internal	AssetRef<State>		_prefabRef;
-		internal	State?				_parent;
+		internal	State?				_owner;
 		
 		public		FlowGraph			Graph			=> _graph;
 		public		FlowNode			Node			=> _node;
@@ -26,7 +26,7 @@
 		public		GameStage			GameStage		=> (GameStage)_node.GameStageNode.State;
 		
 		protected internal virtual	AssetRef<State>		MainSubStateRef			=> default;
-		protected internal virtual	Boolean				TryGoBack				( )	=> !_node.IsLocked;
+		protected internal virtual	Boolean				TryGoBack				( )	=> true;
 		protected internal virtual	State				InstantiateSubState		( State prefab )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
 		protected internal virtual	void				DestroySubState			( State instance )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
 		
@@ -88,7 +88,7 @@
 		
 			if (_node.FirstChild == null)
 				// main substate never was opened yet so just open it
-				return Graph.Open( MainSubStateRef, this, openParams, parent:_node, isLocked:true );
+				return Graph.Open( MainSubStateRef, this, openParams, parent:_node );
 			
 			// main substate is somewhere in history so just return to it
 			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node.FirstChild, openParams );

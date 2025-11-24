@@ -27,7 +27,6 @@ public class FlowGraph
 			{
 				Graph		= this,
 				State		= state, 
-				IsLocked	= true,
 				FullyInited	= true
 			};
 
@@ -56,23 +55,113 @@ public class FlowGraph
 	public		FlowNode		MainLineTip		=> _mainLineTip;
 	public		FlowNode		MainLineActive	=> _mainLineActive;
 	
-	public		StateHandle		Open	( AssetRef<GameStage> stageRef, GameContext? parentContext = null, Object? openParams = null, Scene spawnIn = default )																		
+	public		StateHandle		Open	( AssetRef<GameStage> stageRef, GameContext? parentContext = null, Object? openParams = null, Scene spawnIn = default )	
 	{
-		return Open( new AssetRef<State>(stageRef.Uid, stageRef.SubId), null, openParams, null, true, spawnIn, parentContext );	
-	}
-	public		StateHandle		Open	( AssetRef<State> stateRef, State? callSource, Object? openParams = null, FlowNode? parent = null, Boolean isLocked = false, Scene spawnIn = default, GameContext? parentContext = null )	
-	{
-		var newNode			= SpawnStateAndNode( stateRef, openParams, callSource, parent, isLocked, spawnIn );
+		var stagePrefab = stageRef.LoadAssetSync();
 		
-		if (newNode.State is GameStage gs)
-			gs.Init( parentContext );
+		if (stagePrefab == null)
+			throw new ArgumentException("[FlowGraph] stageRef is invalid", nameof(stageRef));
+		
+		stagePrefab._prefabRef = new AssetRef<State>(stageRef.Uid, stageRef.SubId);
+	
+		var activeSelf = stagePrefab.gameObject.activeSelf;
+		stagePrefab.gameObject.SetActive(false);
+		
+		var stage = (GameStage)UObject.Instantiate( stagePrefab, spawnIn.IsValid() ? spawnIn : Service.gameObject.scene );
+		stage._prefabRef = stagePrefab._prefabRef;
+		stage._graph = this;
+		
+		stage.transform.SetSiblingIndex(0);
+		NicifyStateName(stage);
+		
+		stagePrefab.gameObject.SetActive( activeSelf );
+		stagePrefab.gameObject.ClearEditorDirty();
+	
+		var newNode	= SpawnNode(stage, openParams, _root);
+		
+		stage.Init(parentContext);
 		
 		return newNode.Handle;
 	}
-	public		StateHandle		GoBack	( )																																															
+	public		StateHandle		Open	( AssetRef<State> stateRef, State? callSource, Object? openParams = null, FlowNode? parent = null )						
 	{
-		if (_mainLineTip != _root && _mainLineTip.Back != null && (_mainLineTip.State?.TryGoBack() ?? false))
-			RemoveNodesUpTo( _mainLineTip, _mainLineTip.Back );
+		var state = default(State);
+		
+		if (callSource != null && callSource.GameStage._node is {IsValid:true})
+		{
+			var instances = callSource.GameStage._stateInstances;
+			instances.TryGetValue(stateRef, out state);
+		}
+
+		if (!state)
+			_globalStateInstances.TryGetValue( stateRef, out state );
+		
+		var stateInstanceOrPrefab = state;
+		
+		if (!stateInstanceOrPrefab)
+		{
+			stateInstanceOrPrefab = stateRef.LoadAssetSync();
+			
+			if (!stateInstanceOrPrefab)
+				throw new ArgumentException("[FlowGraph] stateRef is invalid", nameof(stateRef));
+			
+			stateInstanceOrPrefab!._prefabRef = stateRef;
+		}
+	
+		if (stateInstanceOrPrefab is GameStage)
+			return Open(new AssetRef<GameStage>(stateRef.Uid, stateRef.SubId), null, openParams);
+	
+		if (parent == null)
+		{
+			if (callSource)
+				parent = callSource!.GameStage._node is {IsValid:true} stage ? stage : null;
+			
+			parent ??= _root.FirstChild!.GetLastSibling();
+		}
+		
+		// If we have main substate
+		if (!parent.MainSubStateRef.IsNone)
+		{
+			var isOpeningMainState = stateRef == parent.MainSubStateRef; 
+			
+			if (!isOpeningMainState && parent.FirstChild == null)
+			{
+				// In case main state not spawned and we try to open not main state => Open main substate first
+				Open(parent.MainSubStateRef, callSource, null, parent);
+			}
+			else if (isOpeningMainState && parent.FirstChild != null)
+			{
+				// In case main state exists just Close all states up to main 
+				RemoveNodesUpTo( parent.FirstChild.GetLastSibling(), parent.FirstChild, openParams );
+				return parent.FirstChild.Handle;
+			}
+		}		
+		
+		if (!state)
+		{
+			var statePrefab = stateInstanceOrPrefab;
+			var activeSelf	= statePrefab!.gameObject.activeSelf;
+			statePrefab.gameObject.SetActive(false);
+			
+			state = parent.State.InstantiateSubState(statePrefab);
+			state._prefabRef = stateRef;
+			state._owner = parent.State;
+			state._graph = this;
+			
+			NicifyStateName(state);
+			
+			statePrefab.gameObject.SetActive(activeSelf);
+			statePrefab.gameObject.ClearEditorDirty();
+		}
+	
+		var newNode			= SpawnNode(state!, openParams, parent);
+		
+		return newNode.Handle;
+	}
+	public		StateHandle		GoBack	( )																														
+	{
+		if (_mainLineTip.Back != null && _mainLineTip.State.TryGoBack())
+			RemoveNodesUpTo(_mainLineTip, _mainLineTip.Back);
 
 		return _mainLineTip.Handle;
 	}
@@ -126,9 +215,9 @@ public class FlowGraph
 	}
 	internal	void			DestroyInstance ( State instance )																				
 	{
-		if (instance._parent != null)
+		if (instance._owner != null)
 		{
-			instance._parent.DestroySubState(instance);
+			instance._owner.DestroySubState(instance);
 		}
 		else
 		{
@@ -137,7 +226,7 @@ public class FlowGraph
 		}
 	}
 	
-	public		void			TransitionNow		( )																														
+	public			void		TransitionNow					( )		
 	{
 		if (!_doTransition) 
 			return;
@@ -145,140 +234,6 @@ public class FlowGraph
 		_doTransition = false;
 		DoStateTransitions();
 	}
-	private		FlowNode		SpawnStateAndNode	( AssetRef<State> stateRef, Object? openParams, State? callSource, FlowNode? parent, Boolean isLocked, Scene spawnIn )	
-	{
-		var state = default(State);
-		
-		if (callSource != null && callSource.GameStage._node is {IsValid:true})
-		{
-			var instances = callSource.GameStage._stateInstances;
-			instances.TryGetValue( stateRef, out state );
-		}
-
-		if (!state)
-			_globalStateInstances.TryGetValue( stateRef, out state );
-		
-		var stateInstanceOrPrefab = state;
-		
-		if (!stateInstanceOrPrefab)
-		{
-			stateInstanceOrPrefab = stateRef.LoadAssetSync();
-			
-			if (!stateInstanceOrPrefab)
-				throw new ArgumentException("[FlowGraph] stateRef is invalid", nameof(stateRef));
-			
-			stateInstanceOrPrefab!._prefabRef = stateRef;
-		}
-		
-		if (stateInstanceOrPrefab is GameStage _)
-		{
-			parent		= _root;
-			isLocked	= true;
-			
-			if (!state)
-			{
-				var statePrefab	= stateInstanceOrPrefab;
-				var activeSelf	= statePrefab.gameObject.activeSelf;
-				statePrefab.gameObject.SetActive( false );
-				
-				state = (State)UnityEngine.Object.Instantiate( statePrefab, spawnIn.IsValid() ? spawnIn : Service.gameObject.scene );
-				_globalStateInstances[stateRef] = state;
-				state.transform.SetSiblingIndex(0);
-				NicifyStateName(state);
-				
-				statePrefab.gameObject.SetActive( activeSelf );
-				statePrefab.gameObject.ClearEditorDirty();
-			}
-		}
-		else
-		{
-			if (parent == null)
-			{
-				if (callSource)
-					parent = callSource!.GameStage._node is {IsValid:true} stage ? stage : null;
-				
-				parent ??= _root.FirstChild!.GetLastSibling();
-			}
-			
-			// If we have main substate
-			if (!parent.MainSubStateRef.IsNone)
-			{
-				var isOpeningMainState = stateRef == parent.MainSubStateRef; 
-				if (isOpeningMainState)
-					isLocked = true;
-			
-				if (!isOpeningMainState && parent.FirstChild == null)
-				{
-					// In case main state not spawned and we try to open not main state => Open main substate first
-					SpawnStateAndNode(parent.MainSubStateRef, null, callSource, parent, true, spawnIn);
-				}
-				else if (isOpeningMainState && parent.FirstChild != null)
-				{
-					// In case main state exists just Close all states up to main 
-					RemoveNodesUpTo( parent.FirstChild.GetLastSibling(), parent.FirstChild, openParams );
-					return parent.FirstChild;
-				}
-			}		
-			
-			if (!state)
-			{
-				var statePrefab = stateInstanceOrPrefab;
-				var activeSelf	= statePrefab!.gameObject.activeSelf;
-				statePrefab.gameObject.SetActive(false);
-				
-				state = parent.State.InstantiateSubState(statePrefab);
-				state._parent = parent.State;
-				NicifyStateName(state);
-				
-				statePrefab.gameObject.SetActive(activeSelf);
-				statePrefab.gameObject.ClearEditorDirty();
-			}
-		}
-		
-		state!._prefabRef = stateRef;
-		state._graph = this;
-		
-		var nextNode = new FlowNode
-		{
-			Graph			= this,
-			StateRef		= stateRef,
-			MainSubStateRef	= state.MainSubStateRef,
-			State			= state,
-			OpenParams		= openParams, 
-			IsLocked		= isLocked,
-			PrevSibling 	= parent.FirstChild.GetLastSiblingOrNull()
-		};
-
-		if (nextNode.PrevSibling != null)
-			nextNode.PrevSibling.NextSibling = nextNode;
-		
-		nextNode.Parent = parent;
-		
-		if (parent.FirstChild == null)
-			parent.FirstChild = nextNode;
-		
-		_mainLineTip.Forward = nextNode;
-		nextNode.Back = _mainLineTip;
-		
-		_mainLineTip = nextNode;
-		
-		ScheduleSwitchStates();
-		
-		return nextNode;
-		
-		static void NicifyStateName(State state)
-		{
-			try
-			{
-				var niceName = state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_').Trim(' ');
-				var spaceIndex = niceName.IndexOf(' ');
-				if (spaceIndex != -1 && spaceIndex < niceName.Length - 1)
-					state.name = niceName.Insert(spaceIndex, "]").Insert(0, "[");
-			}
-			catch (Exception ex) { Debug.LogException(ex); }
-		}
-	}
-	
 	private			void		ScheduleSwitchStates			( )		
 	{
 		_doTransition	= true;
@@ -303,6 +258,47 @@ public class FlowGraph
 	private 		void		DoStateTransitions				( )		
 	{
 		TransitionOperationBasis.InstantTransition( _mainLineActive, _mainLineTip );
+	}
+	private static	void		NicifyStateName					( State state )		
+	{
+		try
+		{
+			var niceName = state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_').Trim(' ');
+			var spaceIndex = niceName.IndexOf(' ');
+			if (spaceIndex != -1 && spaceIndex < niceName.Length - 1)
+				state.name = niceName.Insert(spaceIndex, "]").Insert(0, "[");
+		}
+		catch (Exception ex) { Debug.LogException(ex); }
+	}
+	
+	private			FlowNode	SpawnNode						( State state, Object? openParams, FlowNode parent )	
+	{
+		var nextNode = new FlowNode
+		{
+			Graph			= this,
+			StateRef		= state.PrefabRef,
+			MainSubStateRef	= state.MainSubStateRef,
+			State			= state,
+			OpenParams		= openParams, 
+			PrevSibling 	= parent.FirstChild.GetLastSiblingOrNull()
+		};
+
+		if (nextNode.PrevSibling != null)
+			nextNode.PrevSibling.NextSibling = nextNode;
+		
+		nextNode.Parent = parent;
+		
+		if (parent.FirstChild == null)
+			parent.FirstChild = nextNode;
+		
+		_mainLineTip.Forward = nextNode;
+		nextNode.Back = _mainLineTip;
+		
+		_mainLineTip = nextNode;
+		
+		ScheduleSwitchStates();
+		
+		return nextNode;
 	}
 	
 #if UNITY_EDITOR

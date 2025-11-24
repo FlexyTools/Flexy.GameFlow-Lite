@@ -43,8 +43,9 @@
 			if (Node.FirstChild == null) 
 				OpenMainState();
 		}
-		
+
 		protected internal override		AssetRef<State>		MainSubStateRef			=> _mainStateRef;
+		protected internal override		Boolean				TryGoBack				( ) => false;
 		protected internal override		State				InstantiateSubState		( State prefab )	
 		{
 			var state = Instantiate(prefab, _statesContainer); 
