@@ -20,7 +20,7 @@ namespace Flexy.GameFlow
 		public				void			OrderedInit			( GameContext ctx )	
 		{
 			Debug.Log( $"[Service_GameFlow] Init" );
-			name = "[GameFlow] [GlobalContext]";
+			name = "[GameFlow] (GlobalContext)";
 			ReadLibrary();
 			Graph = new(this, _rootStateRef);
 		}
