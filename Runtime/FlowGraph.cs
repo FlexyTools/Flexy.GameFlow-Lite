@@ -2,40 +2,52 @@ namespace Flexy.GameFlow;
 
 public class FlowGraph
 {
-	public FlowGraph	( Service_GameFlow service, AssetRef<State> rootStateRef )
+	public FlowGraph	( Service_GameFlow service, AssetRef<FlowRoot> rootStateRef )
 	{
 		_service = service;
 		
 		// Spawn Root State and node
 		{
-			var rootPrefab		= rootStateRef.LoadAssetSync();
-			
-			if (!rootPrefab)
-				throw new ArgumentException("[FlowGraph] rootStateRef is invalid", nameof(rootStateRef));
-			
-			var activeSelf		= rootPrefab!.gameObject.activeSelf;
-			rootPrefab.gameObject.SetActive( false );
-			var state = UnityEngine.Object.Instantiate( rootPrefab, service.transform );
-			rootPrefab.gameObject.SetActive(activeSelf);
-			rootPrefab.gameObject.ClearEditorDirty();
+			State rootState;
 		
-			state.name			= "[Root] " + state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_');
-			state._prefabRef	= rootStateRef;
-			state._graph		= this;
+			if (!rootStateRef.IsNone)
+			{
+				var rootPrefab		= rootStateRef.LoadAssetSync();
+				
+				if (!rootPrefab)
+					throw new ArgumentException("[FlowGraph] rootStateRef is invalid", nameof(rootStateRef));
+				
+				var activeSelf		= rootPrefab!.gameObject.activeSelf;
+				rootPrefab.gameObject.SetActive( false );
+				rootState = UObject.Instantiate( rootPrefab, service.transform );
+				rootPrefab.gameObject.SetActive(activeSelf);
+				rootPrefab.gameObject.ClearEditorDirty();
+			}
+			else
+			{
+				var go = new GameObject("FlowRoot");
+				go.SetActive(false);
+				go.transform.parent = service.transform;
+				rootState = go.AddComponent<FlowRoot>(); 
+			}
+		
+			rootState.name			= "[Root] " + rootState.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_');
+			rootState._prefabRef	= new (rootStateRef.Uid, rootStateRef.SubId);
+			rootState._graph		= this;
 		
 			_root = new FlowNode
 			{
 				Graph		= this,
-				State		= state, 
+				State		= rootState, 
 				FullyInited	= true
 			};
 
 			_mainLineActive	= _root;
 			_mainLineTip	= _root;
 			
-			state._node = _root;
-			state.gameObject.SetActive( true );
-			state.DoShow();
+			rootState._node = _root;
+			rootState.gameObject.SetActive( true );
+			rootState.DoShow();
 		}
 		
 		SwitchStatesAsyncInfiniteLoop().Forget();
@@ -226,7 +238,7 @@ public class FlowGraph
 		}
 	}
 	
-	public			void		TransitionNow					( )		
+	internal		void		TransitionNow					( )		
 	{
 		if (!_doTransition) 
 			return;

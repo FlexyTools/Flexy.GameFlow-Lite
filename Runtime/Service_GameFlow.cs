@@ -5,15 +5,15 @@ namespace Flexy.GameFlow
 	[RequireComponent(typeof(GameContext))]
 	public class Service_GameFlow : BindableBehaviour, IService
 	{
-		[FormerlySerializedAs("_lib")] 
 		[SerializeField]	FlowLibrary		_rootFlowLibrary = null!;
-		[SerializeField]	AssetRef<State> _rootStateRef;
+		[Tooltip("Optional. Ref to custom prefab of root state")]
+		[SerializeField]	AssetRef<FlowRoot> _rootStateRef;
 		#if UNITY_INPUT_SYSTEM
 		[SerializeField]	UnityEngine.InputSystem.InputActionReference?	_backInputActionRef;
 		#endif
 
-		private readonly	Dictionary<String, AssetRef<State>>	_statesDict = new ( 256 );
-		private readonly	Dictionary<AssetRef<State>, String>	_statesDictReverse = new ( 256 );
+		private readonly	Dictionary<String, AssetRef<State>>	_statesDict = new (256);
+		private readonly	Dictionary<AssetRef<State>, String>	_statesDictReverse = new (256);
 
 		public				FlowGraph		Graph				{ get; private set; } = null!;
 
@@ -91,12 +91,9 @@ namespace Flexy.GameFlow
 		}
 		
 		#if UNITY_EDITOR
-		[RuntimeInspectorGui( Repaint = true )]
+		[RuntimeInspectorGui(Repaint = true)]
 		private void DrawRuntimeUI( )
 		{
-			if (!Application.isPlaying)
-				return;
-
 			GUILayout.Space( 16 );
 			Graph.DrawRuntimeUI();
 		}
