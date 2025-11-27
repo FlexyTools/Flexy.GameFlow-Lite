@@ -84,7 +84,7 @@ public class FlowGraph
 		stage._graph = this;
 		
 		stage.transform.SetSiblingIndex(0);
-		NicifyStateName(stage);
+		stage.NicifyName();
 		
 		stagePrefab.gameObject.SetActive( activeSelf );
 		stagePrefab.gameObject.ClearEditorDirty();
@@ -150,23 +150,9 @@ public class FlowGraph
 		}		
 		
 		if (!state)
-		{
-			var statePrefab = stateInstanceOrPrefab;
-			var activeSelf	= statePrefab!.gameObject.activeSelf;
-			statePrefab.gameObject.SetActive(false);
-			
-			state = parent.State.InstantiateSubState(statePrefab);
-			state._prefabRef = stateRef;
-			state._owner = parent.State;
-			state._graph = this;
-			
-			NicifyStateName(state);
-			
-			statePrefab.gameObject.SetActive(activeSelf);
-			statePrefab.gameObject.ClearEditorDirty();
-		}
+			state = parent.State.InstantiateState(stateInstanceOrPrefab!); 
 	
-		var newNode			= SpawnNode(state!, openParams, parent);
+		var newNode = SpawnNode(state!, openParams, parent);
 		
 		return newNode.Handle;
 	}
@@ -270,17 +256,6 @@ public class FlowGraph
 	private 		void		DoStateTransitions				( )		
 	{
 		TransitionOperationBasis.InstantTransition( _mainLineActive, _mainLineTip );
-	}
-	private static	void		NicifyStateName					( State state )		
-	{
-		try
-		{
-			var niceName = state.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_').Trim(' ');
-			var spaceIndex = niceName.IndexOf(' ');
-			if (spaceIndex != -1 && spaceIndex < niceName.Length - 1)
-				state.name = niceName.Insert(spaceIndex, "]").Insert(0, "[");
-		}
-		catch (Exception ex) { Debug.LogException(ex); }
 	}
 	
 	private			FlowNode	SpawnNode						( State state, Object? openParams, FlowNode parent )	

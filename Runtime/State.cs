@@ -29,6 +29,34 @@
 		protected internal virtual	Boolean				TryGoBack				( )	=> true;
 		protected internal virtual	State				InstantiateSubState		( State prefab )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
 		protected internal virtual	void				DestroySubState			( State instance )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
+		protected internal 			State				InstantiateState		( State statePrefab )		
+		{
+			var activeSelf	= statePrefab.gameObject.activeSelf;
+			statePrefab.gameObject.SetActive(false);
+			
+			var state = InstantiateSubState(statePrefab);
+			state._prefabRef = statePrefab._prefabRef;
+			state._owner = this;
+			state._graph = _graph;
+			
+			NicifyName();
+			
+			statePrefab.gameObject.SetActive(activeSelf);
+			statePrefab.gameObject.ClearEditorDirty();
+		
+			return state;
+		}
+		protected internal			void				NicifyName				( )							
+		{
+			try
+			{
+				var niceName = name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_').Trim(' ');
+				var spaceIndex = niceName.IndexOf(' ');
+				if (spaceIndex != -1 && spaceIndex < niceName.Length - 1)
+					name = niceName.Insert(spaceIndex, "]").Insert(0, "[");
+			}
+			catch (Exception ex) { Debug.LogException(ex); }
+		}	
 		
 		internal			void	DoShow				( )	
 		{ 
