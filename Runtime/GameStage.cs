@@ -3,8 +3,8 @@
 	[RequireComponent(typeof(GameContext))]
 	public class GameStage: State, IService
 	{
-		[SerializeField] AssetRef<State>	_mainStateRef;
-		[SerializeField] Transform			_statesContainer = null!;
+		[SerializeField]			AssetRef<State>	_mainStateRef;
+		[SerializeField] protected	Transform		_statesContainer = null!;
 
 		internal readonly	Dictionary<AssetRef<State>, State>	_stateInstances	= new(32);
 

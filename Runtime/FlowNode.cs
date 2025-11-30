@@ -51,16 +51,36 @@ public class FlowNode
 
 public static class FlowNodeExt
 {
-	public static	FlowNode	GetLastSibling		( this FlowNode node )	
+	public static	FlowNode	GetLastSibling			( this FlowNode node )	
 	{
 		for (;node.NextSibling != null; node = node.NextSibling);
 		return node;
 	}
-	public static	FlowNode?	GetLastSiblingOrNull( this FlowNode? node )	
+	public static	FlowNode?	GetLastSiblingOrNull	( this FlowNode? node )	
 	{
 		if (node == null)
 			return null;
 	
 		return GetLastSibling(node);
+	}
+	public static	FlowNode?	FindNodeBackwards<T>	( this FlowNode? node )	where T : State	
+	{
+		for (;node is { State: not T }; node = node.Back);
+		
+		return node;
+	}
+	public static	FlowNode?	FindNodeForward<T>		( this FlowNode? node )	where T : State	
+	{
+		for (;node is { State: not T }; node = node.Forward);
+		
+		return node;
+	}
+	public static	T?			FindStateBackwards<T>	( this FlowNode? node )	where T : State	
+	{
+		return (T?)FindNodeBackwards<T>(node)?.State;
+	}
+	public static	T?			FindStateForward<T>		( this FlowNode? node )	where T : State	
+	{
+		return (T?)FindNodeForward<T>(node)?.State;
 	}
 }
