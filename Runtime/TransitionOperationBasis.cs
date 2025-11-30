@@ -7,19 +7,21 @@ internal static class TransitionOperationBasis
 		if (prevNode == nextNode)
 			return;
 	
-		var isMoveForward	= IsForward(prevNode, nextNode);
-		var commonParent	= FindNearestCommonParent( prevNode, nextNode );
+		var forwards		= ComputeForwards(prevNode, nextNode);
+		var commonParent	= FindNearestCommonParent(prevNode, nextNode);
 
 		var closingBranchNode = prevNode;
 		while (closingBranchNode != commonParent)
 		{
 			try{ closingBranchNode.State.gameObject.SetActive(false);	} catch (Exception ex) { Debug.LogException(ex); }
-			try{ NodeStateHide(closingBranchNode, isMoveForward);		} catch (Exception ex) { Debug.LogException(ex); }
+			try{ NodeStateHide(closingBranchNode, forwards.PrevIsFwd);	} catch (Exception ex) { Debug.LogException(ex); }
 
-			closingBranchNode = closingBranchNode.Parent;
+			var parent = closingBranchNode.Parent; 
 			
-			if (!isMoveForward && closingBranchNode.FirstChild == null)
-				closingBranchNode.State.DoLastChildHide();
+			if (!forwards.PrevIsFwd && parent.FirstChild == null && parent.ChildrenShowed)
+				parent.State.DoLastChildHide(parent);
+				
+			closingBranchNode = parent;
 		}
 		
 		var openingBranchNode = commonParent.FirstChild.GetLastSiblingOrNull();
@@ -31,33 +33,39 @@ internal static class TransitionOperationBasis
 		{
 			nextNode.Graph._mainLineActive = openingBranchNode;
 		
-			if (isMoveForward && openingBranchNode.Parent.FirstChild!.NextSibling == null)
-				openingBranchNode.Parent.State.DoFirstChildShow();
+			if (forwards.NextIsFwd && openingBranchNode.Parent.FirstChild!.NextSibling == null && !openingBranchNode.Parent.ChildrenShowed)
+				openingBranchNode.Parent.State.DoFirstChildShow(openingBranchNode.Parent);
 		
-			try{ NodeStateShow( openingBranchNode, isMoveForward );		} catch (Exception ex) { Debug.LogException(ex); }
+			try{ NodeStateShow( openingBranchNode, forwards.NextIsFwd );} catch (Exception ex) { Debug.LogException(ex); }
 			try{ openingBranchNode.State.gameObject.SetActive( true );	} catch (Exception ex) { Debug.LogException(ex); }
 			
 			openingBranchNode = openingBranchNode.FirstChild.GetLastSiblingOrNull();
 		}
 	}
 	
-	internal static	Boolean		IsForward				( FlowNode? prev, FlowNode? next )						
+	internal static	Forwards	ComputeForwards			( FlowNode? prev, FlowNode? next )				
 	{
 		if (prev == null) // We open new separated state
-			return true;
+			return new(true, true);
 			
 		if (next == null) // We close last separated state
-			return false;
+			return new(false, false);
 	
 		for (var iter = next.Back; iter != null; iter = iter.Back)
 		{
 			if (iter == prev)
-				return true;
+				return new(true, true);
 		}
 		
-		return false;
+		for (var iter = prev.Back; iter != null; iter = iter.Back)
+		{
+			if (iter == next)
+				return new(false, false);
+		}
+		
+		return new(false, true);
 	}
-	internal static	FlowNode	FindNearestCommonParent	( FlowNode? nodeA, FlowNode? nodeB )					
+	internal static	FlowNode	FindNearestCommonParent	( FlowNode? nodeA, FlowNode? nodeB )			
 	{
 		var aSet = new HashSet<FlowNode>();
 
@@ -70,7 +78,7 @@ internal static class TransitionOperationBasis
 
 		throw new InvalidOperationException("Graph broken, can not find common parent, it must be at least one common parent -> Root of the graph ");
 	}
-	internal static	void		NodeStateHide			( FlowNode node, Boolean isMoveForward )				
+	internal static	void		NodeStateHide			( FlowNode node, Boolean isMoveForward )		
 	{
 		var state = node.State;
 		
@@ -81,7 +89,7 @@ internal static class TransitionOperationBasis
 		}
 		catch ( Exception ex ) { Debug.LogException( ex ); }
 	}
-	internal static	void		NodeStateShow			( FlowNode node, Boolean isMoveForward )				
+	internal static	void		NodeStateShow			( FlowNode node, Boolean isMoveForward )		
 	{
 		var state	= node.State;
 		state._node	= node;
@@ -99,4 +107,6 @@ internal static class TransitionOperationBasis
 		}
 		catch (Exception ex) { Debug.LogException(ex); }
 	}
+	
+	internal record struct Forwards(Boolean PrevIsFwd, Boolean NextIsFwd);
 }

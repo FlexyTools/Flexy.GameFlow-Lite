@@ -39,7 +39,7 @@
 			state._owner = this;
 			state._graph = _graph;
 			
-			NicifyName();
+			state.NicifyName();
 			
 			statePrefab.gameObject.SetActive(activeSelf);
 			statePrefab.gameObject.ClearEditorDirty();
@@ -60,41 +60,45 @@
 		
 		internal			void	DoShow				( )	
 		{ 
-			try						{ OnShow( ); }
+			try						{ OnShow(); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 			
-			if ( ReadyForBind )
-				try						{ RebindAllHierarchy ( ); }
+			if (ReadyForBind)
+				try						{ RebindAllHierarchy(); }
 				catch ( Exception ex )	{ Debug.LogException( ex ); }
 				
-			_showing.Raise( this );
+			_showing.Raise(this);
 		}
 		internal			void	DoFwdHide			( )	
 		{
-			try						{ OnFwdHide( ); }
-			catch ( Exception ex )	{ Debug.LogException( ex ); }
+			try						{ OnFwdHide(); }
+			catch ( Exception ex )	{ Debug.LogException(ex); }
 		}
 		internal			void	DoBackShow			( )	
 		{
-			try						{ OnBackShow( ); }
-			catch ( Exception ex )	{ Debug.LogException( ex ); }
+			try						{ OnBackShow(); }
+			catch ( Exception ex )	{ Debug.LogException(ex); }
 		}
 		internal			void	DoHide				( )	
 		{
-			try						{ OnHide( ); }
-			catch ( Exception ex )	{ Debug.LogException( ex ); }
+			try						{ OnHide(); }
+			catch ( Exception ex )	{ Debug.LogException(ex); }
 			
-			_hiding.Raise( this );
+			_hiding.Raise(this);
 			_node = null!;
 		}
 		
-		internal			void	DoFirstChildShow	( )	
+		internal			void	DoFirstChildShow	( FlowNode node )	
 		{
 			try						{ OnFirstChildShow(); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
+			
+			node.ChildrenShowed = true;
 		}
-		internal			void	DoLastChildHide		( )	
+		internal			void	DoLastChildHide		( FlowNode node )	
 		{
+			node.ChildrenShowed = false;
+			
 			try						{ OnLastChildHide(); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
@@ -167,9 +171,9 @@
 
 		public				void	RebindAllHierarchy	( )	
 		{
-			foreach ( var bb in gameObject.GetComponentsInChildren<BindableBehaviour>() )
+			foreach (var bb in gameObject.GetComponentsInChildren<BindableBehaviour>())
 			{
-				if ( bb.gameObject == gameObject )	bb.MakeBindReadyAndRebindAll();
+				if (bb.gameObject == gameObject)	bb.MakeBindReadyAndRebindAll();
 				else								bb.RebindAll();
 			}
 		}
