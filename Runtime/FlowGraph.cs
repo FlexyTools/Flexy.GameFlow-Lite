@@ -149,10 +149,10 @@ public class FlowGraph
 			}
 		}		
 		
-		if (!state)
+		if (state == null)
 			state = parent.State.InstantiateState(stateInstanceOrPrefab!); 
 	
-		var newNode = SpawnNode(state!, openParams, parent);
+		var newNode = SpawnNode(state, openParams, parent);
 		
 		return newNode.Handle;
 	}
