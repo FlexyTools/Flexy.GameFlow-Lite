@@ -260,32 +260,32 @@ public class FlowGraph
 	
 	private			FlowNode	SpawnNode						( State state, Object? openParams, FlowNode parent )	
 	{
-		var nextNode = new FlowNode
+		var node = new FlowNode
 		{
 			Graph			= this,
 			StateRef		= state.PrefabRef,
 			MainSubStateRef	= state.MainSubStateRef,
 			State			= state,
 			OpenParams		= openParams, 
-			PrevSibling 	= parent.FirstChild.GetLastSiblingOrNull()
+			Parent			= parent,	
 		};
 
-		if (nextNode.PrevSibling != null)
-			nextNode.PrevSibling.NextSibling = nextNode;
-		
-		nextNode.Parent = parent;
+		node.PrevSibling 	= parent.FirstChild.GetLastSiblingOrNull();
+
+		if (node.PrevSibling != null)
+			node.PrevSibling.NextSibling = node;
 		
 		if (parent.FirstChild == null)
-			parent.FirstChild = nextNode;
+			parent.FirstChild = node;
 		
-		_mainLineTip.Forward = nextNode;
-		nextNode.Back = _mainLineTip;
+		_mainLineTip.Forward = node;
+		node.Back = _mainLineTip;
 		
-		_mainLineTip = nextNode;
+		_mainLineTip = node;
 		
 		ScheduleSwitchStates();
 		
-		return nextNode;
+		return node;
 	}
 	
 #if UNITY_EDITOR
