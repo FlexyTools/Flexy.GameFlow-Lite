@@ -14,12 +14,13 @@ public class FlowNode
 	public	Object?			StateData		{get; internal set;} // optional state data can be stored by state implementation
 	public	Object?			UserData		{get; internal set;} // optional user data for (link additional data from outside the state)
 	
-	public	FlowNode		Parent			{get; internal set;} = null!;
-	public	FlowNode?		FirstChild		{get; internal set;}
-	public	FlowNode?		PrevSibling		{get; internal set;}
-	public	FlowNode?		NextSibling		{get; internal set;}
 	public	FlowNode?		Back			{get; internal set;}
 	public	FlowNode?		Forward			{get; internal set;}
+	public	FlowNode?		PrevSibling		{get; internal set;}
+	public	FlowNode?		NextSibling		{get; internal set;}
+	
+	public	FlowNode		Parent			{get; internal set;} = null!;
+	public	FlowNode?		FirstChild		{get; internal set;}
 	
 	public	StateHandle		Handle			=> new(this);
 	public	Boolean			IsValid			=> Graph.Root == this || Back?.Forward == this;
