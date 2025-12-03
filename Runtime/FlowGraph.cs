@@ -164,20 +164,17 @@ public class FlowGraph
 		return _mainLineTip.Handle;
 	}
 
-	internal	void			RemoveNode		( FlowNode node )																				
+	internal	void			RemoveNode		( FlowNode node )												
 	{
 		if (node.Back != null)
 			RemoveNodesUpTo( node, node.Back );
 	}
-	internal	void			RemoveNodesUpTo	( FlowNode source, FlowNode target, Object? openParams = null, Boolean skipCurrent = false )	
+	internal	void			RemoveNodesUpTo	( FlowNode source, FlowNode target, Object? openParams = null )	
 	{
 		if (source is not { IsValid: true } || source == _root)
 			return;
 		
 		var iter	= source;
-
-		if (skipCurrent)
-			iter = iter.Back;
 
 		while (iter != null && iter != target)
 		{
@@ -211,7 +208,7 @@ public class FlowGraph
 
 		ScheduleSwitchStates();
 	}
-	internal	void			DestroyInstance ( State instance )																				
+	internal	void			DestroyInstance ( State instance )												
 	{
 		if (instance._owner != null)
 		{
