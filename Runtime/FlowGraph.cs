@@ -187,9 +187,6 @@ public class FlowGraph
 			if (toRemove.FirstChild != null)
 				RemoveNodesUpTo( toRemove.FirstChild.GetLastSibling(), toRemove );
 			
-			if (toRemove == _mainLineTip)
-				_mainLineTip  = iter!;
-			
 			if (toRemove.Back != null)		toRemove.Back.Forward = toRemove.Forward;
 			if (toRemove.Forward != null)	toRemove.Forward.Back = toRemove.Back!;
 			
@@ -198,6 +195,9 @@ public class FlowGraph
 			
 			if (toRemove.PrevSibling != null) toRemove.PrevSibling.NextSibling = toRemove.NextSibling;
 			if (toRemove.NextSibling != null) toRemove.NextSibling.PrevSibling = toRemove.PrevSibling;
+			
+			if (toRemove == _mainLineTip)
+				_mainLineTip  = iter!;
 		}
 
 		if (iter == null) 
