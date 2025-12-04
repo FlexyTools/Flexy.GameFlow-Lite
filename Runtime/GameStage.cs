@@ -48,7 +48,7 @@
 		protected internal override		Boolean				TryGoBack				( ) => false;
 		protected internal override		State				InstantiateSubState		( State prefab )	
 		{
-			var state = Instantiate(prefab, _statesContainer); 
+			var state = prefab.InstantiateInactive(_statesContainer); 
 			_stateInstances[prefab.PrefabRef] = state;
 			return state;
 		}

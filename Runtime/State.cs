@@ -31,9 +31,6 @@
 		protected internal virtual	void				DestroySubState			( State instance )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
 		protected internal 			State				InstantiateState		( State statePrefab )		
 		{
-			var activeSelf	= statePrefab.gameObject.activeSelf;
-			statePrefab.gameObject.SetActive(false);
-			
 			var state = InstantiateSubState(statePrefab);
 			state._prefabRef = statePrefab._prefabRef;
 			state._owner = this;
@@ -41,9 +38,6 @@
 			
 			state.NicifyName();
 			
-			statePrefab.gameObject.SetActive(activeSelf);
-			statePrefab.gameObject.ClearEditorDirty();
-		
 			return state;
 		}
 		protected internal			void				NicifyName				( )							

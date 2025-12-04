@@ -17,11 +17,7 @@ public class FlowGraph
 				if (!rootPrefab)
 					throw new ArgumentException("[FlowGraph] rootStateRef is invalid", nameof(rootStateRef));
 				
-				var activeSelf		= rootPrefab!.gameObject.activeSelf;
-				rootPrefab.gameObject.SetActive( false );
-				rootState = UObject.Instantiate( rootPrefab, service.transform );
-				rootPrefab.gameObject.SetActive(activeSelf);
-				rootPrefab.gameObject.ClearEditorDirty();
+				rootState = rootPrefab!.InstantiateInactive(service.transform);
 			}
 			else
 			{
