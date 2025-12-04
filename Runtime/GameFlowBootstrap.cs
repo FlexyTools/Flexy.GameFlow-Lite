@@ -7,8 +7,10 @@ namespace Flexy.GameFlow
 	public class GameFlowBootstrap : MonoBehaviour
 	{
 		[SerializeField]	protected Service_GameFlow		_flowService = null!;
-        [SerializeField]	protected AssetRef<State>[]		_bootstrapContext = null!;
-        [SerializeField]	protected AssetRef<State>		_bootstrapTarget;
+		[SerializeField]	protected AssetRef<GameStage>	_startGameStage;
+        [SerializeField]	protected AssetRef<State>[]		_additionalStates = null!;
+        [Tooltip( "Optional. Ref to final state to open after bootstrap" )]
+        [SerializeField]	protected AssetRef<State>		_targetState;
 
 		private static GameFlowBootstrap? _ref;
 
@@ -32,20 +34,16 @@ namespace Flexy.GameFlow
 		}
 		protected virtual	void	Boot	( )		
 		{
-			_flowService.gameObject.SetActive( false );
-			var gameFlow	= Instantiate( _flowService );
-			_flowService.gameObject.SetActive( true );
-			_flowService.gameObject.ClearEditorDirty();
-			
+			var gameFlow	= _flowService.InstantiateInactive(); 
 			gameFlow.name	= _flowService.name;
 			var gctx		= gameFlow.GetComponent<GameContext>();
 			
-			foreach ( var launchService in gameObject.GetComponents<MonoBehaviour>( ) )
+			foreach (var launchService in gameObject.GetComponents<MonoBehaviour>())
 			{
-				if( launchService == this )
+				if (launchService == this)
 					continue;
 
-				gctx.SetService( launchService );
+				gctx.SetService(launchService);
 			}
 			
 			gameFlow.gameObject.SetActive(true);
@@ -54,7 +52,7 @@ namespace Flexy.GameFlow
 
 			#if UNITY_EDITOR
 			{
-				if (_bootstrapContext.Length > 0 && Core.Editor.ToolbarControls.TestCaseDropdown.TryGetTestCaseToLaunch( "State", out var testCaseName ))
+				if (!_targetState.IsNone && Core.Editor.ToolbarControls.TestCaseDropdown.TryGetTestCaseToLaunch( "State", out var testCaseName ))
 				{
 					Debug.Log( "" );
 					Debug.Log( "" );
@@ -62,18 +60,21 @@ namespace Flexy.GameFlow
 					Debug.Log( "" );
 					Debug.Log( "" );
 
-					var state	= _bootstrapTarget.LoadAssetSync();
+					var state	= _targetState.LoadAssetSync();
 					var m		= state?.GetType().GetMethod( testCaseName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance );
 					openParams	= m?.Invoke( state, null );
 				}
 			}
 			#endif
 
-            foreach (var state in _bootstrapContext)
-	            gameFlow.Graph.Open( state, null );
-            
-            if (!_bootstrapTarget.IsNone)
-	            gameFlow.Graph.Open( _bootstrapTarget, null, openParams );
+			
+			var stageNode	= gameFlow.Graph.Open( _startGameStage ).Node;
+
+			foreach (var state in _additionalStates)
+				gameFlow.Graph.Open( state, stageNode.GetLastSibling().State );
+
+			if (!_targetState.IsNone)
+	            gameFlow.Graph.Open( _targetState, stageNode.GetLastSibling().State, openParams );
 
 			// Show first state synchronously
 			gameFlow.Graph.TransitionNow();
@@ -91,7 +92,7 @@ namespace Flexy.GameFlow
 				var rootGos			= activeScene.GetRootGameObjects( );
 				var bootstraps		= rootGos.Select( go => go.GetComponent<GameFlowBootstrap>() ).Where( c => c is not null );
 				var bootstrap		= bootstraps.FirstOrDefault();
-				var subStateToOpen	= bootstrap?._bootstrapTarget ?? default; 
+				var subStateToOpen	= bootstrap?._targetState ?? default; 
 
 				if ( !bootstrap || subStateToOpen.IsNone )
 					yield break;

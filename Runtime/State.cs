@@ -23,7 +23,7 @@
 		
 		public		State?				MainSubState	=> _node.FirstChild?.State;
 		public		StateHandle			MainSubHandle	=> _node.FirstChild?.Handle ?? default;
-		public		GameStage			GameStage		=> (GameStage)_node.GameStageNode.State;
+		public		GameStage			GameStage		=> this as GameStage ?? (GameStage)_node.GameStageNode.State;
 		
 		protected internal virtual	AssetRef<State>		MainSubStateRef			=> default;
 		protected internal virtual	Boolean				TryGoBack				( )	=> true;

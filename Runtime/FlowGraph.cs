@@ -95,11 +95,11 @@ public class FlowGraph
 		
 		return newNode.Handle;
 	}
-	public		StateHandle		Open	( AssetRef<State> stateRef, State? callSource, Object? openParams = null, FlowNode? parent = null )						
+	public		StateHandle		Open	( AssetRef<State> stateRef, State callSource, Object? openParams = null, FlowNode? parent = null )						
 	{
 		var state = default(State);
 		
-		if (callSource != null && callSource.GameStage._node is {IsValid:true})
+		if (callSource.GameStage._node is {IsValid:true})
 		{
 			var instances = callSource.GameStage._stateInstances;
 			instances.TryGetValue(stateRef, out state);
@@ -123,13 +123,7 @@ public class FlowGraph
 		if (stateInstanceOrPrefab is GameStage)
 			return Open(new AssetRef<GameStage>(stateRef.Uid, stateRef.SubId), null, openParams);
 	
-		if (parent == null)
-		{
-			if (callSource)
-				parent = callSource!.GameStage._node is {IsValid:true} stage ? stage : null;
-			
-			parent ??= _root.FirstChild!.GetLastSibling();
-		}
+		parent ??= callSource.GameStage._node is { IsValid: true } stage ? stage : _root.FirstChild!.GetLastSibling();
 		
 		// If we have main substate
 		if (!parent.MainSubStateRef.IsNone)
