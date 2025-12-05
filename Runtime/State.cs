@@ -143,7 +143,7 @@
 				node.Graph.DestroyInstance(state);
 			}
 		}
-		public		StateHandle		CloseSubStates		( Boolean closeMainState = false )	
+		public		StateHandle		CloseSubStates		( Boolean closeMainState = false, Object? overrideOpenParams = null )	
 		{
 			if (_node.FirstChild == null)
 				return Handle;
@@ -159,7 +159,7 @@
 				_node.MainSubStateRef = default;
 			}
 		
-			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), target );
+			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), target, overrideOpenParams );
 			return Handle;
 		}
 

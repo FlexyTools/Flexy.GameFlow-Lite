@@ -33,7 +33,7 @@ internal static class TransitionOperationBasis
 		{
 			nextNode.Graph._mainLineActive = openingBranchNode;
 		
-			if (forwards.NextIsFwd && openingBranchNode.Parent.FirstChild!.NextSibling == null && !openingBranchNode.Parent.ChildrenShowed)
+			if (forwards.NextIsFwd && !openingBranchNode.Parent.ChildrenShowed)
 				openingBranchNode.Parent.State.DoFirstChildShow(openingBranchNode.Parent);
 		
 			try{ NodeStateShow( openingBranchNode, forwards.NextIsFwd );} catch (Exception ex) { Debug.LogException(ex); }
