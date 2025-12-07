@@ -1,7 +1,57 @@
 namespace Flexy.GameFlow;
 
-internal static class TransitionOperationBasis
+public class TransitionRoot
 {
+	internal	FlowNode		_node		= null!;
+	internal	FlowNode		_tipNode	= null!;
+	internal	FlowNode		_activeNode	= null!;
+	private		Boolean			_doTransition;
+	
+	public		FlowNode		TipNode		=> _tipNode;
+	public		FlowNode		ActiveNode	=> _activeNode;
+	
+	public		StateHandle		GoBack							( )		
+	{
+		if (_tipNode.Back != null && _tipNode.State.TryGoBack())
+			_node.Graph.RemoveNodesUpTo(_tipNode, _tipNode.Back);
+
+		return _tipNode.Handle;
+	}
+	public			void		TransitionNow					( )		
+	{
+		if (!_doTransition) 
+			return;
+		
+		_doTransition = false;
+		DoStateTransitions();
+	}
+	
+	internal		void		ScheduleSwitchStates			( )		
+	{
+		_doTransition	= true;
+	}
+	internal async	UniTask		SwitchStatesAsyncInfiniteLoop	( )		
+	{
+		while (Application.isPlaying && _node.State)
+		{
+			// Change view at last update (before animations)
+			// This will allow to make many changes in update and then only one view transition
+			await UniTask.NextFrame( PlayerLoopTiming.LastUpdate );
+
+			if (!_doTransition)
+				continue;
+
+			_doTransition	= false;
+
+			try						{ DoStateTransitions(); }
+			catch ( Exception ex )	{ Debug.LogException( ex ); }
+		}
+	}
+	internal 		void		DoStateTransitions				( )		
+	{
+		InstantTransition( _activeNode, _tipNode );
+	}
+	
 	internal static	void		InstantTransition		( FlowNode prevNode, FlowNode nextNode )		
 	{
 		if (prevNode == nextNode)
@@ -9,6 +59,7 @@ internal static class TransitionOperationBasis
 	
 		var forwards		= ComputeForwards(prevNode, nextNode);
 		var commonParent	= FindNearestCommonParent(prevNode, nextNode);
+		var tr				= commonParent.TransitionRoot; 
 
 		var closingBranchNode = prevNode;
 		while (closingBranchNode != commonParent)
@@ -27,11 +78,11 @@ internal static class TransitionOperationBasis
 		var openingBranchNode = commonParent.FirstChild.GetLastSiblingOrNull();
 		
 		if (openingBranchNode == null)
-			nextNode.Graph._mainLineActive = commonParent;
+			tr._activeNode = commonParent;
 		
 		while (openingBranchNode != null)
 		{
-			nextNode.Graph._mainLineActive = openingBranchNode;
+			tr._activeNode = openingBranchNode;
 		
 			if (forwards.NextIsFwd && !openingBranchNode.Parent.ChildrenShowed)
 				openingBranchNode.Parent.State.DoFirstChildShow(openingBranchNode.Parent);

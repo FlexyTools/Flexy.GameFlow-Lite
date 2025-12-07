@@ -11,7 +11,7 @@
 		public		GameContext			Context				{get; private set;} = null!;
 		
 		public		Service_GameFlow	Flow				=> _node.Graph.Service;
-		public		Boolean				AtStageRoot			=> _graph.MainLineActive.State == this;
+		public		Boolean				AtStageRoot			=> _node.TransitionRoot.ActiveNode.State == this;
 		
 		public		void				Init				( GameContext? parentContext )	
 		{

@@ -12,7 +12,7 @@ public class FlowGraph
 		
 			if (!rootStateRef.IsNone)
 			{
-				var rootPrefab		= rootStateRef.LoadAssetSync();
+				var rootPrefab = rootStateRef.LoadAssetSync();
 				
 				if (!rootPrefab)
 					throw new ArgumentException("[FlowGraph] rootStateRef is invalid", nameof(rootStateRef));
@@ -37,32 +37,23 @@ public class FlowGraph
 				State		= rootState, 
 				FullyInited	= true
 			};
-
-			_mainLineActive	= _root;
-			_mainLineTip	= _root;
+			
+			_root.SpawnTransitionRoot();
 			
 			rootState._node = _root;
 			rootState.gameObject.SetActive( true );
 			rootState.DoShow();
 		}
-		
-		SwitchStatesAsyncInfiniteLoop().Forget();
 	}
 
 	private readonly	Dictionary<AssetRef<State>, State>	_globalStateInstances	= new(32);
 
 	private		Service_GameFlow _service;
 	private		FlowNode		_root;
-	private		FlowNode		_mainLineTip;
-	internal	FlowNode		_mainLineActive;
-	private		Boolean			_doTransition;
-
+	
 	public		Service_GameFlow Service		=> _service;
 	public		FlowNode		 Root			=> _root;
 
-	public		FlowNode		MainLineTip		=> _mainLineTip;
-	public		FlowNode		MainLineActive	=> _mainLineActive;
-	
 	public		StateHandle		Open	( AssetRef<GameStage> stageRef, GameContext? parentContext = null, Object? openParams = null, Scene spawnIn = default )	
 	{
 		var stagePrefab = stageRef.LoadAssetSync();
@@ -148,10 +139,7 @@ public class FlowGraph
 	}
 	public		StateHandle		GoBack	( )																														
 	{
-		if (_mainLineTip.Back != null && _mainLineTip.State.TryGoBack())
-			RemoveNodesUpTo(_mainLineTip, _mainLineTip.Back);
-
-		return _mainLineTip.Handle;
+		return _root.TransitionRoot.GoBack();
 	}
 
 	internal	void			RemoveNode		( FlowNode node )												
@@ -165,6 +153,7 @@ public class FlowGraph
 			return;
 		
 		var iter	= source;
+		var tr		= source.TransitionRoot;
 
 		while (iter != null && iter != target)
 		{
@@ -186,8 +175,8 @@ public class FlowGraph
 			if (toRemove.PrevSibling != null) toRemove.PrevSibling.NextSibling = toRemove.NextSibling;
 			if (toRemove.NextSibling != null) toRemove.NextSibling.PrevSibling = toRemove.PrevSibling;
 			
-			if (toRemove == _mainLineTip)
-				_mainLineTip  = iter!;
+			if (toRemove == tr._tipNode)
+				tr._tipNode  = iter!;
 		}
 
 		if (iter == null) 
@@ -196,7 +185,7 @@ public class FlowGraph
 		if (openParams != null)
 			iter.OpenParams = openParams;
 
-		ScheduleSwitchStates();
+		tr.ScheduleSwitchStates();
 	}
 	internal	void			DestroyInstance ( State instance )												
 	{
@@ -211,41 +200,7 @@ public class FlowGraph
 		}
 	}
 	
-	internal		void		TransitionNow					( )		
-	{
-		if (!_doTransition) 
-			return;
-		
-		_doTransition = false;
-		DoStateTransitions();
-	}
-	private			void		ScheduleSwitchStates			( )		
-	{
-		_doTransition	= true;
-	}
-	private async	UniTask		SwitchStatesAsyncInfiniteLoop	( )		
-	{
-		while (Application.isPlaying && _root.State)
-		{
-			// Change view at last update (before animations)
-			// This will allow to make many changes in update and then only one view transition
-			await UniTask.NextFrame( PlayerLoopTiming.LastUpdate );
-
-			if (!_doTransition)
-				continue;
-
-			_doTransition	= false;
-
-			try						{ DoStateTransitions(); }
-			catch ( Exception ex )	{ Debug.LogException( ex ); }
-		}
-	}
-	private 		void		DoStateTransitions				( )		
-	{
-		TransitionOperationBasis.InstantTransition( _mainLineActive, _mainLineTip );
-	}
-	
-	private			FlowNode	SpawnNode						( State state, Object? openParams, FlowNode parent )	
+	private		FlowNode		SpawnNode		( State state, Object? openParams, FlowNode parent )			
 	{
 		var node = new FlowNode
 		{
@@ -265,12 +220,13 @@ public class FlowGraph
 		if (parent.FirstChild == null)
 			parent.FirstChild = node;
 		
-		_mainLineTip.Forward = node;
-		node.Back = _mainLineTip;
+		var tr = parent.TransitionRoot;
+		tr._tipNode.Forward = node;
+		node.Back = tr._tipNode;
 		
-		_mainLineTip = node;
+		tr._tipNode = node;
 		
-		ScheduleSwitchStates();
+		tr.ScheduleSwitchStates();
 		
 		return node;
 	}

@@ -19,14 +19,14 @@ namespace Flexy.GameFlow
 			// Almost very first Awake in scene thanks to DefaultExecutionOrder
 			var isDuplicate = (Boolean)_ref;
 
-			if ( isDuplicate )
+			if (isDuplicate)
 			{
-				DestroyImmediate( gameObject );
+				DestroyImmediate(gameObject);
 				return;
 			}
 
 			_ref = this;
-			DontDestroyOnLoad( gameObject );
+			DontDestroyOnLoad(gameObject);
 			
 			Debug.Log( $"[GameFlowBootstrap] [Frame:{Time.frameCount}] ----------- ===========   GameFlow Bootstrap Begin   =========== -----------" );
 			Boot();
@@ -77,7 +77,7 @@ namespace Flexy.GameFlow
 	            gameFlow.Graph.Open( _targetState, stageNode.GetLastSibling().State, openParams );
 
 			// Show first state synchronously
-			gameFlow.Graph.TransitionNow();
+			gameFlow.Graph.Root.TransitionRoot.TransitionNow();
 		}
 
 #if UNITY_EDITOR

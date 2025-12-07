@@ -3,6 +3,7 @@ namespace Flexy.GameFlow;
 public class FlowNode
 {
 	public	FlowGraph		Graph			{get; internal set;} = null!;
+	private TransitionRoot? _transitionRoot;
 
 	public	AssetRef<State>	StateRef		{get; internal set;}
 	public	AssetRef<State>	MainSubStateRef {get; internal set;}
@@ -11,8 +12,8 @@ public class FlowNode
 	public	Boolean			FullyInited		{get; internal set;} // if it is false in OnShow than first show came from BackShow
 	public	Boolean			ChildrenShowed	{get; internal set;}
 	public	Object?			OpenParams		{get; internal set;} // parameters state opened with
-	public	Object?			StateData		{get; internal set;} // optional state data can be stored by state implementation
-	public	Object?			UserData		{get; internal set;} // optional user data for (link additional data from outside the state)
+	public	Object?			StateData		{get; set;} // optional state data can be stored by state implementation
+	public	Object?			UserData		{get; set;} // optional user data for (link additional data from outside the state)
 	
 	public	FlowNode?		Back			{get; internal set;}
 	public	FlowNode?		Forward			{get; internal set;}
@@ -26,6 +27,7 @@ public class FlowNode
 	public	Boolean			IsValid			=> Graph.Root == this || Back?.Forward == this;
 	public	Boolean			IsOpened		=> IsValid;
 	public	Boolean			IsShowed		=> IsOpened && State && State.Node == this && State.gameObject.activeInHierarchy;
+	internal TransitionRoot	TransitionRoot	=> _transitionRoot ?? Parent.TransitionRoot;
 	
 	public	FlowNode		GameStageNode	
 	{
@@ -39,15 +41,25 @@ public class FlowNode
 		}
 	}
 
-	public override	String	ToString		( )	
+	public override	String	ToString			( )	
 	{
 		return $"{(IsShowed ? "■ " : "□ ")} {State.name} {(OpenParams != null ? "op:" + OpenParams : "")}";
 	}
-
-	public	StateHandle		Close			( )	
+	public	StateHandle		Close				( )	
 	{
 		Graph.RemoveNode(this);
 		return Handle;
+	}
+	public	void			SpawnTransitionRoot	( )	
+	{
+		_transitionRoot = new TransitionRoot
+		{
+			_node		= this,
+			_tipNode	= this,
+			_activeNode	= this
+		};
+		
+		_transitionRoot.SwitchStatesAsyncInfiniteLoop().Forget();
 	}
 }
 
