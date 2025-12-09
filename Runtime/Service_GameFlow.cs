@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 
 namespace Flexy.GameFlow
 {
@@ -15,42 +15,48 @@ namespace Flexy.GameFlow
 		private readonly	Dictionary<String, AssetRef<State>>	_statesDict = new (256);
 		private readonly	Dictionary<AssetRef<State>, String>	_statesDictReverse = new (256);
 
-		public				FlowGraph		Graph				{ get; private set; } = null!;
+		public		FlowGraph		Graph			{ get; private set; } = null!;
 
-		public				void			OrderedInit			( GameContext ctx )	
+		public		void			OrderedInit		( GameContext ctx )				
 		{
 			Debug.Log( $"[Service_GameFlow] Init" );
 			name = "[GameFlow] (GlobalContext)";
 			ReadLibrary();
 			Graph = new(this, _rootStateRef);
 		}
-		protected virtual	void			Update				( )					
+		public		StateHandle		Open<T>			( State src ) where T: State	
 		{
-			#if UNITY_INPUT_SYSTEM
-			if (_backInputActionRef?.ToInputAction().WasPressedThisFrame() ?? false)
-				Graph.GoBack();
-			#endif
+			var opener = GetOpener_FromStateType<T>(src);
+			return opener.Open();
 		}
-		
-		public			State.Opener		GetOpener_FromId			( String croppedOrFullId, State src )	
+								
+		public		State.Opener	GetOpener_FromId			( String croppedOrFullId, State src )	
 		{
 			return new() { Ctx = new( _statesDict.GetValueOrDefault(croppedOrFullId), src ) };
 		}
-		public			State.Opener		GetOpener_FromStateType<T>	( State src ) where T : State			
+		public		State.Opener	GetOpener_FromStateType<T>	( State src ) where T : State			
 		{
 			return new() { Ctx = new( FindOpener( typeof(T) ), src ) };
 		}
-		public			T					GetOpener_FromOpenerType<T>	( State src ) where T : struct, IOpener	
+		public		T				GetOpener_FromOpenerType<T>	( State src ) where T : struct, IOpener	
 		{
 			return new() { Ctx = new( FindOpener( typeof(T).DeclaringType ), src ) };
 		}
-		public			String				GetRefTypeName				( AssetRef<State> stateRef )			
+		public		String			GetRefTypeName				( AssetRef<State> stateRef )			
 		{
 			_statesDictReverse.TryGetValue(stateRef, out var name);
 			return name;
 		}
 
-		private			void				ReadLibrary			( )					
+		protected virtual	void	Update			( )					
+		{
+#if UNITY_INPUT_SYSTEM
+			if (_backInputActionRef?.ToInputAction().WasPressedThisFrame() ?? false)
+				Graph.GoBack();
+#endif
+		}
+
+		private		void			ReadLibrary		( )					
 		{
 			Debug.Log( $"[GameFlowService] ReadLibrary: start..." );
 
@@ -82,7 +88,7 @@ namespace Flexy.GameFlow
 
 			Debug.Log( $"[GameFlowService] ReadLibrary: done" );
 		}
-		private			AssetRef<State>		FindOpener			( Type typeToFind )	
+		private		AssetRef<State>	FindOpener		( Type typeToFind )	
 		{
 			if (_statesDict.TryGetValue(typeToFind.FullName, out var refState) || _statesDict.TryGetValue(typeToFind.Name, out refState))
 				return refState;
