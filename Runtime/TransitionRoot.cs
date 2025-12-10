@@ -10,7 +10,7 @@ public class TransitionRoot
 	public		FlowNode		TipNode		=> _tipNode;
 	public		FlowNode		ActiveNode	=> _activeNode;
 	
-	public		StateHandle		GoBack							( )		
+	public		StateHandle		TryGoBack						( )		
 	{
 		if (_tipNode.Back != null && _tipNode.State.TryGoBack())
 			_node.Graph.RemoveNodesUpTo(_tipNode, _tipNode.Back);

@@ -54,7 +54,7 @@ public class FlowGraph
 	public		Service_GameFlow Service		=> _service;
 	public		FlowNode		 Root			=> _root;
 
-	public		StateHandle		Open	( AssetRef<GameStage> stageRef, GameContext? parentContext = null, Object? openParams = null, Scene spawnIn = default )	
+	public		StateHandle		Open		( AssetRef<GameStage> stageRef, GameContext? parentContext = null, Object? openParams = null, Scene spawnIn = default )	
 	{
 		var stagePrefab = stageRef.LoadAssetSync();
 		
@@ -82,7 +82,7 @@ public class FlowGraph
 		
 		return newNode.Handle;
 	}
-	public		StateHandle		Open	( AssetRef<State> stateRef, State callSource, Object? openParams = null, FlowNode? parent = null )						
+	public		StateHandle		Open		( AssetRef<State> stateRef, State callSource, Object? openParams = null, FlowNode? parent = null )						
 	{
 		var state = default(State);
 		
@@ -137,9 +137,9 @@ public class FlowGraph
 		
 		return newNode.Handle;
 	}
-	public		StateHandle		GoBack	( )																														
+	public		StateHandle		TryGoBack	( )																														
 	{
-		return _root.TransitionRoot.GoBack();
+		return _root.TransitionRoot.TryGoBack();
 	}
 
 	internal	void			RemoveNode		( FlowNode node )												

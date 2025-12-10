@@ -17,28 +17,28 @@ namespace Flexy.GameFlow
 
 		public		FlowGraph		Graph			{ get; private set; } = null!;
 
-		public		void			OrderedInit		( GameContext ctx )				
+		public		void			OrderedInit		( GameContext ctx )										
 		{
 			Debug.Log( $"[Service_GameFlow] Init" );
 			name = "[GameFlow] (GlobalContext)";
 			ReadLibrary();
 			Graph = new(this, _rootStateRef);
 		}
-		public		StateHandle		Open<T>			( State src ) where T: State	
+		public		StateHandle		Open<T>			( State src, Object? openParams = null ) where T: State	
 		{
-			var opener = GetOpener_FromStateType<T>(src);
-			return opener.Open();
+			var opener = GetOpener_ByStateType<T>(src);
+			return opener.Ctx.Open(openParams);
 		}
 								
-		public		State.Opener	GetOpener_FromId			( String croppedOrFullId, State src )	
+		public		State.Opener	GetOpener_ById				( State src, String croppedOrFullGuid )	
 		{
-			return new() { Ctx = new( _statesDict.GetValueOrDefault(croppedOrFullId), src ) };
+			return new() { Ctx = new( _statesDict.GetValueOrDefault(croppedOrFullGuid), src ) };
 		}
-		public		State.Opener	GetOpener_FromStateType<T>	( State src ) where T : State			
+		public		State.Opener	GetOpener_ByStateType<T>	( State src ) where T : State			
 		{
 			return new() { Ctx = new( FindOpener( typeof(T) ), src ) };
 		}
-		public		T				GetOpener_FromOpenerType<T>	( State src ) where T : struct, IOpener	
+		public		T				GetOpener_ByOpenerType<T>	( State src ) where T : struct, IOpener	
 		{
 			return new() { Ctx = new( FindOpener( typeof(T).DeclaringType ), src ) };
 		}
@@ -52,7 +52,7 @@ namespace Flexy.GameFlow
 		{
 #if UNITY_INPUT_SYSTEM
 			if (_backInputActionRef?.ToInputAction().WasPressedThisFrame() ?? false)
-				Graph.GoBack();
+				Graph.TryGoBack();
 #endif
 		}
 
