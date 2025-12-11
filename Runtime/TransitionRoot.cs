@@ -10,12 +10,12 @@ public class TransitionRoot
 	public		FlowNode		TipNode		=> _tipNode;
 	public		FlowNode		ActiveNode	=> _activeNode;
 	
-	public		StateHandle		TryGoBack						( )		
+	public		FlowNode		TryGoBack						( )		
 	{
 		if (_tipNode.Back != null && _tipNode.State.TryGoBack())
 			_node.Graph.RemoveNodesUpTo(_tipNode, _tipNode.Back);
 
-		return _tipNode.Handle;
+		return _tipNode;
 	}
 	public			void		TransitionNow					( )		
 	{

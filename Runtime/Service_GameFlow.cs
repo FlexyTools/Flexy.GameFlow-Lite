@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 
 namespace Flexy.GameFlow
 {
@@ -24,7 +24,7 @@ namespace Flexy.GameFlow
 			ReadLibrary();
 			Graph = new(this, _rootStateRef);
 		}
-		public		StateHandle		Open<T>			( State src, Object? openParams = null ) where T: State	
+		public		FlowNode		Open<T>			( State src, Object? openParams = null ) where T: State	
 		{
 			var opener = GetOpener_ByStateType<T>(src);
 			return opener.Ctx.Open(openParams);

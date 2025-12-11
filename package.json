@@ -4,6 +4,7 @@
   "version": "5.0.0",
   "unity": "2022.3",
   "description": "Flexible GameStates System based on GameContexts with support of SplitScreen and NetworkMultipeer modes",
+  "documentationUrl" : "https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.GameFlow/README.md",
   "keywords": [
     "GameFlow",
 	"GameStage",

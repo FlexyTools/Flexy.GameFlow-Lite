@@ -15,14 +15,13 @@
 		public		AssetRef<State>		PrefabRef		=> _prefabRef;
 		
 		public		Object?				OpenParams		=> _node.OpenParams;
-		public		StateHandle			Handle			=> new(_node);
 		
 		public		Boolean				IsOpened		=> _node.IsOpened;
 		public		Boolean				IsShowed		=> _node.IsShowed;
 		public		Boolean				AnySubStateOpened=> _node.FirstChild != null;
 		
 		public		State?				MainSubState	=> _node.FirstChild?.State;
-		public		StateHandle			MainSubHandle	=> _node.FirstChild?.Handle ?? default;
+		public		FlowNode?			MainSubNode		=> _node.FirstChild;
 		public		GameStage			GameStage		=> this as GameStage ?? (GameStage)_node.GameStageNode.State;
 		
 		protected internal virtual	AssetRef<State>		MainSubStateRef			=> default;
@@ -105,7 +104,7 @@
 		protected virtual	void	OnFirstChildShow	( )	{ }
 		protected virtual	void	OnLastChildHide		( )	{ }
 		
-		public		StateHandle		OpenMainState		( Object? openParams = null )		
+		public		FlowNode?		OpenMainState		( Object? openParams = null )		
 		{
 			if (MainSubStateRef.IsNone)
 				return default;
@@ -118,7 +117,7 @@
 			
 			// main substate is somewhere in history so just return to it
 			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node.FirstChild, openParams );
-			return _node.FirstChild.Handle;
+			return _node.FirstChild;
 		}
 		[Callable] public	void	Close				( )									
 		{
@@ -143,10 +142,10 @@
 				node.Graph.DestroyInstance(state);
 			}
 		}
-		public		StateHandle		CloseSubStates		( Boolean closeMainState = false, Object? overrideOpenParams = null )	
+		public		FlowNode?		CloseSubStates		( Boolean closeMainState = false, Object? overrideOpenParams = null )	
 		{
 			if (_node.FirstChild == null)
-				return Handle;
+				return null;
 		
 			var target = _node;
 		
@@ -160,7 +159,7 @@
 			}
 		
 			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), target, overrideOpenParams );
-			return Handle;
+			return _node;
 		}
 
 		public				void	RebindAllHierarchy	( )	
@@ -173,32 +172,18 @@
 		}
 		public override		String	ToString			( ) => _node.ToString();
 
-		public record struct Opener( OpenCtx Ctx ) : IOpenerB
+		public record struct Opener	( OpenCtx Ctx ) : IOpenerB
 		{
-			public		StateHandle		Open	( ) => Ctx.Open();
+			public	FlowNode	Open	( ) => Ctx.Open();
 		}
 	}
 	
-	public readonly record struct StateHandle( FlowNode Node )
+	public readonly record struct ResultHandle<T>( FlowNode Node )
 	{
-		public		FlowNode	Node		{get;} = Node; 
-		
-		public 		Boolean 	IsValid		=> Node.IsValid;
-		public		State		State		=> Node.State;
-
-		public		Boolean		IsOpened	=> Node.IsOpened;
-		public		Boolean		IsShowed	=> Node.IsShowed;
-
-		public			StateHandle	Close		( ) => !IsValid ? default : Node.Close();
-		public override	String		ToString	( ) => $"StateHandle {Node.State}";
-	}
-	
-	public readonly record struct ResultHandle<T>( StateHandle Handle )
-	{
-		public			StateHandle	Handle		{get;}	= Handle;
+		public			FlowNode	Node		{get;}	= Node;
 		public async	UniTask<T>	WaitResult	( )		
 		{
-			var node	= Handle.Node;
+			var node	= Node;
 			var result	= (IStateWithResult<T>)node.State;
 			
 			while (node.IsOpened || node.IsShowed)

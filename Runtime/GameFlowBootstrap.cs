@@ -67,7 +67,7 @@ namespace Flexy.GameFlow
 			#endif
 
 			
-			var stageNode	= gameFlow.Graph.Open( _startGameStage ).Node;
+			var stageNode	= gameFlow.Graph.Open( _startGameStage );
 
 			foreach (var state in _additionalStates)
 				gameFlow.Graph.Open( state, stageNode.GetLastSibling().State );

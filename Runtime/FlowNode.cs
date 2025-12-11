@@ -23,7 +23,6 @@ public class FlowNode
 	public	FlowNode		Parent			{get; internal set;} = null!;
 	public	FlowNode?		FirstChild		{get; internal set;}
 	
-	public	StateHandle		Handle			=> new(this);
 	public	Boolean			IsValid			=> Graph.Root == this || Back?.Forward == this;
 	public	Boolean			IsOpened		=> IsValid;
 	public	Boolean			IsShowed		=> IsOpened && State && State.Node == this && State.gameObject.activeInHierarchy;
@@ -45,10 +44,10 @@ public class FlowNode
 	{
 		return $"{(IsShowed ? "■ " : "□ ")} {State.name} {(OpenParams != null ? "op:" + OpenParams : "")}";
 	}
-	public	StateHandle		Close				( )	
+	public	FlowNode		Close				( )	
 	{
 		Graph.RemoveNode(this);
-		return Handle;
+		return this;
 	}
 	public	void			SpawnTransitionRoot	( )	
 	{
