@@ -2,57 +2,29 @@ namespace Flexy.GameFlow;
 
 public class FlowGraph
 {
-	public FlowGraph	( Service_GameFlow service, AssetRef<FlowRoot> rootStateRef )
+	public FlowGraph	( Service_GameFlow service )
 	{
-		_service = service;
+		_service		= service;
+		var rootState	= service;
 		
-		// Spawn Root State and node
+		_root = new FlowNode
 		{
-			State rootState;
+			Graph		= this,
+			State		= rootState, 
+			FullyInited	= true,
+		};
 		
-			if (!rootStateRef.IsNone)
-			{
-				var rootPrefab = rootStateRef.LoadAssetSync();
-				
-				if (!rootPrefab)
-					throw new ArgumentException("[FlowGraph] rootStateRef is invalid", nameof(rootStateRef));
-				
-				rootState = rootPrefab!.InstantiateInactive(service.transform);
-			}
-			else
-			{
-				var go = new GameObject("FlowRoot");
-				go.SetActive(false);
-				go.transform.parent = service.transform;
-				rootState = go.AddComponent<FlowRoot>(); 
-			}
+		_root.SpawnTransitionRoot();
 		
-			rootState.name			= "[Root] " + rootState.name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_');
-			rootState._prefabRef	= new (rootStateRef.Uid, rootStateRef.SubId);
-			rootState._graph		= this;
-		
-			_root = new FlowNode
-			{
-				Graph		= this,
-				State		= rootState, 
-				FullyInited	= true
-			};
-			
-			_root.SpawnTransitionRoot();
-			
-			rootState._node = _root;
-			rootState.gameObject.SetActive( true );
-			rootState.DoShow();
-		}
+		rootState._node = _root;
+		rootState.DoShow();
 	}
 
-	private readonly	Dictionary<AssetRef<State>, State>	_globalStatesCache	= new(32);
-
 	private		Service_GameFlow _service;
-	private		FlowNode		_root;
+	private		FlowNode		 _root;
 	
-	public		Service_GameFlow Service		=> _service;
-	public		FlowNode		 Root			=> _root;
+	public		Service_GameFlow Service	=> _service;
+	public		FlowNode		 Root		=> _root;
 
 	public		FlowNode		Open		( AssetRef<GameStage> stageRef, GameContext? parentContext = null, Object? openParams = null, Scene spawnIn = default )	
 	{
@@ -69,6 +41,7 @@ public class FlowGraph
 		var stage = (GameStage)UObject.Instantiate( stagePrefab, spawnIn.IsValid() ? spawnIn : Service.gameObject.scene );
 		stage._prefabRef = stagePrefab._prefabRef;
 		stage._graph = this;
+		stage._owner = _service;
 		
 		stage.transform.SetSiblingIndex(0);
 		stage.NicifyName();
@@ -91,9 +64,6 @@ public class FlowGraph
 			var instances = callSource.GameStage._statesCache;
 			instances.TryGetValue(stateRef, out state);
 		}
-
-		if (!state)
-			_globalStatesCache.TryGetValue( stateRef, out state );
 		
 		var stateInstanceOrPrefab = state;
 		
@@ -189,15 +159,10 @@ public class FlowGraph
 	}
 	internal	void			DestroyState	( State state )													
 	{
-		if (state._owner != null)
-		{
-			state._owner.DestroySubState(state);
-		}
-		else
-		{
-			_globalStatesCache.Remove(state.PrefabRef);
-			UObject.Destroy(state.gameObject);
-		}
+		if (state._node == _root)
+			return;
+		
+		state._owner!.DestroySubState(state);
 	}
 	
 	private		FlowNode		SpawnNode		( State state, Object? openParams, FlowNode parent )			
@@ -238,7 +203,10 @@ public class FlowGraph
 			return;
 		
 		// Draw root
-		GUILayout.Space( 10 );
+		GUILayout.Space( 16 );
+		GUILayout.Label( "Flow Graph" );
+		GUILayout.Space( 5 );
+		
 		GUILayout.BeginHorizontal();
 		{
 			GUILayout.Label( $"{(_root.IsShowed ? "■" : "□")}", GUILayout.Width(20) );

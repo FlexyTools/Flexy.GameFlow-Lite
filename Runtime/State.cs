@@ -29,7 +29,7 @@
 		protected internal virtual	AssetRef<State>		MainSubStateRef			=> default;
 		protected internal virtual	Boolean				TryGoBack				( )	=> true;
 		protected internal virtual	State				InstantiateSubState		( State prefab )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
-		protected internal virtual	void				DestroySubState			( State instance )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
+		protected internal virtual	void				DestroySubState			( State state )		=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
 		protected internal 			State				InstantiateState		( State statePrefab )		
 		{
 			var state = InstantiateSubState(statePrefab);

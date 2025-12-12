@@ -32,7 +32,7 @@
 			if (parentContext != null)
 				Context.SetParent( parentContext );
 			
-			// Force awake stage and all components on it
+			// Force awake stage and all components on it specifically GameContext
 			gameObject.SetActive(true);
 			gameObject.SetActive(false);
 		}
@@ -53,10 +53,10 @@
 			_statesCache[prefab.PrefabRef] = state;
 			return state;
 		}
-		protected internal override		void				DestroySubState			( State instance )	
+		protected internal override		void				DestroySubState			( State state )		
 		{
-			_statesCache.Remove(instance.PrefabRef);
-			Destroy(instance.gameObject);
+			_statesCache.Remove(state.PrefabRef);
+			Destroy(state.gameObject);
 		}
 		
 #if UNITY_EDITOR

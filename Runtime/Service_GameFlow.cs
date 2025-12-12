@@ -5,11 +5,10 @@ namespace Flexy.GameFlow
 	[HelpURL("https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.GameFlow/ScriptingApi/Service_GameFlow.md")]
 
 	[RequireComponent(typeof(GameContext))]
-	public class Service_GameFlow : BindableBehaviour, IService
+	public class Service_GameFlow : GameStage, IService
 	{
 		[SerializeField]	FlowLibrary		_rootFlowLibrary = null!;
-		[Tooltip("Optional. Ref to custom prefab of root state")]
-		[SerializeField]	AssetRef<FlowRoot> _rootStateRef;
+		
 		#if UNITY_INPUT_SYSTEM
 		[SerializeField]	UnityEngine.InputSystem.InputActionReference?	_backInputActionRef;
 		#endif
@@ -17,14 +16,12 @@ namespace Flexy.GameFlow
 		private readonly	Dictionary<String, AssetRef<State>>	_statesDict = new (256);
 		private readonly	Dictionary<AssetRef<State>, String>	_statesDictReverse = new (256);
 
-		public		FlowGraph		Graph			{ get; private set; } = null!;
-
 		public		void			OrderedInit		( GameContext ctx )										
 		{
 			Debug.Log( $"[Service_GameFlow] Init" );
 			name = "[GameFlow] (GlobalContext)";
 			ReadLibrary();
-			Graph = new(this, _rootStateRef);
+			_graph = new(this);
 		}
 		public		FlowNode		Open<T>			( State src, Object? openParams = null ) where T: State	
 		{
@@ -97,14 +94,21 @@ namespace Flexy.GameFlow
 				
 			return default;
 		}
-		
-		#if UNITY_EDITOR
-		[RuntimeInspectorGui(Repaint = true)]
-		private void DrawRuntimeUI( )
-		{
-			GUILayout.Space( 16 );
-			Graph.DrawRuntimeUI();
-		}
-		#endif
 	}
+	
+#if UNITY_EDITOR
+	[UnityEditor.CustomEditor(typeof(Service_GameFlow))]
+	public class Service_GameFlowEditor : Editor_WithRuntimeGui
+	{
+		public override UnityEngine.UIElements.VisualElement CreateInspectorGUI( )		
+		{
+			_root = new UnityEngine.UIElements.VisualElement{ name = "Editor_WithRuntimeGui" } ;
+			
+			AddPropertiesExcluding("_mainStateRef", "_statesContainer");
+			AddIMGUIInspectorAndRuntimeOne();
+	        
+			return _root;
+		}
+	}
+#endif
 }
