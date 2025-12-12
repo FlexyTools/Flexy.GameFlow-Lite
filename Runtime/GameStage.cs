@@ -1,5 +1,7 @@
 ﻿namespace Flexy.GameFlow
 {
+	[HelpURL("https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.GameFlow/ScriptingApi/Service_GameFlow.md")] 
+
 	[RequireComponent(typeof(GameContext))]
 	public class GameStage: State, IService
 	{

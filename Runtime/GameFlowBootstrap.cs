@@ -2,6 +2,8 @@ using System.Linq;
 
 namespace Flexy.GameFlow
 {
+	[HelpURL("https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.GameFlow/ScriptingApi/GameFlowBootstrap.md")]
+
 	[DefaultExecutionOrder(Int16.MinValue+100)]
 	public class GameFlowBootstrap : MonoBehaviour
 	{

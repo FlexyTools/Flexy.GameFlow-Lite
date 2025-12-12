@@ -3,6 +3,8 @@ using Flexy.AssetRefs.Pipelines;
 
 namespace Flexy.GameFlow
 {
+	[HelpURL("https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.GameFlow/ScriptingApi/FlowLibrary.md")]
+
     [CreateAssetMenu(fileName = "GameFlow.lib.asset", menuName = "Flexy/GameFlows/Library")]
 	public class FlowLibrary : ScriptableObject, IAssetRefsSource
 	{

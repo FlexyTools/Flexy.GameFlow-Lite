@@ -1,5 +1,7 @@
 ﻿namespace Flexy.GameFlow
 {
+	[HelpURL("https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.GameFlow/ScriptingApi/State.md")]
+
 	public abstract class State : BindableBehaviour
 	{
 		[SerializeField] FlexyEvent		_showing;
