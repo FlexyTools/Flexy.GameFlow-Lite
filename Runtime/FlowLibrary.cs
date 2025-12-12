@@ -10,7 +10,7 @@ namespace Flexy.GameFlow
 		[SerializeField]	FlowLibrary[]?	_dependencies	= null;
 		[SerializeField]	StateRef[]		_states			= null!;
 
-		public	List<UObject>	CollectAssets	( )		
+		public	List<UObject>	CollectAssets	( )										
 		{
 			var list = _states.Select( UObject(w) => AssetsLoader.EditorLoadAsset(w.Ref)! ).ToList();
 			
@@ -20,7 +20,7 @@ namespace Flexy.GameFlow
 
 			return list;
 		}
-		public	List<StateRef>	CollectStates	( )		
+		public	List<StateRef>	CollectStates	( Boolean includeDependencies = true )	
 		{
 			var list = new List<StateRef>();
 
@@ -30,7 +30,7 @@ namespace Flexy.GameFlow
 
 			list.AddRange(_states);
 
-			if (_dependencies != null)
+			if (includeDependencies && _dependencies != null)
 				foreach (var dep in _dependencies)
 					if (dep != null)
 						list.AddRange( dep.CollectStates() );

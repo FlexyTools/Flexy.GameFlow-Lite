@@ -104,7 +104,7 @@
 		protected virtual	void	OnFirstChildShow	( )	{ }
 		protected virtual	void	OnLastChildHide		( )	{ }
 		
-		public		FlowNode?		OpenMainState		( Object? openParams = null )		
+		public			FlowNode?	OpenMainState		( Object? openParams = null )		
 		{
 			if (MainSubStateRef.IsNone)
 				return default;
@@ -127,7 +127,7 @@
 		{
 			if (_node == null)
 			{
-				Graph.DestroyInstance(this);
+				Graph.DestroyState(this);
 				return;
 			}
 		
@@ -139,10 +139,10 @@
 			{
 				var state = node.State;
 				await UniTask.WaitWhile( () => state.gameObject.activeSelf );
-				node.Graph.DestroyInstance(state);
+				node.Graph.DestroyState(state);
 			}
 		}
-		public		FlowNode?		CloseSubStates		( Boolean closeMainState = false, Object? overrideOpenParams = null )	
+		public			FlowNode?	CloseSubStates		( Boolean closeMainState = false, Object? overrideOpenParams = null )	
 		{
 			if (_node.FirstChild == null)
 				return null;

@@ -46,7 +46,7 @@ public class FlowGraph
 		}
 	}
 
-	private readonly	Dictionary<AssetRef<State>, State>	_globalStateInstances	= new(32);
+	private readonly	Dictionary<AssetRef<State>, State>	_globalStatesCache	= new(32);
 
 	private		Service_GameFlow _service;
 	private		FlowNode		_root;
@@ -86,14 +86,14 @@ public class FlowGraph
 	{
 		var state = default(State);
 		
-		if (callSource.GameStage._node is {IsValid:true})
+		if (callSource.GameStage._node is {IsOpened:true})
 		{
-			var instances = callSource.GameStage._stateInstances;
+			var instances = callSource.GameStage._statesCache;
 			instances.TryGetValue(stateRef, out state);
 		}
 
 		if (!state)
-			_globalStateInstances.TryGetValue( stateRef, out state );
+			_globalStatesCache.TryGetValue( stateRef, out state );
 		
 		var stateInstanceOrPrefab = state;
 		
@@ -110,7 +110,7 @@ public class FlowGraph
 		if (stateInstanceOrPrefab is GameStage)
 			return Open(new AssetRef<GameStage>(stateRef.Uid, stateRef.SubId), null, openParams);
 	
-		parent ??= callSource.GameStage._node is { IsValid: true } stage ? stage : _root.FirstChild!.GetLastSibling();
+		parent ??= callSource.GameStage._node is {IsOpened:true} stage ? stage : _root.FirstChild!.GetLastSibling();
 		
 		// If we have main substate
 		if (!parent.MainSubStateRef.IsNone)
@@ -149,7 +149,7 @@ public class FlowGraph
 	}
 	internal	void			RemoveNodesUpTo	( FlowNode source, FlowNode target, Object? openParams = null )	
 	{
-		if (source is not { IsValid: true } || source == _root)
+		if (source is not {IsOpened:true} || source == _root)
 			return;
 		
 		var iter	= source;
@@ -187,16 +187,16 @@ public class FlowGraph
 
 		tr.ScheduleSwitchStates();
 	}
-	internal	void			DestroyInstance ( State instance )												
+	internal	void			DestroyState	( State state )													
 	{
-		if (instance._owner != null)
+		if (state._owner != null)
 		{
-			instance._owner.DestroySubState(instance);
+			state._owner.DestroySubState(state);
 		}
 		else
 		{
-			_globalStateInstances.Remove(instance.PrefabRef);
-			UObject.Destroy(instance.gameObject);
+			_globalStatesCache.Remove(state.PrefabRef);
+			UObject.Destroy(state.gameObject);
 		}
 	}
 	

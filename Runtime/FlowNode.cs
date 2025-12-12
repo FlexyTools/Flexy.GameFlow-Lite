@@ -23,8 +23,7 @@ public class FlowNode
 	public	FlowNode		Parent			{get; internal set;} = null!;
 	public	FlowNode?		FirstChild		{get; internal set;}
 	
-	public	Boolean			IsValid			=> Graph.Root == this || Back?.Forward == this;
-	public	Boolean			IsOpened		=> IsValid;
+	public	Boolean			IsOpened		=> Graph.Root == this || Back?.Forward == this;
 	public	Boolean			IsShowed		=> IsOpened && State && State.Node == this && State.gameObject.activeInHierarchy;
 	internal TransitionRoot	TransitionRoot	=> _transitionRoot ?? Parent.TransitionRoot;
 	
