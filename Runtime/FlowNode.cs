@@ -59,6 +59,16 @@ public class FlowNode
 		
 		_transitionRoot.SwitchStatesAsyncInfiniteLoop().Forget();
 	}
+	public async UniTask<T>	WaitResult<T>		( )	
+	{
+		if (State is not IStateWithResult<T> swr)
+			throw new InvalidOperationException($"Node state {State.GetType().Name} dont implement IStateWithResult<{typeof(T).Name}>");
+		
+		while (IsOpened || IsShowed)
+			await UniTask.NextFrame(PlayerLoopTiming.LastUpdate);
+		
+		return swr.GetResult();
+	}
 }
 
 public static class FlowNodeExt

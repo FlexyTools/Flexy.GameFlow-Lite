@@ -1,4 +1,4 @@
-﻿namespace Flexy.GameFlow
+namespace Flexy.GameFlow
 {
 	[HelpURL("https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.GameFlow/ScriptingApi/State.md")]
 
@@ -180,25 +180,7 @@
 		}
 	}
 	
-	public readonly record struct ResultHandle<T>( FlowNode Node )
-	{
-		public			FlowNode	Node		{get;}	= Node;
-		public async	UniTask<T>	WaitResult	( )		
-		{
-			var node	= Node;
-			var result	= (IStateWithResult<T>)node.State;
-			
-			while (node.IsOpened || node.IsShowed)
-				await UniTask.NextFrame(PlayerLoopTiming.LastUpdate);
-				
-			return result.GetResult();
-		} 
-	}
-	
-	public interface IStateWithResult<out T>
-	{
-		public T GetResult( );
-	}
+	public interface IStateWithResult<out T> { T GetResult( ); }
 	
 	[AttributeUsage(AttributeTargets.Method)]
 	public class StateTestAttribute: Attribute {}
