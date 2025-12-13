@@ -67,7 +67,7 @@ public class FlowNode
 		while (IsOpened || IsShowed)
 			await UniTask.NextFrame(PlayerLoopTiming.LastUpdate);
 		
-		return swr.GetResult();
+		return swr.GetResult(this);
 	}
 }
 

@@ -180,7 +180,7 @@ namespace Flexy.GameFlow
 		}
 	}
 	
-	public interface IStateWithResult<out T> { T GetResult( ); }
+	public interface IStateWithResult<out T> { T GetResult( FlowNode node ); }
 	
 	[AttributeUsage(AttributeTargets.Method)]
 	public class StateTestAttribute: Attribute {}
