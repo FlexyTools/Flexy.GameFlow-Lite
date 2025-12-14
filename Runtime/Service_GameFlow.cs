@@ -29,11 +29,11 @@ namespace Flexy.GameFlow
 			return opener.Ctx.Open(openParams);
 		}
 								
-		public		State.Opener	GetOpener_ById				( State src, String croppedOrFullGuid )	
+		public		Opener			GetOpener_ById				( State src, String croppedOrFullGuid )	
 		{
 			return new() { Ctx = new( _statesDict.GetValueOrDefault(croppedOrFullGuid), src ) };
 		}
-		public		State.Opener	GetOpener_ByStateType<T>	( State src ) where T : State			
+		public		Opener			GetOpener_ByStateType<T>	( State src ) where T : State			
 		{
 			return new() { Ctx = new( FindOpener( typeof(T) ), src ) };
 		}
