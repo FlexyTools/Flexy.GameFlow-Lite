@@ -37,8 +37,8 @@ public class FlowNode
 		}
 	}
 
-	public	AssetRef<State>	StateRef;
-	public	AssetRef<State>	MainSubStateRef;
+	internal	AssetRef<State>		StateRef;
+	internal	AssetRef<State>		MainSubStateRef;
 
 	public override	String	ToString			( )	
 	{
