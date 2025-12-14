@@ -83,7 +83,7 @@ namespace Flexy.GameFlow
 
 #if UNITY_EDITOR
 		[UnityEditor.InitializeOnLoad]
-		public static class BootstrapTestCasesProvider
+		static class BootstrapTestCasesProvider
 		{
 			static BootstrapTestCasesProvider( ) => Core.Editor.ToolbarControls.TestCaseDropdown.AddTestProvider( "State", GetTestRuns );
 

@@ -2,11 +2,9 @@ namespace Flexy.GameFlow;
 
 public class FlowNode
 {
-	public	FlowGraph		Graph			{get; internal set;} = null!;
 	private TransitionRoot? _transitionRoot;
-
-	public	AssetRef<State>	StateRef		{get; internal set;}
-	public	AssetRef<State>	MainSubStateRef {get; internal set;}
+	
+	public	FlowGraph		Graph			{get; internal set;} = null!;
 	public	State			State			{get; internal set;} = null!; // View of logical node
 	
 	public	Boolean			FullyInited		{get; internal set;} // if it is false in OnShow than first show came from BackShow
@@ -25,7 +23,7 @@ public class FlowNode
 	
 	public	Boolean			IsOpened		=> Graph.Root == this || Back?.Forward == this;
 	public	Boolean			IsShowed		=> IsOpened && State && State.Node == this && State.gameObject.activeInHierarchy;
-	internal TransitionRoot	TransitionRoot	=> _transitionRoot ?? Parent.TransitionRoot;
+	public	TransitionRoot	TransitionRoot	=> _transitionRoot ?? Parent.TransitionRoot;
 	
 	public	FlowNode		GameStageNode	
 	{
@@ -38,6 +36,9 @@ public class FlowNode
 			throw new InvalidOperationException("GameStage absent in state tree");
 		}
 	}
+
+	public	AssetRef<State>	StateRef;
+	public	AssetRef<State>	MainSubStateRef;
 
 	public override	String	ToString			( )	
 	{

@@ -22,8 +22,6 @@ namespace Flexy.GameFlow
 		public		Boolean				IsShowed		=> _node.IsShowed;
 		public		Boolean				AnySubStateOpened=> _node.FirstChild != null;
 		
-		public		State?				MainSubState	=> _node.FirstChild?.State;
-		public		FlowNode?			MainSubNode		=> _node.FirstChild;
 		public		GameStage			GameStage		=> this as GameStage ?? (GameStage)_node.GameStageNode.State;
 		
 		protected internal virtual	AssetRef<State>		MainSubStateRef			=> default;
@@ -181,6 +179,7 @@ namespace Flexy.GameFlow
 	}
 	
 	public interface IStateWithResult<out T> { T GetResult( FlowNode node ); }
+	public record struct ResultNode<T>( FlowNode Node ){ public UniTask<T> WaitResult( ) => Node.WaitResult<T>(); }
 	
 	[AttributeUsage(AttributeTargets.Method)]
 	public class StateTestAttribute: Attribute {}
