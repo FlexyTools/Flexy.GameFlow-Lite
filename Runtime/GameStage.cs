@@ -41,7 +41,7 @@
 		protected override void			OnShow				( )						
 		{
 			if (Node.FirstChild == null) 
-				OpenMainState();
+				OpenMainSubState();
 		}
 
 		protected internal override		AssetRef<State>		MainSubStateRef			=> _mainStateRef;

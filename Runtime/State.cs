@@ -24,6 +24,74 @@ namespace Flexy.GameFlow
 		
 		public		GameStage			GameStage		=> this as GameStage ?? (GameStage)_node.GameStageNode.State;
 		
+		public			FlowNode?	OpenMainSubState	( Object? openParams = null )		
+		{
+			if (MainSubStateRef.IsNone)
+				return default;
+		
+			Debug.Log( $"[GameStage] {name} => Open Main State: {GameStage.Flow.GetRefTypeName(MainSubStateRef)}" );
+		
+			if (_node.FirstChild == null)
+				// main substate never was opened yet so just open it
+				return Graph.Open( MainSubStateRef, this, openParams, parent:_node );
+			
+			// main substate is somewhere in history so just return to it
+			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node.FirstChild, openParams );
+			return _node.FirstChild;
+		}
+		[Callable] public	void	Close				( )									
+		{
+			_node.Close();
+		}
+		public				void	CloseAndDestroy		( )									
+		{
+			if (_node == null)
+			{
+				Graph.DestroyState(this);
+				return;
+			}
+		
+			Close();
+			DestroyWhenStateWillHide(_node).Forget();
+			return;
+
+			static async UniTaskVoid DestroyWhenStateWillHide( FlowNode node )
+			{
+				var state = node.State;
+				await UniTask.WaitWhile( () => state.gameObject.activeSelf );
+				node.Graph.DestroyState(state);
+			}
+		}
+		public			FlowNode?	CloseSubStates		( Boolean closeMainState = false, Object? overrideOpenParams = null )	
+		{
+			if (_node.FirstChild == null)
+				return null;
+		
+			var target = _node;
+		
+			if (!closeMainState && !_node.MainSubStateRef.IsNone)
+			{
+				target = _node.FirstChild;
+			}
+			else
+			{
+				_node.MainSubStateRef = default;
+			}
+		
+			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), target, overrideOpenParams );
+			return _node;
+		}
+
+		public				void	RebindAllHierarchy	( )	
+		{
+			foreach (var bb in gameObject.GetComponentsInChildren<BindableBehaviour>())
+			{
+				if (bb.gameObject == gameObject)	bb.MakeBindReadyAndRebindAll();
+				else								bb.RebindAll();
+			}
+		}
+		public override		String	ToString			( ) => _node.ToString();
+		
 		protected internal virtual	AssetRef<State>		MainSubStateRef			=> default;
 		protected internal virtual	Boolean				TryGoBack				( )	=> true;
 		protected internal virtual	State				InstantiateSubState		( State prefab )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
@@ -104,74 +172,6 @@ namespace Flexy.GameFlow
 		protected virtual	void	OnFirstChildShow	( )	{ }
 		protected virtual	void	OnLastChildHide		( )	{ }
 		
-		public			FlowNode?	OpenMainState		( Object? openParams = null )		
-		{
-			if (MainSubStateRef.IsNone)
-				return default;
-		
-			Debug.Log( $"[GameStage] {name} => Open Main State: {GameStage.Flow.GetRefTypeName(MainSubStateRef)}" );
-		
-			if (_node.FirstChild == null)
-				// main substate never was opened yet so just open it
-				return Graph.Open( MainSubStateRef, this, openParams, parent:_node );
-			
-			// main substate is somewhere in history so just return to it
-			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node.FirstChild, openParams );
-			return _node.FirstChild;
-		}
-		[Callable] public	void	Close				( )									
-		{
-			_node.Close();
-		}
-		public				void	CloseAndDestroy		( )									
-		{
-			if (_node == null)
-			{
-				Graph.DestroyState(this);
-				return;
-			}
-		
-			Close();
-			DestroyWhenStateWillHide(_node).Forget();
-			return;
-
-			static async UniTaskVoid DestroyWhenStateWillHide( FlowNode node )
-			{
-				var state = node.State;
-				await UniTask.WaitWhile( () => state.gameObject.activeSelf );
-				node.Graph.DestroyState(state);
-			}
-		}
-		public			FlowNode?	CloseSubStates		( Boolean closeMainState = false, Object? overrideOpenParams = null )	
-		{
-			if (_node.FirstChild == null)
-				return null;
-		
-			var target = _node;
-		
-			if (!closeMainState && !_node.MainSubStateRef.IsNone)
-			{
-				target = _node.FirstChild;
-			}
-			else
-			{
-				_node.MainSubStateRef = default;
-			}
-		
-			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), target, overrideOpenParams );
-			return _node;
-		}
-
-		public				void	RebindAllHierarchy	( )	
-		{
-			foreach (var bb in gameObject.GetComponentsInChildren<BindableBehaviour>())
-			{
-				if (bb.gameObject == gameObject)	bb.MakeBindReadyAndRebindAll();
-				else								bb.RebindAll();
-			}
-		}
-		public override		String	ToString			( ) => _node.ToString();
-
 		public record struct Opener	( OpenCtx Ctx ) : IOpenerB
 		{
 			public	FlowNode	Open	( ) => Ctx.Open();
