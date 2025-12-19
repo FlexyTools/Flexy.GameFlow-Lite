@@ -97,7 +97,7 @@ namespace Flexy.GameFlow
 	}
 	
 #if UNITY_EDITOR
-	[UnityEditor.CustomEditor(typeof(Service_GameFlow))]
+	[UnityEditor.CustomEditor(typeof(Service_GameFlow), editorForChildClasses:true)]
 	public class Service_GameFlowEditor : Editor_WithRuntimeGui
 	{
 		public override UnityEngine.UIElements.VisualElement CreateInspectorGUI( )		

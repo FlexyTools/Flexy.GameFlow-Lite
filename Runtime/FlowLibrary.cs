@@ -14,6 +14,10 @@ namespace Flexy.GameFlow
 
 		public	List<UObject>	CollectAssets	( )										
 		{
+			#if UNITY_EDITOR
+			OnValidate();
+			#endif
+		
 			var list = _states.Select( UObject(w) => AssetsLoader.EditorLoadAsset(w.Ref)! ).ToList();
 			
 			if (_dependencies != null)

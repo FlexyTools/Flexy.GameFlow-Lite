@@ -26,7 +26,7 @@ public class FlowGraph
 	public		Service_GameFlow Service	=> _service;
 	public		FlowNode		 Root		=> _root;
 
-	public		FlowNode		Open		( AssetRef<GameStage> stageRef, GameContext? parentContext = null, Object? openParams = null, Scene spawnIn = default )	
+	public		FlowNode		Open		( AssetRef<GameStage> stageRef, Object? openParams = null, GameContext? parentContext = null, Scene spawnIn = default )	
 	{
 		var stagePrefab = stageRef.LoadAssetSync();
 		
@@ -78,7 +78,7 @@ public class FlowGraph
 		}
 	
 		if (stateInstanceOrPrefab is GameStage)
-			return Open(new AssetRef<GameStage>(stateRef.Uid, stateRef.SubId), null, openParams);
+			return Open(new AssetRef<GameStage>(stateRef.Uid, stateRef.SubId), openParams);
 	
 		parent ??= callSource.GameStage._node is {IsOpened:true} stage ? stage : _root.FirstChild!.GetLastSibling();
 		
