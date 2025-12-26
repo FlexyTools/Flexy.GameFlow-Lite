@@ -4,8 +4,8 @@ public class FlowNode
 {
 	private TransitionRoot? _transitionRoot;
 	
-	public	FlowGraph		Graph			{get; internal set;} = null!;
-	public	State			State			{get; internal set;} = null!; // View of logical node
+	public	FlowGraph		Graph			{get; internal init;} = null!;
+	public	State			State			{get; internal init;} = null!; // View of logical node
 	
 	public	Boolean			FullyInited		{get; internal set;} // if it is false in OnShow than first show came from BackShow
 	public	Boolean			ChildrenShowed	{get; internal set;}
@@ -21,9 +21,10 @@ public class FlowNode
 	public	FlowNode		Parent			{get; internal set;} = null!;
 	public	FlowNode?		FirstChild		{get; internal set;}
 	
-	public	Boolean			IsOpened		=> Graph.Root == this || Back?.Forward == this;
-	public	Boolean			IsShowed		=> IsOpened && State && State.Node == this && State.gameObject.activeInHierarchy;
-	public	TransitionRoot	TransitionRoot	=> _transitionRoot ?? Parent.TransitionRoot;
+	public	Boolean			IsOpened			=> Graph.Root == this || (PrevSibling == null ? Parent.FirstChild == this : PrevSibling.NextSibling == this);
+	public	Boolean			IsShowing			=> State && State.Node == this && State.gameObject.activeSelf;
+	public	Boolean			IsOpenedAndShowing	=> IsOpened && IsShowing;
+	public	TransitionRoot	TransitionRoot		=> _transitionRoot ?? Parent.TransitionRoot;
 	
 	public	FlowNode		GameStageNode	
 	{
@@ -42,7 +43,7 @@ public class FlowNode
 
 	public override	String	ToString			( )	
 	{
-		return $"{(IsShowed ? "■ " : "□ ")} {State.name} {(OpenParams != null ? "op:" + OpenParams : "")}";
+		return $"{(IsShowing ? "■ " : "□ ")} {State.name} {(OpenParams != null ? "op:" + OpenParams : "")}";
 	}
 	public	FlowNode		Close				( )	
 	{
@@ -65,7 +66,7 @@ public class FlowNode
 		if (State is not IStateWithResult<T> swr)
 			throw new InvalidOperationException($"Node state {State.GetType().Name} dont implement IStateWithResult<{typeof(T).Name}>");
 		
-		while (IsOpened || IsShowed)
+		while (IsOpened || IsShowing)
 			await UniTask.NextFrame(PlayerLoopTiming.LastUpdate);
 		
 		return swr.GetResult(this);

@@ -19,7 +19,7 @@ namespace Flexy.GameFlow
 		public		Object?				OpenParams		=> _node.OpenParams;
 		
 		public		Boolean				IsOpened		=> _node.IsOpened;
-		public		Boolean				IsShowed		=> _node.IsShowed;
+		public		Boolean				IsShowed		=> _node.IsShowing;
 		public		Boolean				AnySubStateOpened=> _node.FirstChild != null;
 		
 		public		GameStage			GameStage		=> this as GameStage ?? (GameStage)_node.GameStageNode.State;
@@ -52,7 +52,12 @@ namespace Flexy.GameFlow
 			}
 		
 			Close();
+			
+			if (_node.IsShowing)
 			DestroyWhenStateWillHide(_node).Forget();
+			else
+				Graph.DestroyState(this);
+				
 			return;
 
 			static async UniTaskVoid DestroyWhenStateWillHide( FlowNode node )
@@ -113,8 +118,11 @@ namespace Flexy.GameFlow
 			{
 				var niceName = name.Replace( "(Clone)", "" ).Replace("_", " ").Trim('_').Trim(' ');
 				var spaceIndex = niceName.IndexOf(' ');
+				
 				if (spaceIndex != -1 && spaceIndex < niceName.Length - 1)
-					name = niceName.Insert(spaceIndex, "]").Insert(0, "[");
+					niceName = niceName.Insert(spaceIndex, "]").Insert(0, "[");
+				
+				name = niceName;
 			}
 			catch (Exception ex) { Debug.LogException(ex); }
 		}	
@@ -130,9 +138,9 @@ namespace Flexy.GameFlow
 				
 			_showing.Raise(this);
 		}
-		internal			void	DoFwdHide			( )	
+		internal			void	DoForwardHide		( )	
 		{
-			try						{ OnFwdHide(); }
+			try						{ OnForwardHide(); }
 			catch ( Exception ex )	{ Debug.LogException(ex); }
 		}
 		internal			void	DoBackShow			( )	
@@ -165,7 +173,7 @@ namespace Flexy.GameFlow
 		}
 		
 		protected virtual	void	OnShow				( )	{ }
-		protected virtual	void	OnFwdHide			( )	{ }
+		protected virtual	void	OnForwardHide		( )	{ }
 		protected virtual	void	OnBackShow			( )	{ }
 		protected virtual	void	OnHide				( )	{ }
 		

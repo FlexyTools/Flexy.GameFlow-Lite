@@ -123,7 +123,7 @@ public class FlowGraph
 			return;
 		
 		var iter	= source;
-		var tr		= source.TransitionRoot;
+		var trn		= source.TransitionRoot;
 
 		while (iter != null && iter != target)
 		{
@@ -131,9 +131,9 @@ public class FlowGraph
 				break;
 
 			var toRemove	= iter;
-			iter			= iter.Back;
+			iter			= toRemove.Back;
 			
-			if (toRemove.FirstChild != null)
+			while (toRemove.FirstChild != null)
 				RemoveNodesUpTo( toRemove.FirstChild.GetLastSibling(), toRemove );
 			
 			if (toRemove.Back != null)		toRemove.Back.Forward = toRemove.Forward;
@@ -145,17 +145,14 @@ public class FlowGraph
 			if (toRemove.PrevSibling != null) toRemove.PrevSibling.NextSibling = toRemove.NextSibling;
 			if (toRemove.NextSibling != null) toRemove.NextSibling.PrevSibling = toRemove.PrevSibling;
 			
-			if (toRemove == tr._tipNode)
-				tr._tipNode  = iter!;
+			if (toRemove == trn._tipNode)
+				trn._tipNode  = iter!;
 		}
 
-		if (iter == null) 
-			return;
-
-		if (openParams != null)
+		if (openParams != null && iter == target)
 			iter.OpenParams = openParams;
 
-		tr.ScheduleSwitchStates();
+		trn.ScheduleSwitchStates();
 	}
 	internal	void			DestroyState	( State state )													
 	{
@@ -209,8 +206,14 @@ public class FlowGraph
 		
 		GUILayout.BeginHorizontal();
 		{
-			GUILayout.Label( $"{(_root.IsShowed ? "■" : "□")}", GUILayout.Width(20) );
-			GUILayout.Label( $"{_root.State.name}" );
+			GUILayout.Label( $"{(_root.IsShowing ? "■" : "□")}", GUILayout.Width(20) );
+			
+			if (GUILayout.Button($"{_root.State.name}", GUI.skin.label))
+				UnityEditor.EditorGUIUtility.PingObject(_root.State);
+			
+			GUILayout.FlexibleSpace();
+			if (GUILayout.Button( "?" ))
+				UnityEditor.EditorGUIUtility.PingObject(_root.State);
 		}
 		GUILayout.EndHorizontal();
 		GUILayout.Space( 5 );
@@ -222,8 +225,14 @@ public class FlowGraph
 				
 			GUILayout.BeginHorizontal();
 			GUILayout.Space( node.State is GameStage ? 10 : 26 );
-			GUILayout.Label( $"{(node.IsShowed ? "■" : "□")}", GUILayout.Width(20) );
-			GUILayout.Label( $"{node.State.name} {(node.OpenParams != null ? "op:" + node.OpenParams : "")}" );
+			GUILayout.Label( $"{(node.IsShowing ? "■" : "□")}", GUILayout.Width(20) );
+			if (GUILayout.Button($"{node.State.name} {(node.OpenParams != null ? "op:" + node.OpenParams : "")}", GUI.skin.label))
+				UnityEditor.EditorGUIUtility.PingObject(node.State);
+			
+			GUILayout.FlexibleSpace();
+			if (GUILayout.Button( "?" ))
+				UnityEditor.EditorGUIUtility.PingObject(node.State);
+			
 			GUILayout.EndHorizontal();
 		}
 	}

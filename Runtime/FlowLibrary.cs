@@ -47,7 +47,7 @@ namespace Flexy.GameFlow
 #if UNITY_EDITOR
 		private	void			OnValidate		( )		
 		{
-			if (_autoGrabMode is not EStateGrabMode.NoGrab)
+			if (_autoGrabMode is not EStateGrabMode.NoAutoGrab)
 			{
 				EditorGrabStates(_autoGrabMode);
 			}
@@ -83,7 +83,7 @@ namespace Flexy.GameFlow
 		
 		private		void	EditorGrabStates	( EStateGrabMode grabMode )	
 		{
-			if (grabMode is EStateGrabMode.NoGrab)
+			if (grabMode is EStateGrabMode.NoAutoGrab)
 				return;
 		
 			var path	= UnityEditor.AssetDatabase.GetAssetPath(this);
@@ -112,9 +112,14 @@ namespace Flexy.GameFlow
 
 			if (states.Except(_states).Any() || _states.Except(states).Any())
 			{
-				_states = states.ToArray();
+				var newStates = states.ToArray();
+				
+				if (!newStates.SequenceEqual(_states))
+				{
+					_states = newStates;
 				UnityEditor.EditorUtility.SetDirty(this);
 			}
+		}
 		}
 #endif
 
@@ -129,7 +134,7 @@ namespace Flexy.GameFlow
 		
 		private enum EStateGrabMode : Byte
 		{
-			NoGrab = 0,
+			NoAutoGrab = 0,
 			GrabFromCurrentDir,
 			GrabFromCurrentDirAndSubDirs,
 		}

@@ -135,7 +135,7 @@ public class TransitionRoot
 		
 		try
 		{
-			if( isMoveForward )	state.DoFwdHide( );
+			if( isMoveForward )	state.DoForwardHide( );
 			else				state.DoHide( );
 		}
 		catch ( Exception ex ) { Debug.LogException( ex ); }
