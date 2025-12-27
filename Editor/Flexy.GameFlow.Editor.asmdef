@@ -1,0 +1,20 @@
+{
+    "name": "Flexy.GameFlow.Editor",
+    "rootNamespace": "Flexy.GameFlow",
+    "references": [
+        "UniTaskEmbed",
+        "UniTask",
+        "Flexy.GameFlow"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

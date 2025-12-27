@@ -18,3 +18,6 @@ global using Cysharp.Threading.Tasks;
 
 global using Object = System.Object;
 global using UObject = UnityEngine.Object;
+global using StaticAttribute = UnityEngine.RuntimeInitializeOnLoadMethodAttribute;
+
+global using static Flexy.Core.RuntimeInit;
