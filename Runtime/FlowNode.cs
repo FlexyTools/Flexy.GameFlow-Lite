@@ -66,7 +66,7 @@ public class FlowNode
 		if (State is not IStateWithResult<T> swr)
 			throw new InvalidOperationException($"Node state {State.GetType().Name} dont implement IStateWithResult<{typeof(T).Name}>");
 		
-		while (IsOpened || IsShowing)
+		while (IsOpened)
 			await UniTask.NextFrame(PlayerLoopTiming.LastUpdate);
 		
 		return swr.GetResult(this);
