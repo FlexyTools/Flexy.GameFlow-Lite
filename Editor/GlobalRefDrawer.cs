@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -10,8 +11,7 @@ namespace Flexy.GameFlow.Editor
 	[CustomPropertyDrawer(typeof(GlobalRef<>))]
 	public class GlobalRefDrawer : PropertyDrawer
 	{
-		// used to store cached objects of current SerializedObject our drawer part of
-		private Dictionary<Hash128, Component>? _globalRefs;
+		private Dictionary<(Hash128, Int64), Component>? _globalRefs;
 		
 		public override		void	OnGUI				( Rect position, SerializedProperty property, GUIContent label )	
 		{
@@ -22,26 +22,43 @@ namespace Flexy.GameFlow.Editor
 		{	
 			label				= EditorGUI.BeginProperty( position, label, property );
 			
+			var sceneProp		= property.FindPropertyRelative( "_scene" );
 			var uidProp			= property.FindPropertyRelative( "_uid" );
 			
 			if (_globalRefs == null)
 			{
-				_globalRefs = new Dictionary<Hash128, Component>();
+				_globalRefs = new Dictionary<(Hash128, Int64), Component>();
 				var allrefs = UnityEngine.Object.FindObjectsByType<GlobalRef>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 				foreach (var gref in allrefs)
 				{
 					if (gref.gameObject.TryGetComponent(type, out var component))
-						_globalRefs.Add(gref.Uid, component);
+					{
+						var hash128 = Hash128.Parse( AssetDatabase.AssetPathToGUID(gref.gameObject.scene.path) );
+						_globalRefs.Add((hash128, gref.Uid), component);
+					}
 				}
 			}
 			
-			var id = uidProp.hash128Value;
-			_globalRefs.TryGetValue(id, out var beh);
+			var scene	= sceneProp.hash128Value;
+			var uid		= uidProp.longValue;
+			_globalRefs.TryGetValue((scene, uid), out var beh);
+			
+			// String ref representation
+			{
+				GUILayout.BeginHorizontal();
+				
+				if (scene != default && uid != default && beh == null)
+					GUILayout.Label($"missing", GUILayout.Width(position.x + EditorGUIUtility.labelWidth));
+				else
+					GUILayout.Space(position.x + EditorGUIUtility.labelWidth + 2);
+					
+				GUILayout.Label($"{Path.GetFileNameWithoutExtension( AssetDatabase.GUIDToAssetPath(scene.ToString()) )}[{uid}]");
+				GUILayout.EndHorizontal();
+			}
 			
 			EditorGUI.BeginChangeCheck( );
-			var newobj	= EditorGUI.ObjectField( position, label, beh, type, true );
-			
-			var isChanged = EditorGUI.EndChangeCheck( );
+			var newobj		= EditorGUI.ObjectField( position, label, beh, type, true );
+			var isChanged	= EditorGUI.EndChangeCheck( );
 			
 			if (isChanged)
 			{
@@ -49,7 +66,10 @@ namespace Flexy.GameFlow.Editor
 				var targetComponent = go.GetComponent(type);
 				
 				if (targetComponent != null)
-					uidProp.hash128Value = ((Component)newobj).GetComponent<GlobalRef>().Uid;
+				{
+					sceneProp	.hash128Value	= Hash128.Parse( AssetDatabase.AssetPathToGUID( ((Component)newobj).gameObject.scene.path) );
+					uidProp		.longValue		= ((Component)newobj).GetComponent<GlobalRef>().Uid;
+				}
 			}
 			
 			EditorGUI.EndProperty();
