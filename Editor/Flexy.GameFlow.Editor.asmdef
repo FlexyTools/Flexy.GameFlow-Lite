@@ -4,7 +4,8 @@
     "references": [
         "UniTaskEmbed",
         "UniTask",
-        "Flexy.GameFlow"
+        "Flexy.GameFlow",
+        "Flexy.AssetRefs"
     ],
     "includePlatforms": [
         "Editor"

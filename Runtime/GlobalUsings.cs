@@ -21,3 +21,6 @@ global using UObject = UnityEngine.Object;
 global using StaticAttribute = UnityEngine.RuntimeInitializeOnLoadMethodAttribute;
 
 global using static Flexy.Core.RuntimeInit;
+using System.Runtime.CompilerServices;
+
+[assembly:InternalsVisibleTo("Flexy.GameFlow.Editor")]

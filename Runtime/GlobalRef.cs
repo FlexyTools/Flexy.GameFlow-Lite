@@ -25,15 +25,19 @@ namespace Flexy.GameFlow
 			
 			else if (UnityEditor.PrefabUtility.IsPartOfPrefabInstance(this))
 			{
-				var overrides = UnityEditor.PrefabUtility.GetPropertyModifications(this);
-				if (_uid == 0 || overrides == null || overrides.All(p => p.propertyPath != "_uid"))
+				var overrides = UnityEditor.PrefabUtility.GetPropertyModifications(this); 
+				if (_uid == 0 || overrides == null || overrides.All(p => p.propertyPath != "_uid")) 
 				{
-					Debug.Log("New UID 2", this);
-					var hash = Hash128.Parse(Guid.NewGuid().ToString());
-					_uid = Unsafe.As<Hash128, Int64>(ref hash);
+					do
+					{
+						var hash = Hash128.Parse(Guid.NewGuid().ToString());
+						_uid = Unsafe.As<Hash128, Int64>(ref hash);
+					}
+					while(_uid < 1_000_000_000);
 					UnityEditor.EditorUtility.SetDirty(this);
 				}
 			}
+			GlobalRefs.Set(gameObject.scene, this);
 			#endif
 		}
 	}
@@ -56,10 +60,13 @@ namespace Flexy.GameFlow
 				if (Application.isPlaying)
 					throw new Exception("GlobalRef already exists");
 					
-				var hash = Hash128.Parse(Guid.NewGuid().ToString());
-				gref._uid = Unsafe.As<Hash128, Int64>(ref hash);
+				do
+				{
+					var hash = Hash128.Parse(Guid.NewGuid().ToString());
+					gref._uid = Unsafe.As<Hash128, Int64>(ref hash);
+				}
+				while(gref._uid < 1_000_000_000);
 				UnityEditor.EditorUtility.SetDirty(gref);
-				Debug.Log("New UID 1");
 #else
 				throw new Exception("GlobalRef already exists");
 #endif

@@ -51,7 +51,7 @@ public class FlowGraph
 	
 		var newNode	= SpawnNode(stage, openParams, _root);
 		
-		stage.Init(parentContext);
+		stage.PreInit(parentContext);
 		
 		return newNode;
 	}

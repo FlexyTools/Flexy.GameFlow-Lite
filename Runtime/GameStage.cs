@@ -23,7 +23,7 @@
 			SceneManager.MoveGameObjectToScene( gameObject, Graph.Service.gameObject.scene );
 		}
 		
-		internal	void				Init				( GameContext? parentContext )	
+		internal	void				PreInit				( GameContext? parentContext )	
 		{
 			Debug.Log( $"[GameStage] {name} - Spawned", this );
 		
