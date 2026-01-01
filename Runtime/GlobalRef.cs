@@ -99,7 +99,7 @@ namespace Flexy.GameFlow
 	
 		public			String			ToStringNice	( )					
 		{
-			return $"{AssetRef.AssetsLoader.GetSceneName(new SceneRef(_scene))}[{_uid}]";
+			return $"{SceneRef.SceneLoader.GetSceneName(new SceneRef(_scene))}[{_uid}]";
 		}
 		public static	GlobalRef<T>	Parse			( String address ) 	
 		{

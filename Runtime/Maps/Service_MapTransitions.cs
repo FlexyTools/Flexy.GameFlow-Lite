@@ -49,7 +49,7 @@ namespace Flexy.GameFlow.Maps
 		
 			if (loadMode == ELoadMode.Single)
 			{
-				await SceneRef.LoadDummySceneAsync(ctx, LoadSceneMode.Single);
+				await SceneRef.SceneLoader.LoadDummySceneAsync(ctx, LoadSceneMode.Single);
 				
 				var nextScene	= await portal.Point.Scene.LoadSceneAsync(ctx, LoadSceneMode.Single);
 				resultPoint		= portal.Point.Get(nextScene);
@@ -58,12 +58,12 @@ namespace Flexy.GameFlow.Maps
 			{
 				var currentScene = SceneManager.GetActiveScene();
 				
-				var dummy = await SceneRef.LoadDummySceneAsync(ctx, LoadSceneMode.Additive);
+				var dummy = await SceneRef.SceneLoader.LoadDummySceneAsync(ctx, LoadSceneMode.Additive);
 				
 				if (loadMode != ELoadMode.AdditiveNoUnload)
 					await SceneManager.UnloadSceneAsync(currentScene);
 				
-				var preloadedScene = SceneManager.GetSceneByName(AssetRef.AssetsLoader.GetSceneName(portal.Point.Scene)); 
+				var preloadedScene = SceneManager.GetSceneByName(SceneRef.SceneLoader.GetSceneName(portal.Point.Scene)); 
 				if (preloadedScene.IsValid())
 				{
 					resultPoint		= portal.Point.Get(preloadedScene);
@@ -108,7 +108,7 @@ namespace Flexy.GameFlow.Maps
 		}
 		public virtual AsyncOperation		UnloadMap	( SceneRef scene, UnloadSceneOptions options = default )	
 		{
-			return SceneManager.UnloadSceneAsync(AssetRef.AssetsLoader.GetSceneName(scene), options);
+			return SceneManager.UnloadSceneAsync(SceneRef.SceneLoader.GetSceneName(scene), options);
 		} 
 		
 		public enum ELoadMode : Byte
