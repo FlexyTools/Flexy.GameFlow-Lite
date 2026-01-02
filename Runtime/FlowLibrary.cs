@@ -18,7 +18,7 @@ namespace Flexy.GameFlow
 			OnValidate();
 			#endif
 		
-			var list = _states.Select( UObject(w) => AssetsLoader.EditorLoadAsset(w.Ref)! ).ToList();
+			var list = _states.Select( UObject(w) => AssetLoader.EditorLoadAsset(w.Ref)! ).ToList();
 			
 			if (_dependencies != null)
 				foreach (var library in _dependencies)
@@ -55,7 +55,7 @@ namespace Flexy.GameFlow
 			{
 				for (var i = 0; i < _states.Length; i++)
 				{
-					var newName = AssetsLoader.EditorLoadAsset( _states[i].Ref )?.GetType().FullName ?? "";
+					var newName = AssetLoader.EditorLoadAsset( _states[i].Ref )?.GetType().FullName ?? "";
 					if (_states[i].TypeFullName != newName)
 					{
 						_states[i].TypeFullName = newName; 

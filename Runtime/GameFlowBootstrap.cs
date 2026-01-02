@@ -98,7 +98,7 @@ namespace Flexy.GameFlow
 				if ( !bootstrap || subStateToOpen.IsNone )
 					yield break;
 
-				var subState = AssetsLoader.EditorLoadAsset( subStateToOpen );
+				var subState = AssetLoader.EditorLoadAsset( subStateToOpen );
 				if (!subState)
 					yield break;
 
