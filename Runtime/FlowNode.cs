@@ -9,7 +9,7 @@ public class FlowNode
 	
 	public	Boolean			FullyInited		{get; internal set;} // if it is false in OnShow than first show came from BackShow
 	public	Boolean			ChildrenShowed	{get; internal set;}
-	public	Object?			OpenParams		{get; internal set;} // parameters state opened with
+	public	Object?			OpenParams		{get; set;} // parameters state opened with
 	public	Object?			StateData		{get; set;} // optional state data can be stored by state implementation
 	public	Object?			UserData		{get; set;} // optional user data for (link additional data from outside the state)
 	
