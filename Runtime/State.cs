@@ -67,7 +67,7 @@ namespace Flexy.GameFlow
 				node.Graph.DestroyState(state);
 			}
 		}
-		public			FlowNode?	CloseSubStates		( Boolean closeMainState = false, Object? overrideOpenParams = null )	
+		public			FlowNode?	CloseSubStates		( Boolean closeMainState = false, Boolean closeCurrent = true, Object? overrideOpenParams = null )	
 		{
 			if (_node.FirstChild == null)
 				return null;
@@ -83,7 +83,12 @@ namespace Flexy.GameFlow
 				_node.MainSubStateRef = default;
 			}
 		
-			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), target, overrideOpenParams );
+			var currentNode = _node.FirstChild.GetLastSibling();
+		
+			if (!closeCurrent)
+				currentNode = currentNode.Back;
+		
+			Graph.RemoveNodesUpTo( currentNode, target, overrideOpenParams );
 			return _node;
 		}
 

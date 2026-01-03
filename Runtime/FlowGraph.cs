@@ -117,7 +117,7 @@ public class FlowGraph
 		if (node.Back != null)
 			RemoveNodesUpTo( node, node.Back );
 	}
-	internal	void			RemoveNodesUpTo	( FlowNode source, FlowNode target, Object? openParams = null )	
+	internal	void			RemoveNodesUpTo	( FlowNode? source, FlowNode target, Object? openParams = null )
 	{
 		if (source is not {IsOpened:true} || source == _root)
 			return;
