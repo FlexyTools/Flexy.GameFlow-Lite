@@ -1,0 +1,127 @@
+![Img](Src/Cover.webp)
+
+[Flexy.Tools](https://github.com/FlexyTools/Flexy.Docs/tree/main) / [Framework](https://github.com/FlexyTools/Flexy.Docs/tree/main/Framework) / Flexy.GameFlow
+
+
+# Flexy.GameFlow
+
+
+Stop fighting menus, meta, gameplay, and scenes  
+A hierarchical game state architecture for managing game states and scenes  
+Clean and testable from prototype to production
+
+<!-- | [Unity Forum](https://discussions.unity.com/t/a/1700923)| [AssetStore](https://u3d.as/3LKx) -->
+[Github](https://github.com/FlexyTools/Flexy.GameFlow)
+| [Docs](https://github.com/FlexyTools/Flexy.Docs/tree/main/Framework/Flexy.GameFlow)
+| [Showcase(Template project)](https://github.com/FlexyTools/Flexy-TT.BarleyBreak)
+
+Production-proven architecture, refined in real projects since 2012  
+Design your game as explicit, testable states — from Boot and Meta to Core gameplay
+
+
+## When game state architecture starts working against you
+
+As projects grow, game state logic becomes fragile and hard to reason about
+
+- Dependencies spread across systems, even when using DI
+- Adding new game states introduces hidden coupling and side effects
+- Custom flow solutions break as requirements change
+- Transition chains become complex and difficult to maintain
+- Testing a single state requires running the entire game
+
+Flexy.GameFlow addresses this by design:
+
+- A single hierarchical state model for gameplay, meta, UI, and overlays
+- Any state can be launched and tested instantly, in isolation e.g., you can enter Play Mode directly in a menu, popup, or gameplay state without running entire game from boot
+- States and transitions are awaitable, with explicit input and output data between states
+- Each state owns its lifecycle and cleanup
+- The same architecture scales from prototype to production
+
+
+## Is this for you?
+
+Flexy.GameFlow is a good fit if:
+- Your project grows beyond a simple prototype
+- You have multiple game states such as menus, meta, gameplay, or overlays
+- Your game states need separate scenes or non-trivial scene navigation
+- You care about clean architecture, testability, and long-term maintainability
+- Flexy.GameFlow is an architectural foundation and is intended to be adopted early in a project
+
+This asset is likely not a good fit if:
+- You want a visual-only solution without writing code
+- Your game states and scenes are simple and unlikely to grow in complexity
+
+
+## Why Flexy.GameFlow specifically?
+
+- Designed by a developer who builds complete games, not just frameworks
+- Used as a foundation in multiple shipped games and long-term production projects
+- including large-scale projects under NDA
+- Framework-agnostic by intent, with no forced UI system, scene structure, or networking stack
+- Free Lite version to validate the architecture before committing
+
+
+## Flexy Game.Flow vs Other Solutions
+
+- **Classic FSMs** do not scale to full game state hierarchies with async transitions
+- **Scene managers** couple logic to scenes and make state testing difficult
+- **Custom solutions** tend to degrade over time and are hard to maintain
+
+**Flexy.GameFlow** treats **game states as first-class**, with hierarchy, isolation, and deterministic async transitions
+
+
+## Advanced Capabilities
+
+- Hierarchical game state composition with nested and layered states
+- Clear separation between state lifecycle, logic, and view
+- Enter Play Mode from any scene with the correct state hierarchy from the first frame
+- Game states can be developed and tested in isolation
+- Scene loading and unloading driven by game states
+- Support for multi-scene maps and non-trivial navigation
+
+
+## Technical details
+
+- Modern C# (C# 10)
+- Designed to work with Domain Reload disabled
+
+
+### Features
+
+- Single `State` base class for all state types (gameplay, UI, substates)
+- Extensible lifecycle via virtual Show/Hide and BackShow/ForwardHide methods
+- Deterministic bootstrap that initializes the correct state hierarchy for any scene
+- Early initialization allowing Play Mode entry from any scene or state before the first frame
+- Explicit state cleanup via `Stage.CloseAndDestroy`
+- Explicit input and output data passed between states
+- Awaitable states and transitions with strongly defined results
+- Cross-scene references without hard scene dependencies
+- Game states can be instantiated and tested in isolation
+
+
+### Core Architecture & Runtime
+
+- Bootstrap prefab initializes the GameFlow runtime
+- Central `ServiceGameFlow` API for controlling game states from code
+- Explicit `GameStage` abstraction for major phases (Boot, Meta, Core)
+- `FlowLibrary` for centralized registration and lookup of states
+- Graph-based state model using `FlowGraph` and `FlowNode`
+- Runtime tracking of active and current state nodes
+- Explicit `TransitionOperation` for deterministic state transitions
+
+
+### GameFlow Pro Features
+
+- Extended control over Play Mode initialization
+- Additional virtual Open/Close and Forward/Back lifecycle methods
+- Support for substate layers (e.g. popup layer)
+- Customizable UniTask-based transition logic
+- Deterministic await points for logical and visual state changes
+- Asynchronous preload of state views
+- Split-screen support via separate `BigStage` instances
+
+
+
+<br/>
+
+[Flexy.Tools](https://github.com/FlexyTools/Flexy.Docs/tree/main) / [Framework](https://github.com/FlexyTools/Flexy.Docs/tree/main/Framework) / Flexy.GameFlow
