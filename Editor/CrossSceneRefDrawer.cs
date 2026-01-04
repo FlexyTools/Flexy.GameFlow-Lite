@@ -8,10 +8,10 @@ using Object = System.Object;
 
 namespace Flexy.GameFlow.Editor
 {
-	[CustomPropertyDrawer(typeof(GlobalRef<>))]
-	public class GlobalRefDrawer : PropertyDrawer
+	[CustomPropertyDrawer(typeof(CrossSceneRef<>))]
+	public class CrossSceneRefDrawer : PropertyDrawer
 	{
-		private Dictionary<(Hash128, Int64), Component>? _globalRefs;
+		private Dictionary<(Hash128, Int64), Component>? _crossSceneRefs;
 		
 		public override		void	OnGUI				( Rect position, SerializedProperty property, GUIContent label )	
 		{
@@ -25,23 +25,23 @@ namespace Flexy.GameFlow.Editor
 			var sceneProp		= property.FindPropertyRelative( "_scene" );
 			var uidProp			= property.FindPropertyRelative( "_uid" );
 			
-			if (_globalRefs == null)
+			if (_crossSceneRefs == null)
 			{
-				_globalRefs = new Dictionary<(Hash128, Int64), Component>();
-				var allrefs = UnityEngine.Object.FindObjectsByType<GlobalRef>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+				_crossSceneRefs = new Dictionary<(Hash128, Int64), Component>();
+				var allrefs = UnityEngine.Object.FindObjectsByType<CrossSceneRef>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 				foreach (var gref in allrefs)
 				{
 					if (gref.gameObject.TryGetComponent(type, out var component))
 					{
 						var hash128 = Hash128.Parse( AssetDatabase.AssetPathToGUID(gref.gameObject.scene.path) );
-						_globalRefs.Add((hash128, gref.Uid), component);
+						_crossSceneRefs.Add((hash128, gref.Uid), component);
 					}
 				}
 			}
 			
 			var scene	= sceneProp.hash128Value;
 			var uid		= uidProp.longValue;
-			_globalRefs.TryGetValue((scene, uid), out var beh);
+			_crossSceneRefs.TryGetValue((scene, uid), out var beh);
 			
 			// String ref representation
 			{
@@ -68,7 +68,7 @@ namespace Flexy.GameFlow.Editor
 				if (targetComponent != null)
 				{
 					sceneProp	.hash128Value	= Hash128.Parse( AssetDatabase.AssetPathToGUID( ((Component)newobj).gameObject.scene.path) );
-					uidProp		.longValue		= ((Component)newobj).GetComponent<GlobalRef>().Uid;
+					uidProp		.longValue		= ((Component)newobj).GetComponent<CrossSceneRef>().Uid;
 				}
 			}
 			

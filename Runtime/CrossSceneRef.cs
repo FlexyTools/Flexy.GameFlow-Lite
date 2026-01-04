@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace Flexy.GameFlow
 {
 	[ExecuteAlways]
-	public class GlobalRef : MonoBehaviour
+	public class CrossSceneRef : MonoBehaviour
 	{
 		[SerializeField] internal Int64 _uid;
 		
@@ -12,7 +12,7 @@ namespace Flexy.GameFlow
 		
 		private		void	Awake		( )		
 		{
-			GlobalRefs.Set(gameObject.scene, this); 
+			CrossSceneRefs.Set(gameObject.scene, this); 
 		}
 		private		void	OnValidate	( )		
 		{
@@ -37,24 +37,24 @@ namespace Flexy.GameFlow
 					UnityEditor.EditorUtility.SetDirty(this);
 				}
 			}
-			GlobalRefs.Set(gameObject.scene, this);
+			CrossSceneRefs.Set(gameObject.scene, this);
 			#endif
 		}
 	}
 
-	public static class GlobalRefs
+	public static class CrossSceneRefs
 	{
 		[Static(Clear)] static void StaticClear	( ) => _refs = new();
 		[Static(Init)]	static void StaticInit	( ) => SceneManager.sceneUnloaded += scene => _refs.Remove(scene);
 		
-		private static Dictionary<Scene, Dictionary<Int64, GlobalRef>> _refs = new();
+		private static Dictionary<Scene, Dictionary<Int64, CrossSceneRef>> _refs = new();
 		
-		public static	void	Set		( Scene scene, GlobalRef gref )						
+		public static	void	Set		( Scene scene, CrossSceneRef csref )						
 		{
 			if (!_refs.TryGetValue(scene, out var sceneDict))
 				sceneDict = _refs[scene] = new();
 				
-			if (sceneDict.TryGetValue(gref.Uid, out var @ref) && @ref != gref)
+			if (sceneDict.TryGetValue(csref.Uid, out var @ref) && @ref != csref)
 			{
 #if UNITY_EDITOR			
 				if (Application.isPlaying)
@@ -63,28 +63,28 @@ namespace Flexy.GameFlow
 				do
 				{
 					var hash = Hash128.Parse(Guid.NewGuid().ToString());
-					gref._uid = Unsafe.As<Hash128, Int64>(ref hash);
+					csref._uid = Unsafe.As<Hash128, Int64>(ref hash);
 				}
-				while(gref._uid < 1_000_000_000);
-				UnityEditor.EditorUtility.SetDirty(gref);
+				while(csref._uid < 1_000_000_000);
+				UnityEditor.EditorUtility.SetDirty(csref);
 #else
 				throw new Exception("GlobalRef already exists");
 #endif
 			}
 				
-			sceneDict[gref.Uid] = gref;
+			sceneDict[csref.Uid] = csref;
 		}
-		public static	T		Get<T>	( Scene scene, GlobalRef<T> gref ) where T: UObject	
+		public static	T		Get<T>	( Scene scene, CrossSceneRef<T> csref ) where T: UObject	
 		{
-			return _refs[scene][gref.Uid].GetComponent<T>();
+			return _refs[scene][csref.Uid].GetComponent<T>();
 		}
 	} 
 
 	[Serializable]
-	public record struct GlobalRef<T> where T: UnityEngine.Object
+	public record struct CrossSceneRef<T> where T: UnityEngine.Object
 	{
-		public	GlobalRef ( Hash128 scene, Int64 uid )	{ _scene = scene; _uid = uid; }
-		public	GlobalRef ( String uid )	{ this = default; FromString(uid); }
+		public	CrossSceneRef ( Hash128 scene, Int64 uid )	{ _scene = scene; _uid = uid; }
+		public	CrossSceneRef ( String uid )	{ this = default; FromString(uid); }
 	
 		[SerializeField] Hash128		_scene;
 		[SerializeField] Int64			_uid;
@@ -92,7 +92,7 @@ namespace Flexy.GameFlow
 		public			SceneRef		Scene		=> new (_scene);
 		public			Int64			Uid			=> _uid;
 		public			Boolean			IsNone		=> this == default;
-		public static	GlobalRef<T>	None		=> default;
+		public static	CrossSceneRef<T>None		=> default;
 	
 		public override	String			ToString		( )					=> $"{_scene}[{_uid}]";
 		public 			void			FromString		( String address )	=> this = Parse(address);
@@ -101,7 +101,7 @@ namespace Flexy.GameFlow
 		{
 			return $"{SceneRef.SceneLoader.GetSceneName(new SceneRef(_scene))}[{_uid}]";
 		}
-		public static	GlobalRef<T>	Parse			( String address ) 	
+		public static	CrossSceneRef<T>Parse			( String address ) 	
 		{
 			if (String.IsNullOrWhiteSpace( address ))
 				return default;
@@ -112,6 +112,6 @@ namespace Flexy.GameFlow
 			return new( uid, subId );
 		}
 
-		public T Get(Scene scene) => GlobalRefs.Get(scene, this);
+		public T Get(Scene scene) => CrossSceneRefs.Get(scene, this);
 	}
 }
