@@ -104,11 +104,11 @@ namespace Flexy.GameFlow
 		
 		protected internal virtual	AssetRef<State>		MainSubStateRef			=> default;
 		protected internal virtual	Boolean				TryGoBack				( )	=> true;
-		protected internal virtual	State				InstantiateSubState		( State prefab )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
-		protected internal virtual	void				DestroySubState			( State state )		=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
-		protected internal 			State				InstantiateState		( State statePrefab )		
+		protected internal virtual	State				InstantiateSubState		( State prefab, String tag )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
+		protected internal virtual	void				DestroySubState			( State state )					=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
+		protected internal 			State				InstantiateState		( State statePrefab, String tag )	
 		{
-			var state = InstantiateSubState(statePrefab);
+			var state = InstantiateSubState(statePrefab, tag);
 			state._prefabRef = statePrefab._prefabRef;
 			state._owner = this;
 			state._graph = _graph;
@@ -117,7 +117,7 @@ namespace Flexy.GameFlow
 			
 			return state;
 		}
-		protected internal			void				NicifyName				( )							
+		protected internal			void				NicifyName				( )									
 		{
 			try
 			{
@@ -168,9 +168,13 @@ namespace Flexy.GameFlow
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 			
 			node.ChildrenShowed = true;
+
+			//Debug.Log( $"[TransitionOperation] {node} FirstChildShow" );
 		}
 		internal			void	DoLastChildHide		( FlowNode node )	
 		{
+			//Debug.Log( $"[TransitionOperation] {node} LastChildHide" );
+		
 			node.ChildrenShowed = false;
 			
 			try						{ OnLastChildHide(); }

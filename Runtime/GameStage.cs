@@ -47,13 +47,13 @@
 		protected internal override		AssetRef<State>		MainSubStateRef			=> _mainStateRef;
 		protected internal override		Boolean				TryGoBack				( ) => false;
 
-		protected internal override		State				InstantiateSubState		( State prefab )	
+		protected internal override		State				InstantiateSubState		( State prefab, String tag )
 		{
 			var state = prefab.InstantiateInactive(_statesContainer); 
 			_statesCache[prefab.PrefabRef] = state;
 			return state;
 		}
-		protected internal override		void				DestroySubState			( State state )		
+		protected internal override		void				DestroySubState			( State state )				
 		{
 			_statesCache.Remove(state.PrefabRef);
 			Destroy(state.gameObject);

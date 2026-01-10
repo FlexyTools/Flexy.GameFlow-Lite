@@ -101,7 +101,7 @@ public class FlowGraph
 		}		
 		
 		if (state == null)
-			state = parent.State.InstantiateState(stateInstanceOrPrefab!); 
+			state = parent.State.InstantiateState(stateInstanceOrPrefab!, "Base"); 
 	
 		var newNode = SpawnNode(state, openParams, parent);
 		
