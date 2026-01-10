@@ -13,35 +13,35 @@ namespace Flexy.GameFlow
 		[SerializeField]	UnityEngine.InputSystem.InputActionReference?	_backInputActionRef;
 		#endif
 
-		private readonly	Dictionary<String, AssetRef<State>>	_statesDict = new (256);
-		private readonly	Dictionary<AssetRef<State>, String>	_statesDictReverse = new (256);
+		private readonly	Dictionary<String, AssetRef<State>>	_statesDict			= new (256);
+		private readonly	Dictionary<AssetRef<State>, String>	_statesDictReverse	= new (256);
 
-		public		void			OrderedInit		( GameContext ctx )										
+		public		void			OrderedInit		( GameContext ctx )											
 		{
 			Debug.Log( $"[Service_GameFlow] Init" );
 			name = "[GameFlow] (GlobalContext)";
 			ReadLibrary();
 			_graph = new(this);
 		}
-		public		FlowNode		Open<T>			( State src, Object? openParams = null ) where T: State	
+		public		FlowNode		Open<T>			( FlowNode src, Object? openParams = null ) where T: State	
 		{
 			var opener = GetOpener_ByStateType<T>(src);
 			return opener.Ctx.Open(openParams);
 		}
 								
-		public		Opener			GetOpener_ById				( State src, String croppedOrFullGuid )	
+		public		Opener			GetOpener_ById				( FlowNode src, String croppedOrFullGuid )	
 		{
 			return new() { Ctx = new( _statesDict.GetValueOrDefault(croppedOrFullGuid), src ) };
 		}
-		public		Opener			GetOpener_ByStateType<T>	( State src ) where T : State			
+		public		Opener			GetOpener_ByStateType<T>	( FlowNode src ) where T : State			
 		{
 			return new() { Ctx = new( FindOpener( typeof(T) ), src ) };
 		}
-		public		T				GetOpener_ByOpenerType<T>	( State src ) where T : struct, IOpener	
+		public		T				GetOpener_ByOpenerType<T>	( FlowNode src ) where T : struct, IOpener	
 		{
 			return new() { Ctx = new( FindOpener( typeof(T).DeclaringType ), src ) };
 		}
-		public		String			GetRefTypeName				( AssetRef<State> stateRef )			
+		public		String			GetRefTypeName				( AssetRef<State> stateRef )				
 		{
 			_statesDictReverse.TryGetValue(stateRef, out var name);
 			return name;
@@ -95,7 +95,7 @@ namespace Flexy.GameFlow
 			return default;
 		}
 	}
-	
+
 #if UNITY_EDITOR
 	[UnityEditor.CustomEditor(typeof(Service_GameFlow), editorForChildClasses:true)]
 	public class Service_GameFlowEditor : Editor_WithRuntimeGui

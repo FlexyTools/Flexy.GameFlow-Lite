@@ -2,7 +2,7 @@ namespace Flexy.GameFlow;
 
 public class FlowNode
 {
-	private TransitionRoot? _transitionRoot;
+	private TransitionHost? _transitionHost;
 	
 	public	FlowGraph		Graph			{get; internal init;} = null!;
 	public	State			State			{get; internal init;} = null!; // View of logical node
@@ -24,9 +24,8 @@ public class FlowNode
 	public	Boolean			IsOpened			=> Graph.Root == this || (PrevSibling == null ? Parent.FirstChild == this : PrevSibling.NextSibling == this);
 	public	Boolean			IsShowing			=> State && State.Node == this && State.gameObject.activeSelf;
 	public	Boolean			IsOpenedAndShowing	=> IsOpened && IsShowing;
-	public	TransitionRoot	TransitionRoot		=> _transitionRoot ?? Parent.TransitionRoot;
-	
-	public	FlowNode		GameStageNode	
+	public	TransitionHost	TransitionHost		=> _transitionHost ?? Parent.TransitionHost;
+	public	FlowNode		GameStageNode		
 	{
 		get
 		{
@@ -52,14 +51,14 @@ public class FlowNode
 	}
 	public	void			SpawnTransitionRoot	( )	
 	{
-		_transitionRoot = new TransitionRoot
+		_transitionHost = new TransitionHost
 		{
 			_node		= this,
 			_tipNode	= this,
 			_activeNode	= this
 		};
 		
-		_transitionRoot.SwitchStatesAsyncInfiniteLoop().Forget();
+		_transitionHost.SwitchStatesAsyncInfiniteLoop().Forget();
 	}
 	public async UniTask<T>	WaitResult<T>		( )	
 	{
@@ -75,6 +74,8 @@ public class FlowNode
 
 public static class FlowNodeExt
 {
+	private static readonly		HashSet<FlowNode>	_tempNodeSet = new();
+
 	public static	FlowNode	GetLastSibling			( this FlowNode node )	
 	{
 		for (;node.NextSibling != null; node = node.NextSibling);
@@ -86,6 +87,16 @@ public static class FlowNodeExt
 			return null;
 	
 		return GetLastSibling(node);
+	}
+	public static	Boolean		IsInForwardOf			( this FlowNode node, FlowNode other )	
+	{
+		for (var iter = node.Back; iter != null; iter = iter.Back)
+		{
+			if (iter == other)
+				return true;
+		}
+		
+		return false;
 	}
 	public static	FlowNode?	FindNodeBackwards<T>	( this FlowNode? node )	where T : State	
 	{
@@ -106,5 +117,34 @@ public static class FlowNodeExt
 	public static	T?			FindStateForward<T>		( this FlowNode? node )	where T : State	
 	{
 		return (T?)FindNodeForward<T>(node)?.State;
+	}
+	
+	public static	FlowNode	FindNearestCommonParent	( FlowNode? nodeA, FlowNode? nodeB )	
+	{
+		var set = _tempNodeSet;
+		set.Clear();
+
+		for ( ; nodeA != null; nodeA = nodeA.Parent)
+			set.Add( nodeA );
+
+		for ( ; nodeB != null; nodeB = nodeB.Parent)
+			if (set.Contains( nodeB ))
+				return nodeB;
+
+		throw new InvalidOperationException("Graph broken, can not find common parent, it must be at least one common parent -> Root of the graph ");
+	}
+	public static	FlowNode	FindNearestCommonBack	( FlowNode? nodeA, FlowNode? nodeB )	
+	{
+		var set = _tempNodeSet;
+		set.Clear();
+
+		for ( ; nodeA != null; nodeA = nodeA.Back)
+			set.Add( nodeA );
+
+		for ( ; nodeB != null; nodeB = nodeB.Back)
+			if (set.Contains( nodeB ))
+				return nodeB;
+
+		throw new InvalidOperationException("Graph broken, can not find common history parent, it must be at least one common parent -> Root of the graph ");
 	}
 }

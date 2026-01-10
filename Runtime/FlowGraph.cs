@@ -55,13 +55,13 @@ public class FlowGraph
 		
 		return newNode;
 	}
-	public		FlowNode		Open		( AssetRef<State> stateRef, State callSource, Object? openParams = null, FlowNode? parent = null )						
+	public		FlowNode		Open		( AssetRef<State> stateRef, FlowNode callSource, Object? openParams = null, FlowNode? parent = null )					
 	{
 		var state = default(State);
 		
-		if (callSource.GameStage._node is {IsOpened:true})
+		if (callSource.GameStageNode is {IsOpened:true})
 		{
-			var instances = callSource.GameStage._statesCache;
+			var instances = ((GameStage)callSource.GameStageNode.State)._statesCache;
 			instances.TryGetValue(stateRef, out state);
 		}
 		
@@ -80,7 +80,7 @@ public class FlowGraph
 		if (stateInstanceOrPrefab is GameStage)
 			return Open(new AssetRef<GameStage>(stateRef.Uid, stateRef.SubId), openParams);
 	
-		parent ??= callSource.GameStage._node is {IsOpened:true} stage ? stage : _root.FirstChild!.GetLastSibling();
+		parent ??= callSource.GameStageNode is {IsOpened:true} stage ? stage : _root.FirstChild!.GetLastSibling();
 		
 		// If we have main substate
 		if (!parent.MainSubStateRef.IsNone)
@@ -109,7 +109,7 @@ public class FlowGraph
 	}
 	public		FlowNode		TryGoBack	( )																														
 	{
-		return _root.TransitionRoot.TryGoBack();
+		return _root.TransitionHost.TryGoBack();
 	}
 
 	internal	void			RemoveNode		( FlowNode node )												
@@ -123,7 +123,7 @@ public class FlowGraph
 			return;
 		
 		var iter	= source;
-		var trn		= source.TransitionRoot;
+		var trn		= source.TransitionHost;
 
 		while (iter != null && iter != target)
 		{
@@ -150,7 +150,7 @@ public class FlowGraph
 		}
 
 		if (openParams != null && iter == target)
-			iter.OpenParams = openParams;
+			iter!.OpenParams = openParams;
 
 		trn.ScheduleSwitchStates();
 	}
@@ -182,7 +182,7 @@ public class FlowGraph
 		if (parent.FirstChild == null)
 			parent.FirstChild = node;
 		
-		var tr = parent.TransitionRoot;
+		var tr = parent.TransitionHost;
 		tr._tipNode.Forward = node;
 		node.Back = tr._tipNode;
 		

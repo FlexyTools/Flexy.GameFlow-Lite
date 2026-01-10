@@ -72,13 +72,13 @@ namespace Flexy.GameFlow
 			var stageNode	= gameFlow.Graph.Open( _startGameStage );
 
 			foreach (var state in _additionalStates)
-				gameFlow.Graph.Open( state, stageNode.GetLastSibling().State );
+				gameFlow.Graph.Open( state, stageNode.GetLastSibling() );
 
 			if (!_targetState.IsNone)
-	            gameFlow.Graph.Open( _targetState, stageNode.GetLastSibling().State, openParams );
+	            gameFlow.Graph.Open( _targetState, stageNode.GetLastSibling(), openParams );
 
 			// Show first state synchronously
-			gameFlow.Graph.Root.TransitionRoot.TransitionNow();
+			gameFlow.Graph.Root.TransitionHost.TransitionNow();
 		}
 
 #if UNITY_EDITOR

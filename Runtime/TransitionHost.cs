@@ -1,6 +1,6 @@
 namespace Flexy.GameFlow;
 
-public class TransitionRoot
+public class TransitionHost
 {
 	internal	FlowNode		_node		= null!;
 	internal	FlowNode		_tipNode	= null!;
@@ -47,9 +47,14 @@ public class TransitionRoot
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
 	}
-	internal 		void		DoStateTransitions				( )		
+	internal		void		DoStateTransitions				( )		
 	{
-		InstantTransition( _activeNode, _tipNode );
+		if (_activeNode == _tipNode)
+			return;
+	
+		InstantTransition(_activeNode, _tipNode);
+		
+		_activeNode = _tipNode;
 	}
 	
 	internal static	void		InstantTransition		( FlowNode prevNode, FlowNode nextNode )		
@@ -58,8 +63,7 @@ public class TransitionRoot
 			return;
 	
 		var forwards		= ComputeForwards(prevNode, nextNode);
-		var commonParent	= FindNearestCommonParent(prevNode, nextNode);
-		var tr				= commonParent.TransitionRoot; 
+		var commonParent	= FlowNodeExt.FindNearestCommonParent(prevNode, nextNode);
 
 		var closingBranchNode = prevNode;
 		while (closingBranchNode != commonParent)
@@ -77,13 +81,8 @@ public class TransitionRoot
 		
 		var openingBranchNode = commonParent.FirstChild.GetLastSiblingOrNull();
 		
-		if (openingBranchNode == null)
-			tr._activeNode = commonParent;
-		
 		while (openingBranchNode != null)
 		{
-			tr._activeNode = openingBranchNode;
-		
 			if (forwards.NextIsFwd && !openingBranchNode.Parent.ChildrenShowed)
 				openingBranchNode.Parent.State.DoFirstChildShow(openingBranchNode.Parent);
 		
@@ -93,41 +92,14 @@ public class TransitionRoot
 			openingBranchNode = openingBranchNode.FirstChild.GetLastSiblingOrNull();
 		}
 	}
-	
 	internal static	Forwards	ComputeForwards			( FlowNode? prev, FlowNode? next )				
 	{
-		if (prev == null) // We open new separated state
-			return new(true, true);
-			
-		if (next == null) // We close last separated state
-			return new(false, false);
+		if (prev == null)				return new(true,  true);	// We open new separated state
+		if (next == null)				return new(false, false);	// We close last separated state
+		if (next.IsInForwardOf(prev))	return new(true,  true);
+		if (prev.IsInForwardOf(next))	return new(false, false);
 	
-		for (var iter = next.Back; iter != null; iter = iter.Back)
-		{
-			if (iter == prev)
-				return new(true, true);
-		}
-		
-		for (var iter = prev.Back; iter != null; iter = iter.Back)
-		{
-			if (iter == next)
-				return new(false, false);
-		}
-		
 		return new(false, true);
-	}
-	internal static	FlowNode	FindNearestCommonParent	( FlowNode? nodeA, FlowNode? nodeB )			
-	{
-		var aSet = new HashSet<FlowNode>();
-
-		for ( ; nodeA != null; nodeA = nodeA.Parent)
-			aSet.Add( nodeA );
-
-		for ( ; nodeB != null; nodeB = nodeB.Parent)
-			if (aSet.Contains( nodeB ))
-				return nodeB;
-
-		throw new InvalidOperationException("Graph broken, can not find common parent, it must be at least one common parent -> Root of the graph ");
 	}
 	internal static	void		NodeStateHide			( FlowNode node, Boolean isMoveForward )		
 	{
@@ -144,7 +116,7 @@ public class TransitionRoot
 	{
 		var state	= node.State;
 		state._node	= node;
-			
+		
 		if (!node.FullyInited && !isMoveForward)
 			try						{ state.DoShow(); }
 			catch (Exception ex)	{ Debug.LogException(ex); }

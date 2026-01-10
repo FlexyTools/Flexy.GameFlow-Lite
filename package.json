@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "fun.flexy.assetrefs": "6.0.0",
-    "fun.flexy.core": "6.0.4"
+    "fun.flexy.core": "6.0.4",
+	"com.unity.collections" : "2.6.4"
   }
 }

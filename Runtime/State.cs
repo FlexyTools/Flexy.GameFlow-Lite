@@ -33,7 +33,7 @@ namespace Flexy.GameFlow
 		
 			if (_node.FirstChild == null)
 				// main substate never was opened yet so just open it
-				return Graph.Open( MainSubStateRef, this, openParams, parent:_node );
+				return Graph.Open( MainSubStateRef, Node, openParams, parent:_node );
 			
 			// main substate is somewhere in history so just return to it
 			Graph.RemoveNodesUpTo( _node.FirstChild.GetLastSibling(), _node.FirstChild, openParams );

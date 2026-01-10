@@ -117,9 +117,9 @@ namespace Flexy.GameFlow
 				if (!newStates.SequenceEqual(_states))
 				{
 					_states = newStates;
-				UnityEditor.EditorUtility.SetDirty(this);
+					UnityEditor.EditorUtility.SetDirty(this);
+				}
 			}
-		}
 		}
 #endif
 
@@ -143,9 +143,9 @@ namespace Flexy.GameFlow
 	public interface		IOpener : IOpenerB {}
 	public interface		IOpenerB { OpenCtx Ctx {get; protected internal set;} }
 
-	public readonly record struct OpenCtx( AssetRef<State> StateRef, State CallSrc )
+	public readonly record struct OpenCtx( AssetRef<State> StateRef, FlowNode CallSrc )
 	{
-		public FlowNode		Open	( Object? openParams = null )	=> CallSrc.Node.Graph.Open(StateRef, CallSrc, openParams);
+		public FlowNode		Open	( Object? openParams = null )	=> CallSrc.Graph.Open(StateRef, CallSrc, openParams);
 	}
 	
 #if UNITY_EDITOR
