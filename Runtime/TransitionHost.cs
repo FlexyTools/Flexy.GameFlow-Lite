@@ -91,5 +91,42 @@ public class TransitionHost
 		catch (Exception ex) { Debug.LogException(ex); }
 	}
 
+	private			void		InstantTransition		( FlowNode prevNode, FlowNode nextNode )	
+	{
+		if (prevNode == nextNode)
+			return;
 	
+		var commonParent	= FlowNodeExt.FindNearestCommonParent(prevNode, nextNode);
+
+		var closingBranchNode = prevNode;
+		while (closingBranchNode != commonParent)
+		{
+			var isForwardHide	= closingBranchNode.IsOpened;
+		
+			try{ closingBranchNode.State.gameObject.SetActive(false);	} catch (Exception ex) { Debug.LogException(ex); }
+			try{ NodeStateHide(closingBranchNode, isForwardHide);		} catch (Exception ex) { Debug.LogException(ex); }
+
+			var parent = closingBranchNode.Parent; 
+			
+			if (!isForwardHide && parent.FirstChild == null && parent.ChildrenShowed)
+				parent.State.DoLastChildHide(parent);
+				
+			closingBranchNode = parent;
+		}
+		
+		var openingBranchNode = commonParent.FirstChild.GetLastSiblingOrNull();
+		
+		while (openingBranchNode != null)
+		{
+			var isBackShow = _activeNode.IsInForwardOf(openingBranchNode);
+		
+			if (!isBackShow && !openingBranchNode.Parent.ChildrenShowed)
+				openingBranchNode.Parent.State.DoFirstChildShow(openingBranchNode.Parent);
+		
+			try{ NodeStateShow( openingBranchNode, isBackShow );		} catch (Exception ex) { Debug.LogException(ex); }
+			try{ openingBranchNode.State.gameObject.SetActive( true );	} catch (Exception ex) { Debug.LogException(ex); }
+			
+			openingBranchNode = openingBranchNode.FirstChild.GetLastSiblingOrNull();
+		}
+	}
 }
