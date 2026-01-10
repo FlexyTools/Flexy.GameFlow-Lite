@@ -42,7 +42,7 @@ public class FlowNode
 
 	public override	String	ToString			( )	
 	{
-		return $"{(IsShowing ? "■ " : "□ ")} {State.name} {(OpenParams != null ? "op:" + OpenParams : "")}";
+		return $"{(IsShowing ? "■ " : "□ ")} {State.name} {(OpenParams != null ? "params:" + OpenParams : "")}";
 	}
 	public	FlowNode		Close				( )	
 	{

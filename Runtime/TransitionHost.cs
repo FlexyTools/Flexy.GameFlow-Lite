@@ -57,7 +57,7 @@ public class TransitionHost
 		_activeNode = _tipNode;
 	}
 	
-	internal 		void		NodeStateHide			( FlowNode node, Boolean isForwardHide )	
+	internal static	void		NodeStateHide			( FlowNode node, Boolean isForwardHide )	
 	{
 		var state			= node.State;
 
@@ -70,7 +70,7 @@ public class TransitionHost
 		}
 		catch ( Exception ex ) { Debug.LogException( ex ); }
 	}
-	internal 		void		NodeStateShow			( FlowNode node, Boolean isBackShow )		
+	internal static	void		NodeStateShow			( FlowNode node, Boolean isBackShow )		
 	{
 		var state	= node.State;
 		state._node	= node;
