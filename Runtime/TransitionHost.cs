@@ -57,79 +57,39 @@ public class TransitionHost
 		_activeNode = _tipNode;
 	}
 	
-	internal static	void		InstantTransition		( FlowNode prevNode, FlowNode nextNode )		
+	internal 		void		NodeStateHide			( FlowNode node, Boolean isForwardHide )	
 	{
-		if (prevNode == nextNode)
-			return;
-	
-		var forwards		= ComputeForwards(prevNode, nextNode);
-		var commonParent	= FlowNodeExt.FindNearestCommonParent(prevNode, nextNode);
+		var state			= node.State;
 
-		var closingBranchNode = prevNode;
-		while (closingBranchNode != commonParent)
-		{
-			try{ closingBranchNode.State.gameObject.SetActive(false);	} catch (Exception ex) { Debug.LogException(ex); }
-			try{ NodeStateHide(closingBranchNode, forwards.PrevIsFwd);	} catch (Exception ex) { Debug.LogException(ex); }
-
-			var parent = closingBranchNode.Parent; 
-			
-			if (!forwards.PrevIsFwd && parent.FirstChild == null && parent.ChildrenShowed)
-				parent.State.DoLastChildHide(parent);
-				
-			closingBranchNode = parent;
-		}
-		
-		var openingBranchNode = commonParent.FirstChild.GetLastSiblingOrNull();
-		
-		while (openingBranchNode != null)
-		{
-			if (forwards.NextIsFwd && !openingBranchNode.Parent.ChildrenShowed)
-				openingBranchNode.Parent.State.DoFirstChildShow(openingBranchNode.Parent);
-		
-			try{ NodeStateShow( openingBranchNode, forwards.NextIsFwd );} catch (Exception ex) { Debug.LogException(ex); }
-			try{ openingBranchNode.State.gameObject.SetActive( true );	} catch (Exception ex) { Debug.LogException(ex); }
-			
-			openingBranchNode = openingBranchNode.FirstChild.GetLastSiblingOrNull();
-		}
-	}
-	internal static	Forwards	ComputeForwards			( FlowNode? prev, FlowNode? next )				
-	{
-		if (prev == null)				return new(true,  true);	// We open new separated state
-		if (next == null)				return new(false, false);	// We close last separated state
-		if (next.IsInForwardOf(prev))	return new(true,  true);
-		if (prev.IsInForwardOf(next))	return new(false, false);
-	
-		return new(false, true);
-	}
-	internal static	void		NodeStateHide			( FlowNode node, Boolean isMoveForward )		
-	{
-		var state = node.State;
+		//Debug.Log( $"[TransitionHost] {node} - {(isForwardHide? "Forward Hide": "Hide")}" );
 		
 		try
 		{
-			if( isMoveForward )	state.DoForwardHide( );
+			if( isForwardHide )	state.DoForwardHide( );
 			else				state.DoHide( );
 		}
 		catch ( Exception ex ) { Debug.LogException( ex ); }
 	}
-	internal static	void		NodeStateShow			( FlowNode node, Boolean isMoveForward )		
+	internal 		void		NodeStateShow			( FlowNode node, Boolean isBackShow )		
 	{
 		var state	= node.State;
 		state._node	= node;
 		
-		if (!node.FullyInited && !isMoveForward)
+		//Debug.Log( $"[TransitionHost] {node} - {(isBackShow? "Back Show": "Show")}" );
+		
+		if (!node.IsShowed && isBackShow)
 			try						{ state.DoShow(); }
 			catch (Exception ex)	{ Debug.LogException(ex); }
 		
-		node.FullyInited = true;
+		node.IsShowed = true;
 		
 		try
 		{
-			if (isMoveForward)	state.DoShow();
-			else				state.DoBackShow();
+			if (isBackShow)	state.DoBackShow();
+			else			state.DoShow	();
 		}
 		catch (Exception ex) { Debug.LogException(ex); }
 	}
+
 	
-	internal record struct Forwards(Boolean PrevIsFwd, Boolean NextIsFwd);
 }

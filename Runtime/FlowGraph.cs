@@ -11,7 +11,7 @@ public class FlowGraph
 		{
 			Graph		= this,
 			State		= rootState, 
-			FullyInited	= true,
+			IsShowed	= true,
 		};
 		
 		_root.SpawnTransitionRoot();
