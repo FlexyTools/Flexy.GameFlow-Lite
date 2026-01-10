@@ -226,7 +226,7 @@ public class FlowGraph
 			GUILayout.BeginHorizontal();
 			GUILayout.Space( node.State is GameStage ? 10 : 26 );
 			GUILayout.Label( $"{(node.IsShowing ? "■" : "□")}", GUILayout.Width(20) );
-			if (GUILayout.Button($"{node.State.name} {(node.OpenParams != null ? "op:" + node.OpenParams : "")}", GUI.skin.label))
+			if (GUILayout.Button($"{node.State.name} {(node.OpenParams != null ? $"({node.OpenParams})" : "")}", GUI.skin.label))
 				UnityEditor.EditorGUIUtility.PingObject(node.State);
 			
 			GUILayout.FlexibleSpace();
