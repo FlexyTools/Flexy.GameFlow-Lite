@@ -47,6 +47,7 @@ namespace Flexy.GameFlow
 				gctx.SetService(launchService);
 			}
 			
+			// Initialize Global GameContext and GameFlow Prefab
 			gameFlow.gameObject.SetActive(true);
 
 			var openParams	= default(Object);
