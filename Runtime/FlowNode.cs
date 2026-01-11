@@ -44,6 +44,21 @@ public class FlowNode
 	{
 		return $"{(IsShowing ? "■ " : "□ ")} {State.name} {(OpenParams != null ? $"({OpenParams})" : "")}";
 	}
+	public	FlowNode?		OpenMainSubState	( Object? openParams = null )	
+	{
+		if (MainSubStateRef.IsNone)
+			return default;
+		
+		Debug.Log( $"[{State.name}] => Open Main State: {Graph.Service.GetRefTypeName(MainSubStateRef)}" );
+		
+		if (FirstChild == null)
+			// main substate never was opened yet so just open it
+			return Graph.Open( MainSubStateRef, this, openParams, this );
+			
+		// main substate is somewhere in history so just return to it
+		Graph.RemoveNodesUpTo( FirstChild.GetLastSibling(), FirstChild, openParams );
+		return FirstChild;
+	}
 	public	FlowNode		Close				( )	
 	{
 		Graph.RemoveNode(this);
