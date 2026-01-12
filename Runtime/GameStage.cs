@@ -11,7 +11,7 @@
 		internal readonly	Dictionary<AssetRef<State>, State>	_statesCache	= new(32);
 		
 		public		GameContext			Context				{get; private set;} = null!;
-		public		Service_GameFlow	Flow				=> _node.Graph.Service;
+		public		Service_GameFlow	Flow				=> _node.Graph.Flow;
 		
 		public		void				MoveToLoadedScene	( Scene loadedScene )	
 		{
@@ -20,7 +20,7 @@
 		}
 		public		void				MoveToServiceScene	( )						
 		{
-			SceneManager.MoveGameObjectToScene( gameObject, Graph.Service.gameObject.scene );
+			SceneManager.MoveGameObjectToScene( gameObject, Graph.Flow.gameObject.scene );
 		}
 		
 		internal	void				PreInit				( GameContext? parentContext )	

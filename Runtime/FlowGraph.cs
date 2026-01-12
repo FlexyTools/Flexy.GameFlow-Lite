@@ -2,10 +2,10 @@ namespace Flexy.GameFlow;
 
 public class FlowGraph
 {
-	public FlowGraph	( Service_GameFlow service )
+	public FlowGraph	( Service_GameFlow gameFlow )
 	{
-		_service		= service;
-		var rootState	= service;
+		_flow			= gameFlow;
+		var rootState	= gameFlow;
 		
 		_root = new FlowNode
 		{
@@ -20,10 +20,10 @@ public class FlowGraph
 		rootState.DoShow();
 	}
 
-	private		Service_GameFlow _service;
+	private		Service_GameFlow _flow;
 	private		FlowNode		 _root;
 	
-	public		Service_GameFlow Service	=> _service;
+	public		Service_GameFlow Flow		=> _flow;
 	public		FlowNode		 Root		=> _root;
 
 	public		FlowNode		Open		( AssetRef<GameStage> stageRef, Object? openParams = null, GameContext? parentContext = null, Scene spawnIn = default )	
@@ -38,10 +38,10 @@ public class FlowGraph
 		var activeSelf = stagePrefab.gameObject.activeSelf;
 		stagePrefab.gameObject.SetActive(false);
 		
-		var stage = (GameStage)UObject.Instantiate( stagePrefab, spawnIn.IsValid() ? spawnIn : Service.gameObject.scene );
+		var stage = (GameStage)UObject.Instantiate( stagePrefab, spawnIn.IsValid() ? spawnIn : Flow.gameObject.scene );
 		stage._prefabRef = stagePrefab._prefabRef;
 		stage._graph = this;
-		stage._owner = _service;
+		stage._owner = _flow;
 		
 		stage.transform.SetSiblingIndex(0);
 		stage.NicifyName();
