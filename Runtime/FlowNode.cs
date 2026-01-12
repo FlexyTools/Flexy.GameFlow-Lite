@@ -19,9 +19,9 @@ public class FlowNode
 	public	FlowNode?		NextSibling		{get; internal set;}
 	
 	public	FlowNode		Parent			{get; internal set;} = null!;
-	public	FlowNode?		FirstChild		{get; internal set;}
+	public	FlowNode?		FirstBaseChild	{get; internal set;}
 	
-	public	Boolean			IsOpened			=> Graph.Root == this || (PrevSibling == null ? Parent.FirstChild == this : PrevSibling.NextSibling == this);
+	public	Boolean			IsOpened			=> Graph.Root == this || (PrevSibling == null ? Parent.FirstBaseChild == this : PrevSibling.NextSibling == this);
 	public	Boolean			IsShowing			=> State && State.Node == this && State.gameObject.activeSelf;
 	public	Boolean			IsOpenedAndShowing	=> IsOpened && IsShowing;
 	public	TransitionHost	TransitionHost		=> _transitionHost ?? Parent.TransitionHost;
@@ -51,13 +51,13 @@ public class FlowNode
 		
 		Debug.Log( $"[{State.name}] => Open Main State: {Graph.Flow.GetRefTypeName(MainSubStateRef)}" );
 		
-		if (FirstChild == null)
+		if (FirstBaseChild == null)
 			// main substate never was opened yet so just open it
 			return Graph.Open( MainSubStateRef, this, openParams, this );
 			
 		// main substate is somewhere in history so just return to it
-		Graph.RemoveNodesUpTo( FirstChild.GetLastSibling(), FirstChild, openParams );
-		return FirstChild;
+		Graph.RemoveNodesUpTo( FirstBaseChild.GetLastSibling(), FirstBaseChild, openParams );
+		return FirstBaseChild;
 	}
 	public	FlowNode		Close				( )	
 	{

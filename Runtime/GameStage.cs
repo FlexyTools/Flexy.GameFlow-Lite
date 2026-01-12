@@ -40,7 +40,7 @@
 		
 		protected override void			OnShow				( )						
 		{
-			if (Node.FirstChild == null) 
+			if (Node.FirstBaseChild == null) 
 				OpenMainSubState();
 		}
 

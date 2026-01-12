@@ -108,13 +108,13 @@ public class TransitionHost
 
 			var parent = closingBranchNode.Parent; 
 			
-			if (!isForwardHide && parent.FirstChild == null && parent.ChildrenShowed)
+			if (!isForwardHide && parent.FirstBaseChild == null && parent.ChildrenShowed)
 				parent.State.DoLastChildHide(parent);
 				
 			closingBranchNode = parent;
 		}
 		
-		var openingBranchNode = commonParent.FirstChild.GetLastSiblingOrNull();
+		var openingBranchNode = commonParent.FirstBaseChild.GetLastSiblingOrNull();
 		
 		while (openingBranchNode != null)
 		{
@@ -126,7 +126,7 @@ public class TransitionHost
 			try{ NodeStateShow( openingBranchNode, isBackShow );		} catch (Exception ex) { Debug.LogException(ex); }
 			try{ openingBranchNode.State.gameObject.SetActive( true );	} catch (Exception ex) { Debug.LogException(ex); }
 			
-			openingBranchNode = openingBranchNode.FirstChild.GetLastSiblingOrNull();
+			openingBranchNode = openingBranchNode.FirstBaseChild.GetLastSiblingOrNull();
 		}
 	}
 }

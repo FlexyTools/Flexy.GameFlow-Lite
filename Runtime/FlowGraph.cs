@@ -80,23 +80,23 @@ public class FlowGraph
 		if (stateInstanceOrPrefab is GameStage)
 			return Open(new AssetRef<GameStage>(stateRef.Uid, stateRef.SubId), openParams);
 	
-		parent ??= callSource.GameStageNode is {IsOpened:true} stage ? stage : _root.FirstChild!.GetLastSibling();
+		parent ??= callSource.GameStageNode is {IsOpened:true} stage ? stage : _root.FirstBaseChild!.GetLastSibling();
 		
 		// If we have main substate
 		if (!parent.MainSubStateRef.IsNone)
 		{
 			var isOpeningMainState = stateRef == parent.MainSubStateRef; 
 			
-			if (!isOpeningMainState && parent.FirstChild == null)
+			if (!isOpeningMainState && parent.FirstBaseChild == null)
 			{
 				// In case main state not spawned and we try to open not main state => Open main substate first
 				Open(parent.MainSubStateRef, callSource, null, parent);
 			}
-			else if (isOpeningMainState && parent.FirstChild != null)
+			else if (isOpeningMainState && parent.FirstBaseChild != null)
 			{
 				// In case main state exists just Close all states up to main 
-				RemoveNodesUpTo( parent.FirstChild.GetLastSibling(), parent.FirstChild, openParams );
-				return parent.FirstChild;
+				RemoveNodesUpTo( parent.FirstBaseChild.GetLastSibling(), parent.FirstBaseChild, openParams );
+				return parent.FirstBaseChild;
 			}
 		}		
 		
@@ -133,14 +133,14 @@ public class FlowGraph
 			var toRemove	= iter;
 			iter			= toRemove.Back;
 			
-			while (toRemove.FirstChild != null)
-				RemoveNodesUpTo( toRemove.FirstChild.GetLastSibling(), toRemove );
+			while (toRemove.FirstBaseChild != null)
+				RemoveNodesUpTo( toRemove.FirstBaseChild.GetLastSibling(), toRemove );
 			
 			if (toRemove.Back != null)		toRemove.Back.Forward = toRemove.Forward;
 			if (toRemove.Forward != null)	toRemove.Forward.Back = toRemove.Back!;
 			
-			if (toRemove.Parent.FirstChild == toRemove)
-				toRemove.Parent.FirstChild = toRemove.NextSibling;
+			if (toRemove.Parent.FirstBaseChild == toRemove)
+				toRemove.Parent.FirstBaseChild = toRemove.NextSibling;
 			
 			if (toRemove.PrevSibling != null) toRemove.PrevSibling.NextSibling = toRemove.NextSibling;
 			if (toRemove.NextSibling != null) toRemove.NextSibling.PrevSibling = toRemove.PrevSibling;
@@ -174,13 +174,13 @@ public class FlowGraph
 			Parent			= parent,	
 		};
 
-		node.PrevSibling 	= parent.FirstChild.GetLastSiblingOrNull();
+		node.PrevSibling 	= parent.FirstBaseChild.GetLastSiblingOrNull();
 
 		if (node.PrevSibling != null)
 			node.PrevSibling.NextSibling = node;
 		
-		if (parent.FirstChild == null)
-			parent.FirstChild = node;
+		if (parent.FirstBaseChild == null)
+			parent.FirstBaseChild = node;
 		
 		var tr = parent.TransitionHost;
 		tr._tipNode.Forward = node;

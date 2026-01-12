@@ -20,7 +20,7 @@ namespace Flexy.GameFlow
 		
 		public		Boolean				IsOpened		=> _node.IsOpened;
 		public		Boolean				IsShowed		=> _node.IsShowing;
-		public		Boolean				AnySubStateOpened=> _node.FirstChild != null;
+		public		Boolean				AnySubStateOpened=> _node.FirstBaseChild != null;
 		
 		public		GameStage			GameStage		=> this as GameStage ?? (GameStage)_node.GameStageNode.State;
 		
@@ -52,21 +52,21 @@ namespace Flexy.GameFlow
 		}
 		public			FlowNode?	CloseSubStates		( Boolean closeMainState = false, Boolean closeCurrent = true, Object? overrideOpenParams = null )	
 		{
-			if (_node.FirstChild == null)
+			if (_node.FirstBaseChild == null)
 				return null;
 		
 			var target = _node;
 		
 			if (!closeMainState && !_node.MainSubStateRef.IsNone)
 			{
-				target = _node.FirstChild;
+				target = _node.FirstBaseChild;
 			}
 			else
 			{
 				_node.MainSubStateRef = default;
 			}
 		
-			var currentNode = _node.FirstChild.GetLastSibling();
+			var currentNode = _node.FirstBaseChild.GetLastSibling();
 		
 			if (!closeCurrent)
 				currentNode = currentNode.Back;
