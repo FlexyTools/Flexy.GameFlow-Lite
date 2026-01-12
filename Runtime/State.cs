@@ -176,8 +176,8 @@ namespace Flexy.GameFlow
 		}
 		
 		protected virtual	UniTask	OnShow				( )	=> default;
-		protected virtual	UniTask	OnForwardHide		( )	=> OnHide();
-		protected virtual	UniTask	OnBackShow			( )	=> OnShow();
+		protected virtual	UniTask	OnForwardHide		( )	=> default;
+		protected virtual	UniTask	OnBackShow			( )	=> default;
 		protected virtual	UniTask	OnHide				( )	=> default;
 		
 		protected virtual	void	OnFirstChildShow	( )	{ }
