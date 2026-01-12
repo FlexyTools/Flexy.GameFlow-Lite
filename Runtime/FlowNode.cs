@@ -134,10 +134,13 @@ public static class FlowNodeExt
 		return (T?)FindNodeForward<T>(node)?.State;
 	}
 	
-	public static	FlowNode	FindNearestCommonParent	( FlowNode? nodeA, FlowNode? nodeB )	
+	public static	FlowNode	FindNearestCommonParent	( FlowNode nodeA, FlowNode nodeB )	
 	{
 		var set = _tempNodeSet;
 		set.Clear();
+
+		if (nodeA == nodeB)
+			return nodeA.Parent;
 
 		for ( ; nodeA != null; nodeA = nodeA.Parent)
 			set.Add( nodeA );
@@ -148,15 +151,15 @@ public static class FlowNodeExt
 
 		throw new InvalidOperationException("Graph broken, can not find common parent, it must be at least one common parent -> Root of the graph ");
 	}
-	public static	FlowNode	FindNearestCommonBack	( FlowNode? nodeA, FlowNode? nodeB )	
+	public static	FlowNode	FindNearestCommonBack	( FlowNode nodeA, FlowNode nodeB )	
 	{
 		var set = _tempNodeSet;
 		set.Clear();
 
-		for ( ; nodeA != null; nodeA = nodeA.Back)
+		for ( ; nodeA != null; nodeA = nodeA.Back!)
 			set.Add( nodeA );
 
-		for ( ; nodeB != null; nodeB = nodeB.Back)
+		for ( ; nodeB != null; nodeB = nodeB.Back!)
 			if (set.Contains( nodeB ))
 				return nodeB;
 
