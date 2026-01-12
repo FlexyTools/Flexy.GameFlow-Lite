@@ -13,8 +13,8 @@ namespace Flexy.GameFlow
 		[SerializeField]	UnityEngine.InputSystem.InputActionReference?	_backInputActionRef;
 		#endif
 
-		private readonly	Dictionary<String, AssetRef<State>>	_statesDict			= new (256);
-		private readonly	Dictionary<AssetRef<State>, String>	_statesDictReverse	= new (256);
+		private readonly	Dictionary<String, AssetRef<State>>	_refsDict	= new (512);
+		private readonly	Dictionary<AssetRef<State>, Type>	_typesDict	= new (128);
 
 		public		void			OrderedInit		( GameContext ctx )											
 		{
@@ -31,7 +31,7 @@ namespace Flexy.GameFlow
 								
 		public		Opener			GetOpener_ById				( FlowNode src, String croppedOrFullGuid )	
 		{
-			return new() { Ctx = new( _statesDict.GetValueOrDefault(croppedOrFullGuid), src ) };
+			return new() { Ctx = new( _refsDict.GetValueOrDefault(croppedOrFullGuid), src ) };
 		}
 		public		Opener			GetOpener_ByStateType<T>	( FlowNode src ) where T : State			
 		{
@@ -41,10 +41,10 @@ namespace Flexy.GameFlow
 		{
 			return new() { Ctx = new( FindOpener( typeof(T).DeclaringType ), src ) };
 		}
-		public		String			GetRefTypeName				( AssetRef<State> stateRef )				
+		public		Type			GetRefType					( AssetRef<State> stateRef )				
 		{
-			_statesDictReverse.TryGetValue(stateRef, out var name);
-			return name;
+			_typesDict.TryGetValue(stateRef, out var type);
+			return type;
 		}
 
 		protected virtual	void	Update			( )					
@@ -61,35 +61,33 @@ namespace Flexy.GameFlow
 
 			var allRegisteredStates = new List<FlowLibrary.StateRef>( _rootFlowLibrary.CollectStates().Distinct().OrderBy(i => i.TypeFullName) );
 
-			foreach (var statePair in allRegisteredStates)
+			foreach (var pair in allRegisteredStates)
 			{
-				if (statePair.Ref.IsNone || String.IsNullOrWhiteSpace( statePair.TypeFullName ))
+				var type = Type.GetType(pair.TypeFullName);
+				if (pair.Ref.IsNone || String.IsNullOrWhiteSpace( pair.TypeFullName ) || type is null )
 				{
-					Debug.LogError( $"[GameFlowService] ReadLibrary: invalid entry: ref:{statePair.Ref} name:{statePair.TypeFullName}" );
+					Debug.LogError( $"[GameFlowService] ReadLibrary: invalid entry: ref:{pair.Ref} name:{pair.TypeFullName}" );
 					continue;
 				}
 				
-				var fullName = statePair.TypeFullName;
-				var shortName = fullName[(fullName.LastIndexOf('.')+1)..];
-				var refStr = statePair.Ref.ToString()[..32];
+				_typesDict.Add(pair.Ref, type);	
+				
+				var refStr = pair.Ref.ToString()[..32];
 				var refStr2 = refStr[..7];
 
-				Debug.Log( $"[GameFlowService] ReadLibrary   {refStr.Replace("[", "  [").Insert(7, "  ")} => {fullName.Insert(fullName.LastIndexOf('.')+1, "  ")}" );
+				Debug.Log( $"[GameFlowService] ReadLibrary   {refStr.Replace("[", "  [").Insert(7, "  ")} => {type.FullName.Insert(type.FullName.LastIndexOf('.')+1, "  ")}" );
 				
-				_statesDict.TryAdd( fullName, statePair.Ref );
-				_statesDict.TryAdd( shortName, statePair.Ref );
-				_statesDict.TryAdd( refStr, statePair.Ref );
-				_statesDict.TryAdd( refStr2, statePair.Ref );
+				_refsDict.TryAdd( type.FullName, pair.Ref );
+				_refsDict.TryAdd( type.Name, pair.Ref );
+				_refsDict.TryAdd( refStr, pair.Ref );
+				_refsDict.TryAdd( refStr2, pair.Ref );
 			}
-
-			foreach (var pair in allRegisteredStates)
-				_statesDictReverse.Add(pair.Ref, pair.TypeFullName);	
 
 			Debug.Log( $"[GameFlowService] ReadLibrary: done" );
 		}
 		private		AssetRef<State>	FindOpener		( Type typeToFind )	
 		{
-			if (_statesDict.TryGetValue(typeToFind.FullName, out var refState) || _statesDict.TryGetValue(typeToFind.Name, out refState))
+			if (_refsDict.TryGetValue(typeToFind.FullName, out var refState) || _refsDict.TryGetValue(typeToFind.Name, out refState))
 				return refState;
 				
 			return default;

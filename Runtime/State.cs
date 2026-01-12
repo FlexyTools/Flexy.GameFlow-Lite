@@ -8,7 +8,7 @@ namespace Flexy.GameFlow
 		[SerializeField] FlexyEvent		_hiding;
 		
 		internal	FlowGraph			_graph = null!;
-		internal	FlowNode			_node  = null!; // Can be null only when unused but loaded, so no one can access it in this state
+		internal	FlowNode			_node  = null!;
 		internal	AssetRef<State>		_prefabRef;
 		internal	State?				_owner;
 		
@@ -115,34 +115,45 @@ namespace Flexy.GameFlow
 			catch (Exception ex) { Debug.LogException(ex); }
 		}	
 		
-		internal			void	DoShow				( )	
+		internal async		UniTask	DoShow				( )	
 		{ 
-			try						{ OnShow(); }
+			try						{ await OnShow(); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 			
-			if (ReadyForBind)
-				try						{ RebindAllHierarchy(); }
-				catch ( Exception ex )	{ Debug.LogException( ex ); }
+			if (!gameObject.activeSelf)
+				gameObject.SetActive(true);
+			
+			_showing.Raise(this);
+		}
+		internal async		UniTask	DoForwardHide		( )	
+		{
+			_hiding.Raise(this);
+			
+			try						{ await OnForwardHide(); }
+			catch ( Exception ex )	{ Debug.LogException(ex); }
+			
+			if (gameObject.activeSelf)
+				gameObject.SetActive(false);
+		}
+		internal async		UniTask	DoBackShow			( )	
+		{
+			try						{ await OnBackShow(); }
+			catch ( Exception ex )	{ Debug.LogException(ex); }
+			
+			if (!gameObject.activeSelf)
+				gameObject.SetActive(true);
 				
 			_showing.Raise(this);
 		}
-		internal			void	DoForwardHide		( )	
+		internal async		UniTask	DoHide				( )	
 		{
-			try						{ OnForwardHide(); }
-			catch ( Exception ex )	{ Debug.LogException(ex); }
-		}
-		internal			void	DoBackShow			( )	
-		{
-			try						{ OnBackShow(); }
-			catch ( Exception ex )	{ Debug.LogException(ex); }
-		}
-		internal			void	DoHide				( )	
-		{
-			try						{ OnHide(); }
+			_hiding.Raise(this);
+		
+			try						{ await OnHide(); }
 			catch ( Exception ex )	{ Debug.LogException(ex); }
 			
-			_hiding.Raise(this);
-			_node = null!;
+			if (gameObject.activeSelf)
+				gameObject.SetActive(false);
 		}
 		
 		internal			void	DoFirstChildShow	( FlowNode node )	
@@ -164,10 +175,10 @@ namespace Flexy.GameFlow
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
 		
-		protected virtual	void	OnShow				( )	{ }
-		protected virtual	void	OnForwardHide		( )	{ }
-		protected virtual	void	OnBackShow			( )	{ }
-		protected virtual	void	OnHide				( )	{ }
+		protected virtual	UniTask	OnShow				( )	=> default;
+		protected virtual	UniTask	OnForwardHide		( )	=> OnHide();
+		protected virtual	UniTask	OnBackShow			( )	=> OnShow();
+		protected virtual	UniTask	OnHide				( )	=> default;
 		
 		protected virtual	void	OnFirstChildShow	( )	{ }
 		protected virtual	void	OnLastChildHide		( )	{ }

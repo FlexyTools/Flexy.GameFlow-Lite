@@ -5,7 +5,9 @@ public class TransitionHost
 	internal	FlowNode		_node		= null!;
 	internal	FlowNode		_tipNode	= null!;
 	internal	FlowNode		_activeNode	= null!;
+	
 	private		Boolean			_doTransition;
+	private		Boolean			_isInTransition;
 	
 	public		FlowNode		TipNode		=> _tipNode;
 	public		FlowNode		ActiveNode	=> _activeNode;
@@ -23,7 +25,7 @@ public class TransitionHost
 			return;
 		
 		_doTransition = false;
-		DoStateTransitions();
+		DoStateTransitions().Forget();
 	}
 	
 	internal		void		ScheduleSwitchStates			( )		
@@ -38,26 +40,29 @@ public class TransitionHost
 			// This will allow to make many changes in update and then only one view transition
 			await UniTask.NextFrame( PlayerLoopTiming.LastUpdate );
 
-			if (!_doTransition)
+			if (!_doTransition || _isInTransition)
 				continue;
 
 			_doTransition	= false;
-
-			try						{ DoStateTransitions(); }
-			catch ( Exception ex )	{ Debug.LogException( ex ); }
+			await DoStateTransitions();
 		}
 	}
-	internal		void		DoStateTransitions				( )		
+	internal async	UniTask		DoStateTransitions				( )		
 	{
-		if (_activeNode == _tipNode)
-			return;
-	
-		InstantTransition(_activeNode, _tipNode);
-		
-		_activeNode = _tipNode;
+		try						
+		{
+			_isInTransition = true;
+			var tipNode = _tipNode;
+				
+			await SinpleTransition(_activeNode, _tipNode);
+				
+			_activeNode = tipNode;
+		}
+		catch ( Exception ex )	{ Debug.LogException( ex ); }
+		finally { _isInTransition = false; }
 	}
 	
-	internal static	void		NodeStateHide			( FlowNode node, Boolean isForwardHide )	
+	internal static	UniTask		NodeStateHide			( FlowNode node, Boolean isForwardHide )	
 	{
 		var state			= node.State;
 
@@ -65,33 +70,35 @@ public class TransitionHost
 		
 		try
 		{
-			if( isForwardHide )	state.DoForwardHide( );
-			else				state.DoHide( );
+			if (isForwardHide)	return state.DoForwardHide	();
+			else				return state.DoHide			();
 		}
-		catch ( Exception ex ) { Debug.LogException( ex ); }
+		catch ( Exception ex )
+		{
+			Debug.LogException( ex );
+			return default; 
+		}
 	}
-	internal static	void		NodeStateShow			( FlowNode node, Boolean isBackShow )		
+	internal static	UniTask		NodeStateShow			( FlowNode node, Boolean isBackShow )		
 	{
 		var state	= node.State;
 		state._node	= node;
 		
 		//Debug.Log( $"[TransitionHost] {node} - {(isBackShow? "Back Show": "Show")}" );
 		
-		if (!node.IsShowed && isBackShow)
-			try						{ state.DoShow(); }
-			catch (Exception ex)	{ Debug.LogException(ex); }
-		
-		node.IsShowed = true;
-		
 		try
 		{
-			if (isBackShow)	state.DoBackShow();
-			else			state.DoShow	();
+			if (isBackShow)	return state.DoBackShow	();
+			else			return state.DoShow		();
 		}
-		catch (Exception ex) { Debug.LogException(ex); }
+		catch (Exception ex) 
+		{
+			Debug.LogException(ex);
+			return default; 
+		}
 	}
 
-	private			void		InstantTransition		( FlowNode prevNode, FlowNode nextNode )	
+	private	async	UniTask		SinpleTransition		( FlowNode prevNode, FlowNode nextNode )	
 	{
 		if (prevNode == nextNode)
 			return;
@@ -103,8 +110,8 @@ public class TransitionHost
 		{
 			var isForwardHide	= closingBranchNode.IsOpened;
 		
-			try{ closingBranchNode.State.gameObject.SetActive(false);	} catch (Exception ex) { Debug.LogException(ex); }
-			try{ NodeStateHide(closingBranchNode, isForwardHide);		} catch (Exception ex) { Debug.LogException(ex); }
+			try						{ await NodeStateHide(closingBranchNode, isForwardHide); } 
+			catch (Exception ex)	{ Debug.LogException(ex); }
 
 			var parent = closingBranchNode.Parent; 
 			
@@ -123,10 +130,12 @@ public class TransitionHost
 			if (!isBackShow && !openingBranchNode.Parent.ChildrenShowed)
 				openingBranchNode.Parent.State.DoFirstChildShow(openingBranchNode.Parent);
 		
-			try{ NodeStateShow( openingBranchNode, isBackShow );		} catch (Exception ex) { Debug.LogException(ex); }
-			try{ openingBranchNode.State.gameObject.SetActive( true );	} catch (Exception ex) { Debug.LogException(ex); }
+			try						{ await NodeStateShow( openingBranchNode, isBackShow ); } 
+			catch (Exception ex)	{ Debug.LogException(ex); }
 			
 			openingBranchNode = openingBranchNode.FirstBaseChild.GetLastSiblingOrNull();
 		}
+		
+		_activeNode = _tipNode;
 	}
 }

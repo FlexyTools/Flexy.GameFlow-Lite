@@ -38,10 +38,12 @@
 		}
 		void		IService.			OrderedInit			( GameContext ctx ) { }
 		
-		protected override void			OnShow				( )						
+		protected override UniTask		OnShow				( )						
 		{
 			if (Node.FirstBaseChild == null) 
 				OpenMainSubState();
+				
+			return default;
 		}
 
 		protected internal override		AssetRef<State>		MainSubStateRef			=> _mainStateRef;

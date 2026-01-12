@@ -55,7 +55,8 @@ namespace Flexy.GameFlow
 			{
 				for (var i = 0; i < _states.Length; i++)
 				{
-					var newName = AssetLoader.EditorLoadAsset( _states[i].Ref )?.GetType().FullName ?? "";
+					var type = AssetLoader.EditorLoadAsset( _states[i].Ref )?.GetType();
+					var newName = type == null ? "" : $"{type.FullName}, {type.Assembly.GetName().Name}";
 					if (_states[i].TypeFullName != newName)
 					{
 						_states[i].TypeFullName = newName; 
@@ -105,7 +106,7 @@ namespace Flexy.GameFlow
 				{
 					states.Add(new StateRef { 
 						Ref = new AssetRef<State>(Hash128.Parse(guid)),
-						TypeFullName = state.GetType().FullName ?? ""
+						TypeFullName = $"{state.GetType().FullName}, {state.GetType().Assembly.GetName().Name}"
 					});
 				}
 			}

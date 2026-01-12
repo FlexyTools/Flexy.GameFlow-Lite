@@ -11,7 +11,6 @@ public class FlowGraph
 		{
 			Graph		= this,
 			State		= rootState, 
-			IsShowed	= true,
 		};
 		
 		_root.SpawnTransitionRoot();
@@ -49,35 +48,17 @@ public class FlowGraph
 		stagePrefab.gameObject.SetActive( activeSelf );
 		stagePrefab.gameObject.ClearEditorDirty();
 	
-		var newNode	= SpawnNode(stage, openParams, _root);
+		var stageNode	= SpawnNode(stage, openParams, _root);
 		
-		stage.PreInit(parentContext);
+		stage.PreInit	(parentContext);
 		
-		return newNode;
+		return stageNode;
 	}
 	public		FlowNode		Open		( AssetRef<State> stateRef, FlowNode callSource, Object? openParams = null, FlowNode? parent = null )					
 	{
-		var state = default(State);
+		var stateType = Flow.GetRefType(stateRef);
 		
-		if (callSource.GameStageNode is {IsOpened:true})
-		{
-			var instances = ((GameStage)callSource.GameStageNode.State)._statesCache;
-			instances.TryGetValue(stateRef, out state);
-		}
-		
-		var stateInstanceOrPrefab = state;
-		
-		if (!stateInstanceOrPrefab)
-		{
-			stateInstanceOrPrefab = stateRef.LoadAssetSync();
-			
-			if (!stateInstanceOrPrefab)
-				throw new ArgumentException("[FlowGraph] stateRef is invalid", nameof(stateRef));
-			
-			stateInstanceOrPrefab!._prefabRef = stateRef;
-		}
-	
-		if (stateInstanceOrPrefab is GameStage)
+		if (stateType.IsSubclassOf(typeof(GameStage)))
 			return Open(new AssetRef<GameStage>(stateRef.Uid, stateRef.SubId), openParams);
 	
 		parent ??= callSource.GameStageNode is {IsOpened:true} stage ? stage : _root.FirstBaseChild!.GetLastSibling();
@@ -100,8 +81,11 @@ public class FlowGraph
 			}
 		}		
 		
+		var instances = ((GameStage)parent.GameStageNode.State)._statesCache;
+		instances.TryGetValue(stateRef, out var state);
+		
 		if (state == null)
-			state = parent.State.InstantiateState(stateInstanceOrPrefab!, "Base"); 
+			state = parent.State.InstantiateState(stateRef.LoadAssetSync()!, "Base"); 
 	
 		var newNode = SpawnNode(state, openParams, parent);
 		
@@ -173,7 +157,8 @@ public class FlowGraph
 			OpenParams		= openParams, 
 			Parent			= parent,	
 		};
-
+			
+		state._node			= node;
 		node.PrevSibling 	= parent.FirstBaseChild.GetLastSiblingOrNull();
 
 		if (node.PrevSibling != null)

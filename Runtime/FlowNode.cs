@@ -7,7 +7,6 @@ public class FlowNode
 	public	FlowGraph		Graph			{get; internal init;} = null!;
 	public	State			State			{get; internal init;} = null!; // View of logical node
 	
-	public	Boolean			IsShowed		{get; internal set;} // if it is false in OnShow than first show came from BackShow
 	public	Boolean			ChildrenShowed	{get; internal set;}
 	public	Object?			OpenParams		{get; set;} // parameters state opened with
 	public	Object?			StateData		{get; set;} // optional state data can be stored by state implementation
@@ -49,7 +48,7 @@ public class FlowNode
 		if (MainSubStateRef.IsNone)
 			return default;
 		
-		Debug.Log( $"[{State.name}] => Open Main State: {Graph.Flow.GetRefTypeName(MainSubStateRef)}" );
+		Debug.Log( $"[{State.name}] => Open Main State: {Graph.Flow.GetRefType(MainSubStateRef).Name}" );
 		
 		if (FirstBaseChild == null)
 			// main substate never was opened yet so just open it
