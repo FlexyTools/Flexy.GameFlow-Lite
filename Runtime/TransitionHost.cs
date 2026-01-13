@@ -54,7 +54,7 @@ public class TransitionHost
 			_isInTransition = true;
 			var tipNode = _tipNode;
 				
-			await SinpleTransition(_activeNode, _tipNode);
+			await SimpleTransition(_activeNode, _tipNode);
 				
 			_activeNode = tipNode;
 		}
@@ -102,7 +102,7 @@ public class TransitionHost
 		}
 	}
 
-	private	async	UniTask		SinpleTransition		( FlowNode prevNode, FlowNode nextNode )	
+	private	async	UniTask		SimpleTransition		( FlowNode prevNode, FlowNode nextNode )	
 	{
 		if (prevNode == nextNode)
 			return;
