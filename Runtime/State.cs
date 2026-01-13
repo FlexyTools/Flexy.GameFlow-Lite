@@ -175,10 +175,10 @@ namespace Flexy.GameFlow
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
 		
-		protected virtual	UniTask	OnShow				( )	=> default;
-		protected virtual	UniTask	OnForwardHide		( )	=> default;
-		protected virtual	UniTask	OnBackShow			( )	=> default;
-		protected virtual	UniTask	OnHide				( )	=> default;
+		protected virtual	UniTask	OnShow				( )	{ gameObject.SetActive(true);	return default; }
+		protected virtual	UniTask	OnForwardHide		( )	{ gameObject.SetActive(false);	return default; }
+		protected virtual	UniTask	OnBackShow			( )	{ gameObject.SetActive(true);	return default; }
+		protected virtual	UniTask	OnHide				( )	{ gameObject.SetActive(false);	return default; }
 		
 		protected virtual	void	OnFirstChildShow	( )	{ }
 		protected virtual	void	OnLastChildHide		( )	{ }
