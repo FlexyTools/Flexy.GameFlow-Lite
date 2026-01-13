@@ -7,6 +7,7 @@ public class FlowNode
 	public	FlowGraph		Graph			{get; internal init;} = null!;
 	public	State			State			{get; internal init;} = null!; // View of logical node
 	
+	public	Boolean			WasShowed		{get; internal set;}
 	public	Boolean			ChildrenShowed	{get; internal set;}
 	public	Object?			OpenParams		{get; set;} // parameters state opened with
 	public	Object?			StateData		{get; set;} // optional state data can be stored by state implementation

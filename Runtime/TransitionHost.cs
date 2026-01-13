@@ -96,6 +96,10 @@ public class TransitionHost
 			Debug.LogException(ex);
 			return default; 
 		}
+		finally
+		{
+			node.WasShowed = true;
+		}
 	}
 
 	private	async	UniTask		SinpleTransition		( FlowNode prevNode, FlowNode nextNode )	
