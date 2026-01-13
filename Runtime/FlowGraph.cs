@@ -49,6 +49,7 @@ public class FlowGraph
 		stagePrefab.gameObject.ClearEditorDirty();
 	
 		var stageNode	= SpawnNode(stage, openParams, _root);
+		stage._node		= stageNode;
 		
 		stage.PreInit	(parentContext);
 		
@@ -83,13 +84,18 @@ public class FlowGraph
 		
 		var instances = ((GameStage)parent.GameStageNode.State)._statesCache;
 		instances.TryGetValue(stateRef, out var state);
-		
+
+		var isNewState	= state == null;
+
 		if (state == null)
 			state = parent.State.InstantiateState(stateRef.LoadAssetSync()!, "Base"); 
-	
-		var newNode = SpawnNode(state, openParams, parent);
+			
+		var stateNode = SpawnNode(state, openParams, parent);
+
+		if (isNewState)
+			state._node	= stateNode; 
 		
-		return newNode;
+		return stateNode;
 	}
 	public		FlowNode		TryGoBack	( )																														
 	{
@@ -157,10 +163,9 @@ public class FlowGraph
 			OpenParams		= openParams, 
 			Parent			= parent,	
 		};
-			
-		state._node			= node;
-		node.PrevSibling 	= parent.FirstBaseChild.GetLastSiblingOrNull();
 
+		node.PrevSibling 	= parent.FirstBaseChild.GetLastSiblingOrNull();
+		
 		if (node.PrevSibling != null)
 			node.PrevSibling.NextSibling = node;
 		
