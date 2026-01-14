@@ -12,6 +12,7 @@ namespace Flexy.GameFlow
 		internal	AssetRef<State>		_prefabRef;
 		internal	State?				_owner;
 		
+		public		Service_GameFlow	Flow			=> _graph.Flow;
 		public		FlowGraph			Graph			=> _graph;
 		public		FlowNode			Node			=> _node;
 		public		AssetRef<State>		PrefabRef		=> _prefabRef;

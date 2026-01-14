@@ -11,7 +11,6 @@
 		internal readonly	Dictionary<AssetRef<State>, State>	_statesCache	= new(32);
 		
 		public		GameContext			Context				{get; private set;} = null!;
-		public		Service_GameFlow	Flow				=> _node.Graph.Flow;
 		
 		public		void				MoveToLoadedScene	( Scene loadedScene )	
 		{

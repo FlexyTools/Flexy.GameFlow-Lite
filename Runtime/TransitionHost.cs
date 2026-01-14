@@ -43,8 +43,11 @@ public class TransitionHost
 			if (!_doTransition || _isInTransition)
 				continue;
 
-			_doTransition	= false;
-			await DoStateTransitions();
+			while (_doTransition)
+			{
+				_doTransition	= false;
+				await DoStateTransitions();
+			}
 		}
 	}
 	internal async	UniTask		DoStateTransitions				( )		
