@@ -114,8 +114,8 @@ namespace Flexy.GameFlow
 				name = niceName;
 			}
 			catch (Exception ex) { Debug.LogException(ex); }
-		}	
-		
+		}
+
 		internal async		UniTask	DoShow				( )	
 		{ 
 			try						{ await OnShow(); }
@@ -183,6 +183,12 @@ namespace Flexy.GameFlow
 		
 		protected virtual	void	OnFirstChildShow	( )	{ }
 		protected virtual	void	OnLastChildHide		( )	{ }
+		
+		protected			void	OnDestroy			( )	
+		{
+			if (Node.IsOpened)
+				Node.Close();
+		}
 		
 		public record struct Opener	( OpenCtx Ctx ) : IOpenerB
 		{
