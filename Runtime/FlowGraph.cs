@@ -88,7 +88,11 @@ public class FlowGraph
 		var isNewState	= state == null;
 
 		if (state == null)
-			state = parent.State.InstantiateState(stateRef.LoadAssetSync()!, "Base"); 
+		{
+			var prefab = stateRef.LoadAssetSync()!;
+			state = parent.State.InstantiateState(prefab, "Base");
+			instances.Add(stateRef, state);
+		} 
 			
 		var stateNode = SpawnNode(state, openParams, parent);
 
