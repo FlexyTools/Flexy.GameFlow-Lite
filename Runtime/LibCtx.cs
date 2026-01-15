@@ -4,9 +4,8 @@ public record struct LibCtx ( FlowNode Src )
 {
 	public Service_GameFlow	FlowService		=> Src.Graph.Flow;
 
-	public State.Opener		GetByUid		( String id )					=> FlowService.GetOpener_ById( Src, id );
-	public State.Opener		GetState<T>		( )	where T: State				=> FlowService.GetOpener_ByStateType<T>( Src );
-	public T				GetOpener<T>	( )	where T: struct, IOpener	=> FlowService.GetOpener_ByOpenerType<T>( Src );
+	public State.Opener		GetState<T>		( String? guid = null )	where T: State				=> FlowService.GetOpener_ByStateType<T>( Src, guid );
+	public T				GetOpener<T>	( String? guid = null )	where T: struct, IOpener	=> FlowService.GetOpener_ByOpenerType<T>( Src, guid );
 	
 	public static LibCtx	FromWidget		( MonoBehaviour w )				
 	{

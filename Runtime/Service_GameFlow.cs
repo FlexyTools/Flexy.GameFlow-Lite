@@ -28,20 +28,18 @@ namespace Flexy.GameFlow
 			var opener = GetOpener_ByStateType<T>(src);
 			return opener.Ctx.Open(openParams);
 		}
-								
-		public		Opener			GetOpener_ById				( FlowNode src, String croppedOrFullGuid )	
+		
+		public		Opener			GetOpener_ByStateType<T>	( FlowNode src, String? guid = null ) where T : State			
 		{
-			return new() { Ctx = new( _refsDict.GetValueOrDefault(croppedOrFullGuid), src ) };
+			var stateRef = guid != null ? _refsDict.GetValueOrDefault(guid) : FindOpener( typeof(T) );
+			return new() { Ctx = new( stateRef, src ) };
 		}
-		public		Opener			GetOpener_ByStateType<T>	( FlowNode src ) where T : State			
+		public		T				GetOpener_ByOpenerType<T>	( FlowNode src, String? guid = null ) where T : struct, IOpener	
 		{
-			return new() { Ctx = new( FindOpener( typeof(T) ), src ) };
+			var stateRef = guid != null ? _refsDict.GetValueOrDefault(guid) : FindOpener( typeof(T).DeclaringType! );
+			return new() { Ctx = new( stateRef, src ) };
 		}
-		public		T				GetOpener_ByOpenerType<T>	( FlowNode src ) where T : struct, IOpener	
-		{
-			return new() { Ctx = new( FindOpener( typeof(T).DeclaringType ), src ) };
-		}
-		public		Type			GetRefType					( AssetRef<State> stateRef )				
+		public		Type			GetRefType					( AssetRef<State> stateRef )					
 		{
 			_typesDict.TryGetValue(stateRef, out var type);
 			return type;
