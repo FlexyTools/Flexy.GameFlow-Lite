@@ -9,9 +9,13 @@ public class TransitionHost
 	private		Boolean			_doTransition;
 	private		Boolean			_isInTransition;
 	
+	public		FlowNode		Node		=> _node;
 	public		FlowNode		TipNode		=> _tipNode;
 	public		FlowNode		ActiveNode	=> _activeNode;
 	
+	public		FlowNode?		LockedOn		=> _lockOn;
+	public		Boolean			IsInTransition	=> _isInTransition;
+
 	public		FlowNode		TryGoBack						( )		
 	{
 		if (_tipNode.Back != null && _tipNode.State.TryGoBack())
