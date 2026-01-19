@@ -12,8 +12,6 @@ public class TransitionHost
 	public		FlowNode		Node		=> _node;
 	public		FlowNode		TipNode		=> _tipNode;
 	public		FlowNode		ActiveNode	=> _activeNode;
-	
-	public		FlowNode?		LockedOn		=> _lockOn;
 	public		Boolean			IsInTransition	=> _isInTransition;
 
 	public		FlowNode		TryGoBack						( )		
