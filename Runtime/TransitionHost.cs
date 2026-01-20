@@ -8,11 +8,15 @@ public class TransitionHost
 	
 	private		Boolean			_doTransition;
 	private		Boolean			_isInTransition;
+	private		FlowNode?		_transitionFrom;
+	private		FlowNode?		_transitionTo;
 	
 	public		FlowNode		Node		=> _node;
 	public		FlowNode		TipNode		=> _tipNode;
 	public		FlowNode		ActiveNode	=> _activeNode;
 	public		Boolean			IsInTransition	=> _isInTransition;
+	public		FlowNode?		TransitionFrom	=> _transitionFrom;
+	public		FlowNode?		TransitionTo	=> _transitionTo;
 
 	public		FlowNode		TryGoBack						( )		
 	{
@@ -57,11 +61,14 @@ public class TransitionHost
 		try						
 		{
 			_isInTransition = true;
-			var tipNode = _tipNode;
-				
-			await SimpleTransition(_activeNode, _tipNode);
-				
-			_activeNode = tipNode;
+			_transitionFrom = _activeNode;
+			_transitionTo = _tipNode;
+	
+			await SimpleTransition(_transitionFrom, _transitionTo);
+			
+			_activeNode = _transitionTo;
+			_transitionFrom = null;
+			_transitionTo = null;
 		}
 		catch ( Exception ex )	{ Debug.LogException( ex ); }
 		finally { _isInTransition = false; }
