@@ -29,7 +29,7 @@ namespace Flexy.GameFlow
 		[Callable] public	void	Close				( ) => _node.Close();
 		public				void	CloseAndDestroy		( )									
 		{
-			if (_node == null)
+			if (!_node.IsOpened)
 			{
 				Graph.DestroyState(this);
 				return;
