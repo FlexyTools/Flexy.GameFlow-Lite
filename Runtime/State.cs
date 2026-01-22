@@ -157,22 +157,22 @@ namespace Flexy.GameFlow
 				gameObject.SetActive(false);
 		}
 		
-		internal			void	DoFirstChildShow	( FlowNode node )	
+		internal async		UniTask	DoFirstChildShow	( FlowNode node )	
 		{
-			try						{ OnFirstChildShow(); }
+			try						{ await OnFirstChildShow(); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 			
 			node.ChildrenShowed = true;
 
 			//Debug.Log( $"[TransitionOperation] {node} FirstChildShow" );
 		}
-		internal			void	DoLastChildHide		( FlowNode node )	
+		internal async		UniTask	DoLastChildHide		( FlowNode node )	
 		{
 			//Debug.Log( $"[TransitionOperation] {node} LastChildHide" );
 		
 			node.ChildrenShowed = false;
 			
-			try						{ OnLastChildHide(); }
+			try						{ await OnLastChildHide(); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
 		
@@ -181,8 +181,8 @@ namespace Flexy.GameFlow
 		protected virtual	UniTask	OnBackShow			( )	{ gameObject.SetActive(true);	return default; }
 		protected virtual	UniTask	OnHide				( )	{ gameObject.SetActive(false);	return default; }
 		
-		protected virtual	void	OnFirstChildShow	( )	{ }
-		protected virtual	void	OnLastChildHide		( )	{ }
+		protected virtual	UniTask	OnFirstChildShow	( )	=> default;
+		protected virtual	UniTask	OnLastChildHide		( )	=> default;
 		
 		protected			void	OnDestroy			( )	
 		{
