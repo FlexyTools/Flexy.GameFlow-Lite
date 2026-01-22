@@ -187,7 +187,10 @@ namespace Flexy.GameFlow
 		protected			void	OnDestroy			( )	
 		{
 			if (Node.IsOpened)
+			{
 				Node.Close();
+				Graph.DestroyState(this);
+			}
 		}
 		
 		public record struct Opener	( OpenCtx Ctx ) : IOpenerB

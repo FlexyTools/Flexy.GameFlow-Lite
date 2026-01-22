@@ -27,31 +27,46 @@ public class FlowGraph
 
 	public		FlowNode		Open		( AssetRef<GameStage> stageRef, Object? openParams = null, GameContext? parentContext = null, Scene spawnIn = default )	
 	{
-		var stagePrefab = stageRef.LoadAssetSync();
-		
-		if (stagePrefab == null)
-			throw new ArgumentException("[FlowGraph] stageRef is invalid", nameof(stageRef));
-		
-		stagePrefab._prefabRef = new AssetRef<State>(stageRef.Uid, stageRef.SubId);
+		var prefabPref	= new AssetRef<State>(stageRef.Uid, stageRef.SubId);
+		var instances	= ((GameStage)_root.GameStageNode.State)._statesCache;
+		instances.TryGetValue(prefabPref, out var state);
+
+		var stage		= (GameStage?)state;
+		var isNewState	= stage == null;
 	
-		var activeSelf = stagePrefab.gameObject.activeSelf;
-		stagePrefab.gameObject.SetActive(false);
+		if (stage == null)
+		{
+			var stagePrefab = stageRef.LoadAssetSync();
+			
+			if (stagePrefab == null)
+				throw new ArgumentException("[FlowGraph] stageRef is invalid", nameof(stageRef));
+			
+			stagePrefab._prefabRef = new AssetRef<State>(stageRef.Uid, stageRef.SubId);
 		
-		var stage = (GameStage)UObject.Instantiate( stagePrefab, spawnIn.IsValid() ? spawnIn : Flow.gameObject.scene );
-		stage._prefabRef = stagePrefab._prefabRef;
-		stage._graph = this;
-		stage._owner = _flow;
+			var activeSelf = stagePrefab.gameObject.activeSelf;
+			stagePrefab.gameObject.SetActive(false);
+			
+			stage = (GameStage)UObject.Instantiate( stagePrefab, spawnIn.IsValid() ? spawnIn : Flow.gameObject.scene );
+			stage._prefabRef = stagePrefab._prefabRef;
+			stage._graph = this;
+			stage._owner = _flow;
+			
+			stage.transform.SetSiblingIndex(0);
+			stage.NicifyName();
+			
+			stagePrefab.gameObject.SetActive( activeSelf );
+			stagePrefab.gameObject.ClearEditorDirty();
+			
+			instances.Add(prefabPref, stage);
+		}
 		
-		stage.transform.SetSiblingIndex(0);
-		stage.NicifyName();
-		
-		stagePrefab.gameObject.SetActive( activeSelf );
-		stagePrefab.gameObject.ClearEditorDirty();
-	
 		var stageNode	= SpawnNode(stage, openParams, _root);
-		stage._node		= stageNode;
 		
-		stage.PreInit	(parentContext);
+		if (isNewState)
+		{		
+			stage._node				= stageNode;
+			stage.PreInitContext	(parentContext);
+		}
 		
 		return stageNode;
 	}
