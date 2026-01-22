@@ -16,9 +16,11 @@ namespace Flexy.GameFlow
 		private readonly	Dictionary<String, AssetRef<State>>	_refsDict	= new (512);
 		private readonly	Dictionary<AssetRef<State>, Type>	_typesDict	= new (128);
 
-		public		void			OrderedInit		( GameContext ctx )											
+		public new	void			OrderedInit		( GameContext ctx )											
 		{
 			Debug.Log( $"[Service_GameFlow] Init" );
+			base.OrderedInit(ctx);
+			
 			name = "[GameFlow] (GlobalContext)";
 			ReadLibrary();
 			_graph = new(this);

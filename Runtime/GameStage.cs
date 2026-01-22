@@ -22,20 +22,19 @@
 			SceneManager.MoveGameObjectToScene( gameObject, Graph.Flow.gameObject.scene );
 		}
 		
-		internal	void				PreInit				( GameContext? parentContext )	
+		internal	void				PreInitContext		( GameContext? parentContext )	
 		{
 			Debug.Log( $"[GameStage] {name} - Spawned", this );
 		
 			Context = gameObject.GetComponent<GameContext>();
 		
+			if (parentContext == null)
+				parentContext = Node.PrevSibling == null ? Node.Parent.State.GameStage.Context : Node.PrevSibling.State.GameStage.Context;
+		
 			if (parentContext != null)
 				Context.SetParent( parentContext );
-			
-			// Force awake stage and all components on it specifically GameContext
-			gameObject.SetActive(true);
-			gameObject.SetActive(false);
 		}
-		void		IService.			OrderedInit			( GameContext ctx ) { }
+		public		void				OrderedInit			( GameContext ctx ) { Context = ctx; }
 		
 		protected override	UniTask		OnShow				( )	
 		{
