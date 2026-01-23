@@ -49,7 +49,7 @@ public class TransitionHost
 			if (!_doTransition || _isInTransition)
 				continue;
 
-			while (_doTransition)
+			while (_doTransition && _node.State)
 			{
 				_doTransition	= false;
 				await DoStateTransitions();
