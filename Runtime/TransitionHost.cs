@@ -18,7 +18,7 @@ public class TransitionHost
 	public		FlowNode?		TransitionFrom	=> _transitionFrom;
 	public		FlowNode?		TransitionTo	=> _transitionTo;
 
-	public		FlowNode		TryGoBack						( )		
+	public		FlowNode		TryGoBack		( )		
 	{
 		if (_tipNode.Back != null && _tipNode.State.TryGoBack())
 			_node.Graph.RemoveNodesUpTo(_tipNode, _tipNode.Back);
@@ -26,7 +26,7 @@ public class TransitionHost
 		return _tipNode;
 	}
 
-	internal		void		TransitionNow					( )		
+	internal		void		TransitionNow			( )		
 	{
 		if (!_doTransition) 
 			return;
@@ -46,11 +46,11 @@ public class TransitionHost
 		
 		DoStateTransitions().Forget();
 	}	
-	internal		void		ScheduleSwitchStates			( )		
+	internal		void		ScheduleSwitchStates	( )		
 	{
 		_doTransition	= true;
 	}
-	internal async	UniTask		SwitchStatesAsyncInfiniteLoop	( )		
+	internal async	UniTask		SwitchStatesAsyncLoop	( )		
 	{
 		while (Application.isPlaying && _node.State)
 		{
@@ -68,7 +68,7 @@ public class TransitionHost
 			}
 		}
 	}
-	internal async	UniTask		DoStateTransitions				( )		
+	internal async	UniTask		DoStateTransitions		( )		
 	{
 		try						
 		{
@@ -86,7 +86,7 @@ public class TransitionHost
 		finally { _isInTransition = false; }
 	}
 	
-	internal static	UniTask		NodeStateHide			( FlowNode node, Boolean isForwardHide )	
+	internal static	UniTask		NodeStateHide		( FlowNode node, Boolean isForwardHide )	
 	{
 		var state			= node.State;
 
@@ -103,7 +103,7 @@ public class TransitionHost
 			return default; 
 		}
 	}
-	internal static	UniTask		NodeStateShow			( FlowNode node, Boolean isBackShow )		
+	internal static	UniTask		NodeStateShow		( FlowNode node, Boolean isBackShow )		
 	{
 		var state	= node.State;
 		state._node	= node;
@@ -126,7 +126,7 @@ public class TransitionHost
 		}
 	}
 
-	private	async	UniTask		SimpleTransition		( FlowNode prevNode, FlowNode nextNode )	
+	private	async	UniTask		SimpleTransition	( FlowNode prevNode, FlowNode nextNode )	
 	{
 		if (prevNode == nextNode)
 			return;

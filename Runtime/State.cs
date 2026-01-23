@@ -12,18 +12,17 @@ namespace Flexy.GameFlow
 		internal	AssetRef<State>		_prefabRef;
 		internal	State				_owner = null!;
 		
-		public		Service_GameFlow	Flow			=> _graph.Flow;
-		public		FlowGraph			Graph			=> _graph;
-		public		FlowNode			Node			=> _node;
-		public		AssetRef<State>		PrefabRef		=> _prefabRef;
+		public		Service_GameFlow	Flow		=> _graph.Flow;
+		public		FlowGraph			Graph		=> _graph;
+		public		FlowNode			Node		=> _node;
+		public		AssetRef<State>		PrefabRef	=> _prefabRef;
 		
-		public		Object?				OpenParams		=> _node.OpenParams;
+		public		Object?		OpenParams			=> _node.OpenParams;
+		public		Boolean		IsOpened			=> _node.IsOpened;
+		public		Boolean		IsShowed			=> _node.IsShowing;
+		public		Boolean		AnySubStateOpened	=> _node.FirstBaseChild != null;
 		
-		public		Boolean				IsOpened		=> _node.IsOpened;
-		public		Boolean				IsShowed		=> _node.IsShowing;
-		public		Boolean				AnySubStateOpened=> _node.FirstBaseChild != null;
-		
-		public		GameStage			GameStage		=> this as GameStage ?? (GameStage)_node.GameStageNode.State;
+		public		GameStage	GameStage			=> this as GameStage ?? (GameStage)_node.GameStageNode.State;
 		
 		public			FlowNode?	OpenMainSubState	( Object? openParams = null ) => _node.OpenMainSubState(openParams);
 		[Callable] public	void	Close				( ) => _node.Close();
@@ -91,11 +90,11 @@ namespace Flexy.GameFlow
 		}
 		public override		String	ToString			( ) => _node.ToString();
 		
-		protected internal virtual	AssetRef<State>		MainSubStateRef			=> default;
-		protected internal virtual	Boolean				TryGoBack				( )	=> true;
-		protected internal virtual	State				InstantiateSubState		( State prefab, String tag )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
-		protected internal virtual	void				DestroySubState			( State state )					=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
-		protected internal 			State				InstantiateState		( State statePrefab, String tag )	
+		protected internal virtual	AssetRef<State>	MainSubStateRef		=> default;
+		protected internal virtual	Boolean			TryGoBack			( )	=> true;
+		protected internal virtual	State			InstantiateSubState	( State prefab, String tag )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
+		protected internal virtual	void			DestroySubState		( State state )					=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
+		protected internal 			State			InstantiateState	( State statePrefab, String tag )	
 		{
 			var state = InstantiateSubState(statePrefab, tag);
 			state._prefabRef = statePrefab._prefabRef;
@@ -106,7 +105,7 @@ namespace Flexy.GameFlow
 			
 			return state;
 		}
-		protected internal			void				NicifyName				( )									
+		protected internal			void			NicifyName			( )									
 		{
 			try
 			{
@@ -121,7 +120,7 @@ namespace Flexy.GameFlow
 			catch (Exception ex) { Debug.LogException(ex); }
 		}
 
-		internal async		UniTask	DoShow				( )	
+		internal async		UniTask	DoShow			( )	
 		{ 
 			try						{ await OnShow(); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
@@ -131,7 +130,7 @@ namespace Flexy.GameFlow
 			
 			_showing.Raise(this);
 		}
-		internal async		UniTask	DoForwardHide		( )	
+		internal async		UniTask	DoForwardHide	( )	
 		{
 			_hiding.Raise(this);
 			
@@ -141,7 +140,7 @@ namespace Flexy.GameFlow
 			if (gameObject.activeSelf)
 				gameObject.SetActive(false);
 		}
-		internal async		UniTask	DoBackShow			( )	
+		internal async		UniTask	DoBackShow		( )	
 		{
 			try						{ await OnBackShow(); }
 			catch ( Exception ex )	{ Debug.LogException(ex); }
@@ -151,7 +150,7 @@ namespace Flexy.GameFlow
 				
 			_showing.Raise(this);
 		}
-		internal async		UniTask	DoHide				( )	
+		internal async		UniTask	DoHide			( )	
 		{
 			_hiding.Raise(this);
 		
@@ -162,7 +161,7 @@ namespace Flexy.GameFlow
 				gameObject.SetActive(false);
 		}
 		
-		internal async		UniTask	DoFirstChildShow	( FlowNode node )	
+		internal async		UniTask	DoFirstChildShow( FlowNode node )	
 		{
 			try						{ await OnFirstChildShow(); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
@@ -171,7 +170,7 @@ namespace Flexy.GameFlow
 
 			//Debug.Log( $"[TransitionOperation] {node} FirstChildShow" );
 		}
-		internal async		UniTask	DoLastChildHide		( FlowNode node )	
+		internal async		UniTask	DoLastChildHide	( FlowNode node )	
 		{
 			//Debug.Log( $"[TransitionOperation] {node} LastChildHide" );
 		
@@ -181,15 +180,15 @@ namespace Flexy.GameFlow
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
 		
-		protected virtual	UniTask	OnShow				( )	{ gameObject.SetActive(true);	return default; }
-		protected virtual	UniTask	OnForwardHide		( )	{ gameObject.SetActive(false);	return default; }
-		protected virtual	UniTask	OnBackShow			( )	{ gameObject.SetActive(true);	return default; }
-		protected virtual	UniTask	OnHide				( )	{ gameObject.SetActive(false);	return default; }
+		protected virtual	UniTask	OnShow			( )	{ gameObject.SetActive(true);	return default; }
+		protected virtual	UniTask	OnForwardHide	( )	{ gameObject.SetActive(false);	return default; }
+		protected virtual	UniTask	OnBackShow		( )	{ gameObject.SetActive(true);	return default; }
+		protected virtual	UniTask	OnHide			( )	{ gameObject.SetActive(false);	return default; }
 		
-		protected virtual	UniTask	OnFirstChildShow	( )	=> default;
-		protected virtual	UniTask	OnLastChildHide		( )	=> default;
+		protected virtual	UniTask	OnFirstChildShow( )	=> default;
+		protected virtual	UniTask	OnLastChildHide	( )	=> default;
 		
-		protected virtual	void	Awake				( )	
+		protected virtual	void	Awake		( )	
 		{
 			// Awake parent Context before children in case if many GameStages spawned
 			if (this is GameStage { Node.PrevSibling.State: GameStage { Context.IsAlive: false } prevStage } )
@@ -198,7 +197,7 @@ namespace Flexy.GameFlow
 				prevStage.gameObject.SetActive(false);
 			}
 		}
-		protected virtual	void	OnDestroy			( )	
+		protected virtual	void	OnDestroy	( )	
 		{
 			if (Node.IsOpened)
 			{

@@ -73,7 +73,7 @@ public class FlowNode
 			_activeNode	= this
 		};
 		
-		_transitionHost.SwitchStatesAsyncInfiniteLoop().Forget();
+		_transitionHost.SwitchStatesAsyncLoop().Forget();
 	}
 	public async UniTask<T>	WaitResult<T>		( )	
 	{
