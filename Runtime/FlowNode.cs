@@ -49,7 +49,7 @@ public class FlowNode
 		if (MainSubStateRef.IsNone)
 			return default;
 		
-		Debug.Log( $"[{State.name}] => Open Main State: {Graph.Flow.GetRefType(MainSubStateRef).Name}" );
+		Debug.Log( $"[GameStage] {State.name} => Open Main Sub State: {Graph.Flow.GetRefType(MainSubStateRef).Name}" );
 		
 		if (FirstBaseChild == null)
 			// main substate never was opened yet so just open it

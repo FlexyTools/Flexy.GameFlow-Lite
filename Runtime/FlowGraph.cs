@@ -59,7 +59,9 @@ public class FlowGraph
 			
 			instances.Add(prefabPref, stage);
 		}
-		
+
+		Debug.Log( $"[GameStage] {stage.name} - Spawned", stage );
+
 		var stageNode	= SpawnNode(stage, openParams, _root);
 		
 		if (isNewState)

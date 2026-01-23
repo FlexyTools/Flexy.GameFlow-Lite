@@ -25,15 +25,27 @@ public class TransitionHost
 
 		return _tipNode;
 	}
-	public			void		TransitionNow					( )		
+
+	internal		void		TransitionNow					( )		
 	{
 		if (!_doTransition) 
 			return;
 		
 		_doTransition = false;
+
+		var lastSibling = _node.FirstBaseChild.GetLastSiblingOrNull();
+		for (var iter = lastSibling; iter != null; iter = iter.PrevSibling)
+		{
+			if (iter.State is GameStage{ Context.IsAlive: false } lastStage )
+			{
+				lastStage.gameObject.SetActive(true);
+				lastStage.gameObject.SetActive(false);
+				break;
+			}
+		}
+		
 		DoStateTransitions().Forget();
-	}
-	
+	}	
 	internal		void		ScheduleSwitchStates			( )		
 	{
 		_doTransition	= true;

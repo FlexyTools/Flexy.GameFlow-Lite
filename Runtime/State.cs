@@ -10,7 +10,7 @@ namespace Flexy.GameFlow
 		internal	FlowGraph			_graph = null!;
 		internal	FlowNode			_node  = null!;
 		internal	AssetRef<State>		_prefabRef;
-		internal	State?				_owner;
+		internal	State				_owner = null!;
 		
 		public		Service_GameFlow	Flow			=> _graph.Flow;
 		public		FlowGraph			Graph			=> _graph;
@@ -29,6 +29,11 @@ namespace Flexy.GameFlow
 		[Callable] public	void	Close				( ) => _node.Close();
 		public				void	CloseAndDestroy		( )									
 		{
+			if (_node == Graph.Root)
+				return;
+		
+			_owner.GameStage._statesCache.Remove(_prefabRef);
+		
 			if (!_node.IsOpened)
 			{
 				Graph.DestroyState(this);
@@ -184,7 +189,16 @@ namespace Flexy.GameFlow
 		protected virtual	UniTask	OnFirstChildShow	( )	=> default;
 		protected virtual	UniTask	OnLastChildHide		( )	=> default;
 		
-		protected			void	OnDestroy			( )	
+		protected virtual	void	Awake				( )	
+		{
+			// Awake parent Context before children in case if many GameStages spawned
+			if (this is GameStage { Node.PrevSibling.State: GameStage { Context.IsAlive: false } prevStage } )
+			{
+				prevStage.gameObject.SetActive(true);
+				prevStage.gameObject.SetActive(false);
+			}
+		}
+		protected virtual	void	OnDestroy			( )	
 		{
 			if (Node.IsOpened)
 			{

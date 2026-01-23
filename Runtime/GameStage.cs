@@ -3,6 +3,7 @@
 	[HelpURL("https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.GameFlow/ScriptingApi/GameStage.md")] 
 
 	[RequireComponent(typeof(GameContext))]
+	[DefaultExecutionOrder(Int16.MinValue+190)]
 	public class GameStage: State, IService
 	{
 		[SerializeField]			AssetRef<State>	_mainStateRef;
@@ -24,8 +25,6 @@
 		
 		internal	void				PreInitContext		( GameContext? parentContext )	
 		{
-			Debug.Log( $"[GameStage] {name} - Spawned", this );
-		
 			Context = gameObject.GetComponent<GameContext>();
 		
 			if (parentContext == null)
