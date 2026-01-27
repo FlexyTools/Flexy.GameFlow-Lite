@@ -15,16 +15,7 @@ namespace Flexy.GameFlow
 
 		private readonly	Dictionary<String, AssetRef<State>>	_refsDict	= new (512);
 		private readonly	Dictionary<AssetRef<State>, Type>	_typesDict	= new (128);
-
-		public new	void			OrderedInit		( GameContext ctx )											
-		{
-			Debug.Log( $"[Service_GameFlow] Init" );
-			base.OrderedInit(ctx);
-			
-			name = "[GameFlow] (GlobalContext)";
-			ReadLibrary();
-			_graph = new(this);
-		}
+		
 		public		FlowNode		Open<T>			( FlowNode src, Object? openParams = null ) where T: State	
 		{
 			var opener = GetOpener_ByStateType<T>(src);
@@ -47,6 +38,15 @@ namespace Flexy.GameFlow
 			return type;
 		}
 
+		protected override	void	Awake			( )					
+		{
+			Debug.Log( $"[Service_GameFlow] Init" );
+			name = "[GameFlow] (GlobalContext)";
+			ReadLibrary();
+			_graph = new(this);
+			
+			base.Awake();
+		}
 		protected virtual	void	Update			( )					
 		{
 #if UNITY_INPUT_SYSTEM
@@ -93,7 +93,7 @@ namespace Flexy.GameFlow
 			return default;
 		}
 	}
-
+	
 #if UNITY_EDITOR
 	[UnityEditor.CustomEditor(typeof(Service_GameFlow), editorForChildClasses:true)]
 	public class Service_GameFlowEditor : Editor_WithRuntimeGui
