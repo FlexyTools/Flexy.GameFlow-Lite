@@ -108,7 +108,7 @@ public class FlowGraph
 		{
 			var prefab = stateRef.LoadAssetSync()!;
 			state = parent.State.InstantiateState(prefab, "Base");
-			instances.Add(stateRef, state);
+			instances[stateRef] = state;
 		} 
 			
 		var stateNode = SpawnNode(state, openParams, parent);

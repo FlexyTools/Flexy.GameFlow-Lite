@@ -57,6 +57,8 @@
 		protected internal override		void				DestroySubState			( State state )				
 		{
 			_statesCache.Remove(state.PrefabRef);
+			state.gameObject.SetActive(false);
+			state.transform.SetParent(null);
 			Destroy(state.gameObject);
 		}
 		
