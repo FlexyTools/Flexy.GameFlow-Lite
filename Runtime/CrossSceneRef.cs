@@ -84,7 +84,7 @@ namespace Flexy.GameFlow
 	public record struct CrossSceneRef<T> where T: UnityEngine.Object
 	{
 		public	CrossSceneRef ( Hash128 scene, Int64 uid )	{ _scene = scene; _uid = uid; }
-		public	CrossSceneRef ( String uid )	{ this = default; FromString(uid); }
+		public	CrossSceneRef ( String uid )				{ this = default; FromString(uid); }
 	
 		[SerializeField] Hash128		_scene;
 		[SerializeField] Int64			_uid;
@@ -107,7 +107,7 @@ namespace Flexy.GameFlow
 				return default;
 
 			var uid		= Hash128.Parse( address[..32] ); 
-			var subId	= address.Length == 32 ? 0 : Int64.Parse(address[33..^1]);
+			var subId	= Int64.Parse( address[33..^1] );
 		
 			return new( uid, subId );
 		}

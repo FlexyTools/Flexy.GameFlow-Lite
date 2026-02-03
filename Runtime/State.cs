@@ -199,7 +199,7 @@ namespace Flexy.GameFlow
 		}
 		protected virtual	void	OnDestroy	( )	
 		{
-			if (Node.IsOpened)
+			if (Node?.IsOpened == true)
 			{
 				Node.Close();
 				Graph.DestroyState(this);

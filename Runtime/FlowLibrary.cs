@@ -12,13 +12,13 @@ namespace Flexy.GameFlow
 		[SerializeField]	FlowLibrary[]?	_dependencies	= null;
 		[SerializeField]	StateRef[]		_states			= null!;
 
-		public	List<UObject>	CollectAssets	( )										
+		public	List<AssetRef>	CollectAssets	( )										
 		{
 			#if UNITY_EDITOR
 			OnValidate();
 			#endif
 		
-			var list = _states.Select( UObject(w) => AssetLoader.EditorLoadAsset(w.Ref)! ).ToList();
+			var list = _states.Select( w => w.Ref.Raw ).ToList();
 			
 			if (_dependencies != null)
 				foreach (var library in _dependencies)
