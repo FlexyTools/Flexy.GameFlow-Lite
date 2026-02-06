@@ -75,13 +75,13 @@ public class FlowNode
 		
 		_transitionHost.SwitchStatesAsyncLoop().Forget();
 	}
-	public async UniTask<T>	WaitResult<T>		( )	
+	public async UniTask<T>	WaitResultOnHide<T>	( )	
 	{
 		if (State is not IStateWithResult<T> swr)
 			throw new InvalidOperationException($"Node state {State.GetType().Name} dont implement IStateWithResult<{typeof(T).Name}>");
 		
-		while (IsOpened)
-			await UniTask.NextFrame(PlayerLoopTiming.LastUpdate);
+		while (IsOpened || IsShowing)
+			await UniTask.NextFrame(PlayerLoopTiming.PreLateUpdate);
 		
 		return swr.GetResult(this);
 	}

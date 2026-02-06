@@ -214,7 +214,10 @@ namespace Flexy.GameFlow
 	}
 	
 	public interface IStateWithResult<out T> { T GetResult( FlowNode node ); }
-	public record struct ResultNode<T>( FlowNode Node ){ public UniTask<T> WaitResult( ) => Node.WaitResult<T>(); }
+	public record struct ResultNode<T>( FlowNode Node )
+	{
+		public UniTask<T>	WaitResultOnHide	( ) => Node.WaitResultOnHide<T>(); 
+	}
 	
 	[AttributeUsage(AttributeTargets.Method)]
 	public class StateTestAttribute: Attribute {}
