@@ -161,23 +161,24 @@ namespace Flexy.GameFlow
 				gameObject.SetActive(false);
 		}
 		
-		internal async		UniTask	DoFirstChildShow( FlowNode node )	
+		internal async		UniTask	DoChildShow		( FlowNode child, String tag )	
 		{
-			try						{ await OnFirstChildShow(); }
-			catch ( Exception ex )	{ Debug.LogException( ex ); }
+			try						{ await OnChildShow(child, tag); }
+			catch ( Exception ex )	{ Debug.LogException(ex); }
 			
-			node.ChildrenShowed = true;
+			Node.ChildrenShowed = true;
 
-			//Debug.Log( $"[TransitionOperation] {node} FirstChildShow" );
+			//Debug.Log( $"[TransitionOperation] {node} ChildShow" );
 		}
-		internal async		UniTask	DoLastChildHide	( FlowNode node )	
+		internal async		UniTask	DoChildHide		( FlowNode child, String tag )	
 		{
-			//Debug.Log( $"[TransitionOperation] {node} LastChildHide" );
+			//Debug.Log( $"[TransitionOperation] {node} ChildHide" );
 		
-			node.ChildrenShowed = false;
+			if (!AnySubStateOpened)
+				Node.ChildrenShowed = false;
 			
-			try						{ await OnLastChildHide(); }
-			catch ( Exception ex )	{ Debug.LogException( ex ); }
+			try						{ await OnChildHide(child, tag); }
+			catch ( Exception ex )	{ Debug.LogException(ex); }
 		}
 		
 		protected virtual	UniTask	OnShow			( )	{ gameObject.SetActive(true);	return default; }
@@ -185,10 +186,10 @@ namespace Flexy.GameFlow
 		protected virtual	UniTask	OnBackShow		( )	{ gameObject.SetActive(true);	return default; }
 		protected virtual	UniTask	OnHide			( )	{ gameObject.SetActive(false);	return default; }
 		
-		protected virtual	UniTask	OnFirstChildShow( )	=> default;
-		protected virtual	UniTask	OnLastChildHide	( )	=> default;
+		protected virtual	UniTask	OnChildShow		( FlowNode child, String tag )	=> default;
+		protected virtual	UniTask	OnChildHide		( FlowNode child, String tag )	=> default;
 		
-		protected virtual	void	Awake		( )	
+		protected virtual	void	Awake			( )	
 		{
 			// Awake parent Context before children in case if many GameStages spawned
 			if (this is GameStage { Node.PrevSibling.State: GameStage { Context.IsAlive: false } prevStage } )
@@ -197,7 +198,7 @@ namespace Flexy.GameFlow
 				prevStage.gameObject.SetActive(false);
 			}
 		}
-		protected virtual	void	OnDestroy	( )	
+		protected virtual	void	OnDestroy		( )	
 		{
 			if (Node?.IsOpened == true)
 			{

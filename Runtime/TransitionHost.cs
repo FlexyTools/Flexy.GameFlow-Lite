@@ -143,9 +143,8 @@ public class TransitionHost
 
 			var parent = closingBranchNode.Parent; 
 			
-			if (!isForwardHide && parent.FirstBaseChild == null && parent.ChildrenShowed)
-				try						{ await parent.State.DoLastChildHide(parent); }
-				catch (Exception ex)	{ Debug.LogException(ex); }
+			try						{ await parent.State.DoChildHide(closingBranchNode, "Base"); }
+			catch (Exception ex)	{ Debug.LogException(ex); }
 				
 			closingBranchNode = parent;
 		}
@@ -156,9 +155,8 @@ public class TransitionHost
 		{
 			var isBackShow = _activeNode.IsInForwardOf(openingBranchNode);
 		
-			if (!isBackShow && !openingBranchNode.Parent.ChildrenShowed)
-				try						{ await openingBranchNode.Parent.State.DoFirstChildShow(openingBranchNode.Parent); }
-				catch (Exception ex)	{ Debug.LogException(ex); }
+			try						{ await openingBranchNode.Parent.State.DoChildShow(openingBranchNode, "Base"); }
+			catch (Exception ex)	{ Debug.LogException(ex); }
 		
 			try						{ await NodeStateShow( openingBranchNode, isBackShow ); } 
 			catch (Exception ex)	{ Debug.LogException(ex); }
