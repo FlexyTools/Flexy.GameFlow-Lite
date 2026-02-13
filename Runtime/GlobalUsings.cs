@@ -20,6 +20,10 @@ global using Object = System.Object;
 global using UObject = UnityEngine.Object;
 global using StaticAttribute = UnityEngine.RuntimeInitializeOnLoadMethodAttribute;
 
+#if FLEXY_LOG
+global using Debug = Flexy.Log.Debug;
+#endif
+
 global using static Flexy.Core.RuntimeInit;
 using System.Runtime.CompilerServices;
 

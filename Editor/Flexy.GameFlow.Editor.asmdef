@@ -5,7 +5,8 @@
         "UniTaskEmbed",
         "UniTask",
         "Flexy.GameFlow",
-        "Flexy.AssetRefs"
+        "Flexy.AssetRefs",
+        "Flexy.Log"
     ],
     "includePlatforms": [
         "Editor"
@@ -16,6 +17,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "fun.flexy.log",
+            "expression": "6",
+            "define": "FLEXY_LOG"
+        }
+    ],
     "noEngineReferences": false
 }

@@ -7,7 +7,8 @@
         "UniTask",
         "Flexy.Core",
         "Flexy.Core.Editor",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Flexy.Log"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -21,6 +22,11 @@
             "name": "com.unity.inputsystem",
             "expression": "1.10",
             "define": "UNITY_INPUT_SYSTEM"
+        },
+        {
+            "name": "fun.flexy.log",
+            "expression": "6",
+            "define": "FLEXY_LOG"
         }
     ],
     "noEngineReferences": false
