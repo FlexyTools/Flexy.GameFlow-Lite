@@ -29,9 +29,9 @@ namespace Flexy.GameFlow
 			_ref = this;
 			DontDestroyOnLoad(gameObject);
 			
-			Debug.Log( $"[GameFlowBootstrap] [Frame:{Time.frameCount}] ----------- ===========   GameFlow Bootstrap Begin   =========== -----------" );
+			Debug.Log( $"[Frame:{Time.frameCount}] ----------- ===========   GameFlow Bootstrap Begin   =========== -----------" );
 			Boot();
-			Debug.Log( $"[GameFlowBootstrap] [Frame:{Time.frameCount}] ----------- ===========   GameFlow Bootstrap End   =========== -----------" );
+			Debug.Log( $"[Frame:{Time.frameCount}] ----------- ===========   GameFlow Bootstrap End   =========== -----------" );
 		}
 		protected virtual	void	Boot	( )		
 		{
@@ -50,7 +50,7 @@ namespace Flexy.GameFlow
 			// Initialize Global GameContext and GameFlow Prefab
 			gameFlow.gameObject.SetActive(true);
 
-			var openParams	= default(Object);
+			var openParams	= default(object);
 
 			#if UNITY_EDITOR
 			{
@@ -58,7 +58,7 @@ namespace Flexy.GameFlow
 				{
 					Debug.Log( "" );
 					Debug.Log( "" );
-					Debug.Log( $"[GameFlowBootstrap] TEST LAUNCH    -    {testCaseName}" );
+					Debug.Log( $"TEST LAUNCH    -    {testCaseName}" );
 					Debug.Log( "" );
 					Debug.Log( "" );
 

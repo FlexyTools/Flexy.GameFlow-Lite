@@ -74,7 +74,7 @@ namespace Flexy.GameFlow
 				
 			sceneDict[csref.Uid] = csref;
 		}
-		public static	T		Get<T>	( Scene scene, CrossSceneRef<T> csref ) where T: UObject	
+		public static	T		Get<T>	( Scene scene, CrossSceneRef<T> csref ) where T: Object	
 		{
 			return _refs[scene][csref.Uid].GetComponent<T>();
 		}

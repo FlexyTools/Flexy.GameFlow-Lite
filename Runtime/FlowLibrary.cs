@@ -146,7 +146,7 @@ namespace Flexy.GameFlow
 
 	public readonly record struct OpenCtx( AssetRef<State> StateRef, FlowNode CallSrc )
 	{
-		public FlowNode		Open	( Object? openParams = null )	=> CallSrc.Graph.Open(StateRef, CallSrc, openParams);
+		public FlowNode		Open	( object? openParams = null )	=> CallSrc.Graph.Open(StateRef, CallSrc, openParams);
 	}
 	
 #if UNITY_EDITOR

@@ -16,7 +16,7 @@ namespace Flexy.GameFlow
 		private readonly	Dictionary<String, AssetRef<State>>	_refsDict	= new (512);
 		private readonly	Dictionary<AssetRef<State>, Type>	_typesDict	= new (128);
 		
-		public		FlowNode		Open<T>			( FlowNode src, Object? openParams = null ) where T: State	
+		public		FlowNode		Open<T>			( FlowNode src, object? openParams = null ) where T: State	
 		{
 			var opener = GetOpener_ByStateType<T>(src);
 			return opener.Ctx.Open(openParams);
@@ -40,7 +40,7 @@ namespace Flexy.GameFlow
 
 		protected override	void	Awake			( )					
 		{
-			Debug.Log( $"[Service_GameFlow] Init" );
+			Debug.Log( "Init" );
 			name = "[GameFlow] (GlobalContext)";
 			ReadLibrary();
 			_graph = new(this);
@@ -57,7 +57,7 @@ namespace Flexy.GameFlow
 
 		private		void			ReadLibrary		( )					
 		{
-			Debug.Log( $"[GameFlowService] ReadLibrary: start..." );
+			Debug.Log( $"Start..." );
 
 			var allRegisteredStates = new List<FlowLibrary.StateRef>( _rootFlowLibrary.CollectStates().Distinct().OrderBy(i => i.TypeFullName) );
 
@@ -66,7 +66,7 @@ namespace Flexy.GameFlow
 				var type = Type.GetType(pair.TypeFullName);
 				if (pair.Ref.IsNone || String.IsNullOrWhiteSpace( pair.TypeFullName ) || type is null )
 				{
-					Debug.LogError( $"[GameFlowService] ReadLibrary: invalid entry: ref:{pair.Ref} name:{pair.TypeFullName}" );
+					Debug.LogError( $"Invalid Entry: ref:{pair.Ref} name:{pair.TypeFullName}" );
 					continue;
 				}
 				
@@ -75,7 +75,7 @@ namespace Flexy.GameFlow
 				var refStr = pair.Ref.ToString()[..32];
 				var refStr2 = refStr[..7];
 
-				Debug.Log( $"[GameFlowService] ReadLibrary   {refStr.Replace("[", "  [").Insert(7, "  ")} => {type.FullName.Insert(type.FullName.LastIndexOf('.')+1, "  ")}" );
+				Debug.Log( $"   {refStr.Replace("[", "  [").Insert(7, "  ")} => {type.FullName.Insert(type.FullName.LastIndexOf('.')+1, "  ")}" );
 				
 				_refsDict.TryAdd( type.FullName, pair.Ref );
 				_refsDict.TryAdd( type.Name, pair.Ref );
@@ -83,7 +83,7 @@ namespace Flexy.GameFlow
 				_refsDict.TryAdd( refStr2, pair.Ref );
 			}
 
-			Debug.Log( $"[GameFlowService] ReadLibrary: done" );
+			Debug.Log( $"Done" );
 		}
 		private		AssetRef<State>	FindOpener		( Type typeToFind )	
 		{

@@ -17,14 +17,14 @@ namespace Flexy.GameFlow
 		public		FlowNode			Node		=> _node;
 		public		AssetRef<State>		PrefabRef	=> _prefabRef;
 		
-		public		Object?		OpenParams			=> _node.OpenParams;
+		public		object?		OpenParams			=> _node.OpenParams;
 		public		Boolean		IsOpened			=> _node.IsOpened;
 		public		Boolean		IsShowed			=> _node.IsShowing;
 		public		Boolean		AnySubStateOpened	=> _node.FirstBaseChild != null;
 		
 		public		GameStage	GameStage			=> this as GameStage ?? (GameStage)_node.GameStageNode.State;
 		
-		public			FlowNode?	OpenMainSubState	( Object? openParams = null ) => _node.OpenMainSubState(openParams);
+		public			FlowNode?	OpenMainSubState	( object? openParams = null ) => _node.OpenMainSubState(openParams);
 		[Callable] public	void	Close				( ) => _node.Close();
 		public				void	CloseAndDestroy		( )									
 		{
@@ -55,7 +55,7 @@ namespace Flexy.GameFlow
 				node.Graph.DestroyState(state);
 			}
 		}
-		public			FlowNode?	CloseSubStates		( Boolean closeMainState = false, Boolean closeCurrent = true, Object? overrideOpenParams = null )	
+		public			FlowNode?	CloseSubStates		( Boolean closeMainState = false, Boolean closeCurrent = true, object? overrideOpenParams = null )	
 		{
 			if (_node.FirstBaseChild == null)
 				return null;

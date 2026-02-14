@@ -9,9 +9,9 @@ public class FlowNode
 	
 	public	Boolean			WasShowed		{get; internal set;}
 	public	Boolean			ChildrenShowed	{get; internal set;}
-	public	Object?			OpenParams		{get; set;} // parameters state opened with
-	public	Object?			StateData		{get; set;} // optional state data can be stored by state implementation
-	public	Object?			UserData		{get; set;} // optional user data for (link additional data from outside the state)
+	public	object?			OpenParams		{get; set;} // parameters state opened with
+	public	object?			StateData		{get; set;} // optional state data can be stored by state implementation
+	public	object?			UserData		{get; set;} // optional user data for (link additional data from outside the state)
 	
 	public	FlowNode?		Back			{get; internal set;}
 	public	FlowNode?		Forward			{get; internal set;}
@@ -44,12 +44,12 @@ public class FlowNode
 	{
 		return $"{(IsShowing ? "■ " : "□ ")} {State.name} {(OpenParams != null ? $"({OpenParams})" : "")}";
 	}
-	public	FlowNode?		OpenMainSubState	( Object? openParams = null )	
+	public	FlowNode?		OpenMainSubState	( object? openParams = null )	
 	{
 		if (MainSubStateRef.IsNone)
 			return default;
 		
-		Debug.Log( $"[GameStage] {State.name} => Open Main Sub State: {Graph.Flow.GetRefType(MainSubStateRef).Name}" );
+		Debug.Log(Graph.Flow.GetRefType(MainSubStateRef).Name, State);
 		
 		if (FirstBaseChild == null)
 			// main substate never was opened yet so just open it

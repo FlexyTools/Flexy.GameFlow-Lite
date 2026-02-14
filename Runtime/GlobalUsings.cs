@@ -16,13 +16,9 @@ global using UnityEngine.SceneManagement;
 
 global using Cysharp.Threading.Tasks;
 
-global using Object = System.Object;
-global using UObject = UnityEngine.Object;
+global using SObject = System.Object;
+global using Object = UnityEngine.Object;
 global using StaticAttribute = UnityEngine.RuntimeInitializeOnLoadMethodAttribute;
-
-#if FLEXY_LOG
-global using Debug = Flexy.Log.Debug;
-#endif
 
 global using static Flexy.Core.RuntimeInit;
 using System.Runtime.CompilerServices;

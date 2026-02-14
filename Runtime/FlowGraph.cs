@@ -16,7 +16,7 @@ public class FlowGraph
 		_root.SpawnTransitionRoot();
 		
 		rootState._node = _root;
-		rootState.DoShow();
+		rootState.DoShow().Forget();
 	}
 
 	private		Service_GameFlow _flow;
@@ -25,7 +25,7 @@ public class FlowGraph
 	public		Service_GameFlow Flow		=> _flow;
 	public		FlowNode		 Root		=> _root;
 
-	public		FlowNode		Open		( AssetRef<GameStage> stageRef, Object? openParams = null, GameContext? parentContext = null, Scene spawnIn = default )	
+	public		FlowNode		Open		( AssetRef<GameStage> stageRef, object? openParams = null, GameContext? parentContext = null, Scene spawnIn = default )	
 	{
 		var prefabPref	= new AssetRef<State>(stageRef.Uid, stageRef.SubId);
 		var instances	= ((GameStage)_root.GameStageNode.State)._statesCache;
@@ -46,7 +46,7 @@ public class FlowGraph
 			var activeSelf = stagePrefab.gameObject.activeSelf;
 			stagePrefab.gameObject.SetActive(false);
 			
-			stage = (GameStage)UObject.Instantiate( stagePrefab, spawnIn.IsValid() ? spawnIn : Flow.gameObject.scene );
+			stage = (GameStage)Object.Instantiate( stagePrefab, spawnIn.IsValid() ? spawnIn : Flow.gameObject.scene );
 			stage._prefabRef = stagePrefab._prefabRef;
 			stage._graph = this;
 			stage._owner = _flow;
@@ -60,7 +60,7 @@ public class FlowGraph
 			instances.Add(prefabPref, stage);
 		}
 
-		Debug.Log( $"[GameStage] {stage.name} - Spawned", stage );
+		Debug.Log( "Spawned", stage);
 
 		var stageNode	= SpawnNode(stage, openParams, _root);
 		
@@ -72,7 +72,7 @@ public class FlowGraph
 		
 		return stageNode;
 	}
-	public		FlowNode		Open		( AssetRef<State> stateRef, FlowNode callSource, Object? openParams = null, FlowNode? parent = null )					
+	public		FlowNode		Open		( AssetRef<State> stateRef, FlowNode callSource, object? openParams = null, FlowNode? parent = null )					
 	{
 		var stateType = Flow.GetRefType(stateRef);
 		
@@ -128,7 +128,7 @@ public class FlowGraph
 		if (node.Back != null)
 			RemoveNodesUpTo( node, node.Back );
 	}
-	internal	void			RemoveNodesUpTo	( FlowNode? source, FlowNode target, Object? openParams = null )
+	internal	void			RemoveNodesUpTo	( FlowNode? source, FlowNode target, object? openParams = null )
 	{
 		if (source is not {IsOpened:true} || source == _root)
 			return;
@@ -173,7 +173,7 @@ public class FlowGraph
 		state._owner!.DestroySubState(state);
 	}
 	
-	private		FlowNode		SpawnNode		( State state, Object? openParams, FlowNode parent )			
+	private		FlowNode		SpawnNode		( State state, object? openParams, FlowNode parent )			
 	{
 		var node = new FlowNode
 		{
