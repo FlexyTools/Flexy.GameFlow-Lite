@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 
 namespace Flexy.GameFlow;
 
-public static class Debug
+internal static class Debug
 {
 	[HideInCallstack] public static	void	Log				( object log, Object? context = null, [CallerFilePath] String filePath = "", [CallerLineNumber] Int32 lineNumber = 0, [CallerMemberName] String memberName = ""  ) => UnityEngine.Debug.unityLogger.Log(LogType.Log,		(object)FormatLogString(log, filePath, lineNumber, memberName, 	context), context);
 	[HideInCallstack] public static	void	LogWarning		( object log, Object? context = null, [CallerFilePath] String filePath = "", [CallerLineNumber] Int32 lineNumber = 0, [CallerMemberName] String memberName = ""  ) => UnityEngine.Debug.unityLogger.Log(LogType.Warning,	(object)FormatLogString(log, filePath, lineNumber, memberName, 	context), context);
