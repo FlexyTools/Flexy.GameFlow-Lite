@@ -169,7 +169,8 @@ public class FlowGraph
 	{
 		if (state._node == _root)
 			return;
-		
+			
+		state._owner.GameStage._statesCache.Remove(state.PrefabRef);
 		state._owner!.DestroySubState(state);
 	}
 	
