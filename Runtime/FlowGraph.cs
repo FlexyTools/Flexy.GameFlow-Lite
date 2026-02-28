@@ -72,14 +72,14 @@ public class FlowGraph
 		
 		return stageNode;
 	}
-	public		FlowNode		Open		( AssetRef<State> stateRef, FlowNode callSource, object? openParams = null, FlowNode? parent = null )					
+	public		FlowNode		Open		( AssetRef<State> stateRef, FlowNode callSource, object? openParams = null )											
 	{
 		var stateType = Flow.GetRefType(stateRef);
 		
 		if (stateType.IsSubclassOf(typeof(GameStage)))
 			return Open(new AssetRef<GameStage>(stateRef.Uid, stateRef.SubId), openParams);
 	
-		parent ??= callSource.GameStageNode is {IsOpened:true} stage ? stage : _root.FirstBaseChild!.GetLastSibling();
+		var parent = callSource.GameStageNode is {IsOpened:true} stage ? stage : _root.FirstBaseChild!.GetLastSibling();
 		
 		// If we have main substate
 		if (!parent.MainSubStateRef.IsNone)
@@ -89,7 +89,7 @@ public class FlowGraph
 			if (!isOpeningMainState && parent.FirstBaseChild == null)
 			{
 				// In case main state not spawned and we try to open not main state => Open main substate first
-				Open(parent.MainSubStateRef, callSource, null, parent);
+				Open(parent.MainSubStateRef, callSource);
 			}
 			else if (isOpeningMainState && parent.FirstBaseChild != null)
 			{
@@ -107,7 +107,7 @@ public class FlowGraph
 		if (state == null)
 		{
 			var prefab = stateRef.LoadAssetSync()!;
-			state = parent.State.InstantiateState(prefab, "Base");
+			state = parent.State.InstantiateState(prefab, stateRef, "Base");
 			instances[stateRef] = state;
 		} 
 			
