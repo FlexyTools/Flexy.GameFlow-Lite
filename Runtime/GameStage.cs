@@ -48,11 +48,11 @@
 		protected internal override		AssetRef<State>		MainSubStateRef			=> _mainStateRef;
 		protected internal override		Boolean				TryGoBack				( ) => false;
 
-		protected internal override		State				InstantiateSubState		( State prefab, String tag )
+		protected internal virtual		State				InstantiateSubState		( State prefab, String tag )
 		{
 			return prefab.InstantiateInactive(_statesContainer);
 		}
-		protected internal override		void				DestroySubState			( State state )				
+		protected internal virtual		void				DestroySubState			( State state )				
 		{
 			state.gameObject.SetActive(false);
 			state.transform.SetParent(null);

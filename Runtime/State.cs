@@ -92,25 +92,7 @@ namespace Flexy.GameFlow
 		
 		protected internal virtual	AssetRef<State>	MainSubStateRef		=> default;
 		protected internal virtual	Boolean			TryGoBack			( )	=> true;
-		protected internal virtual	State			InstantiateSubState	( State prefab, String tag )	=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
-		protected internal virtual	void			DestroySubState		( State state )					=> throw new InvalidOperationException($"State {GetType().Name} not designed to have substates");
-		protected internal 			State			InstantiateState	( State statePrefab, AssetRef<State> prefabRef, String tag )	
-		{
-			statePrefab._prefabRef = prefabRef;
-			var active = statePrefab.gameObject.activeSelf;
-			statePrefab.gameObject.SetActive(false);
-			var state = InstantiateSubState(statePrefab, tag);
-			statePrefab.gameObject.SetActive(active);
-			statePrefab.gameObject.ClearEditorDirty();
-			
-			state._prefabRef = prefabRef;
-			state._owner = this;
-			state._graph = _graph;
-			
-			state.NicifyName();
-			
-			return state;
-		}
+		
 		protected internal			void			NicifyName			( )									
 		{
 			try

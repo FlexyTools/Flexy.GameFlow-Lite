@@ -99,7 +99,7 @@ public class FlowGraph
 			}
 		}		
 		
-		var instances = ((GameStage)parent.GameStageNode.State)._statesCache;
+		var instances = ((GameStage)parent.State)._statesCache;
 		instances.TryGetValue(stateRef, out var state);
 
 		var isNewState	= state == null;
@@ -107,8 +107,7 @@ public class FlowGraph
 		if (state == null)
 		{
 			var prefab = stateRef.LoadAssetSync()!;
-			state = parent.State.InstantiateState(prefab, stateRef, "Base");
-			instances[stateRef] = state;
+			state = InstantiateState((GameStage)parent.State, prefab, stateRef);
 		} 
 			
 		var stateNode = SpawnNode(state, openParams, parent);
@@ -165,13 +164,33 @@ public class FlowGraph
 
 		trn.ScheduleSwitchStates();
 	}
+	
+	internal 	State			InstantiateState( GameStage parent, State statePrefab, AssetRef<State> prefabRef )	
+	{
+		statePrefab._prefabRef = prefabRef;
+		var active = statePrefab.gameObject.activeSelf;
+		statePrefab.gameObject.SetActive(false);
+		var state = parent.InstantiateSubState(statePrefab, "Base");
+		statePrefab.gameObject.SetActive(active);
+		statePrefab.gameObject.ClearEditorDirty();
+			
+		state._prefabRef = prefabRef;
+		state._owner = parent;
+		state._graph = parent._graph;
+			
+		state.NicifyName();
+			
+		parent._statesCache.Add(prefabRef, state);
+			
+		return state;
+	}
 	internal	void			DestroyState	( State state )													
 	{
 		if (state._node == _root)
 			return;
 			
 		state._owner.GameStage._statesCache.Remove(state.PrefabRef);
-		state._owner!.DestroySubState(state);
+		((GameStage)state._owner).DestroySubState(state);
 	}
 	
 	private		FlowNode		SpawnNode		( State state, object? openParams, FlowNode parent )			
