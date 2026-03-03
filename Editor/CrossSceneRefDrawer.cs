@@ -67,8 +67,12 @@ namespace Flexy.GameFlow.Editor
 				
 				if (targetComponent != null)
 				{
-					sceneProp	.hash128Value	= Hash128.Parse( AssetDatabase.AssetPathToGUID( ((Component)newobj).gameObject.scene.path) );
-					uidProp		.longValue		= ((Component)newobj).GetComponent<CrossSceneRef>().Uid;
+					sceneProp	.hash128Value	= Hash128.Parse( AssetDatabase.AssetPathToGUID(go.scene.path) );
+					
+					if (go.TryGetComponent<CrossSceneRef>(out var csr))
+						uidProp	.longValue	= csr.Uid;
+					else
+						Debug.LogWarning("Target Object dont have CrossSceneRef component! Add one.", go);
 				}
 			}
 			

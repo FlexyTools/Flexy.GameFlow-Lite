@@ -14,6 +14,10 @@ namespace Flexy.GameFlow
 		{
 			CrossSceneRefs.Set(gameObject.scene, this); 
 		}
+		private		void	OnDestroy	( )		
+		{
+			CrossSceneRefs.Remove(gameObject.scene, this);
+		}
 		private		void	OnValidate	( )		
 		{
 			#if UNITY_EDITOR
@@ -44,21 +48,43 @@ namespace Flexy.GameFlow
 
 	public static class CrossSceneRefs
 	{
-		[Static(Clear)] static void StaticClear	( ) => _refs = new();
-		[Static(Init)]	static void StaticInit	( ) => SceneManager.sceneUnloaded += scene => _refs.Remove(scene);
+		[Static(Clear)] static void StaticClear	( ) {_refsSn = new(); _refsSr = new();}
+		[Static(Init)]	static void StaticInit	( ) => SceneManager.sceneUnloaded += delegate (Scene scene){ _refsSn.Remove(scene); _refsSr.Remove(scene.GetRef()); };
 		
-		private static Dictionary<Scene, Dictionary<Int64, CrossSceneRef>> _refs = new();
+		private static Dictionary<Scene,	Dictionary<Int64, CrossSceneRef>> _refsSn = new();
+		private static Dictionary<SceneRef,	Dictionary<Int64, CrossSceneRef>> _refsSr = new();
 		
-		public static	void	Set		( Scene scene, CrossSceneRef csref )						
+		public static	T		Get<T>	( Scene scene, CrossSceneRef<T> csref ) where T: Object		
 		{
-			if (!_refs.TryGetValue(scene, out var sceneDict))
-				sceneDict = _refs[scene] = new();
+			if (!_refsSn.TryGetValue(scene, out var sceneDict))
+				_refsSr.TryGetValue(csref.Scene, out sceneDict);
+				
+			return sceneDict[csref.Uid].GetComponent<T>();
+		}
+		public static	T?		Find<T>	( Scene scene, CrossSceneRef<T> csref ) where T: Object		
+		{
+			if (!_refsSn.TryGetValue(scene, out var sceneDict) && !_refsSr.TryGetValue(csref.Scene, out sceneDict))
+				return null;
+				
+			return sceneDict.TryGetValue(csref.Uid, out var @ref) ? @ref.GetComponent<T>() : null;
+		}
+		
+		internal static	void	Set		( Scene scene, CrossSceneRef csref )	
+		{
+			if (scene == default)
+				return;
+		
+			if (!_refsSn.TryGetValue(scene, out var sceneDict))
+			{
+				sceneDict = _refsSn[scene] = new();
+				_refsSr[scene.GetRef()] = sceneDict;
+			}
 				
 			if (sceneDict.TryGetValue(csref.Uid, out var @ref) && @ref != csref)
 			{
 #if UNITY_EDITOR			
 				if (Application.isPlaying)
-					throw new Exception("GlobalRef already exists");
+					throw new Exception("CrossSceneRef already exists");
 					
 				do
 				{
@@ -68,20 +94,29 @@ namespace Flexy.GameFlow
 				while(csref._uid < 1_000_000_000);
 				UnityEditor.EditorUtility.SetDirty(csref);
 #else
-				throw new Exception("GlobalRef already exists");
+				throw new Exception("CrossSceneRef already exists");
 #endif
 			}
 				
 			sceneDict[csref.Uid] = csref;
 		}
-		public static	T		Get<T>	( Scene scene, CrossSceneRef<T> csref ) where T: Object	
+		internal static	void	Remove	( Scene scene, CrossSceneRef csref )	
 		{
-			return _refs[scene][csref.Uid].GetComponent<T>();
+			if (!_refsSn.TryGetValue(scene, out var sceneDict))
+				return;
+				
+			if (sceneDict.TryGetValue(csref.Uid, out var @ref) && @ref != csref)
+			{
+				if (Application.isPlaying)
+					throw new Exception($"CrossSceneRef broken somehow 2 refs with the same uid, {@ref} and {csref}");
+			}
+				
+			sceneDict.Remove(csref.Uid);
 		}
 	} 
 
 	[Serializable]
-	public record struct CrossSceneRef<T> where T: UnityEngine.Object
+	public record struct CrossSceneRef<T> where T: Object
 	{
 		public	CrossSceneRef ( Hash128 scene, Int64 uid )	{ _scene = scene; _uid = uid; }
 		public	CrossSceneRef ( String uid )				{ this = default; FromString(uid); }
@@ -112,6 +147,7 @@ namespace Flexy.GameFlow
 			return new( uid, subId );
 		}
 
-		public T Get(Scene scene) => CrossSceneRefs.Get(scene, this);
+		public	T	Get		( Scene scene = default ) => CrossSceneRefs.Get	(scene, this);
+		public	T?	Find	( Scene scene = default ) => CrossSceneRefs.Find(scene, this);
 	}
 }
