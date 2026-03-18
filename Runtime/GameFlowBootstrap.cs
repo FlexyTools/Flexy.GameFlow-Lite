@@ -7,7 +7,7 @@ namespace Flexy.GameFlow
 	[DefaultExecutionOrder(Int16.MinValue+100)]
 	public class GameFlowBootstrap : MonoBehaviour
 	{
-		[SerializeField]	protected Service_GameFlow		_flowService = null!;
+		[SerializeField]	protected AssetRef<Service_GameFlow> _flowService;
 		[SerializeField]	protected AssetRef<GameStage>	_startGameStage;
         [SerializeField]	protected AssetRef<State>[]		_additionalStates = null!;
         [Tooltip( "Optional. Ref to final state to open after bootstrap" )]
@@ -35,8 +35,9 @@ namespace Flexy.GameFlow
 		}
 		protected virtual	void	Boot	( )		
 		{
-			var gameFlow	= _flowService.InstantiateInactive(); 
-			gameFlow.name	= _flowService.name;
+			var gameFlowPrefab = _flowService.LoadAssetSync()!; 
+			var gameFlow	= gameFlowPrefab.InstantiateInactive(); 
+			gameFlow.name	= gameFlowPrefab.name;
 			var gctx		= gameFlow.GetComponent<GameContext>();
 			
 			foreach (var launchService in gameObject.GetComponents<MonoBehaviour>())

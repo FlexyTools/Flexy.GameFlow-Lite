@@ -21,9 +21,10 @@ namespace Flexy.GameFlow
 		public		Boolean		IsOpened			=> _node.IsOpened;
 		public		Boolean		IsShowed			=> _node.IsShowing;
 		public		Boolean		AnySubStateOpened	=> _node.FirstBaseChild != null;
-		
+		public		Boolean		IsDestroying	 	{ get; private set; }
+				
 		public		GameStage	GameStage			=> this as GameStage ?? (GameStage)_node.GameStageNode.State;
-		
+				
 		public			FlowNode?	OpenMainSubState	( object? openParams = null ) => _node.OpenMainSubState(openParams);
 		[Callable] public	void	Close				( ) => _node.Close();
 		public				void	CloseAndDestroy		( )									
@@ -108,7 +109,7 @@ namespace Flexy.GameFlow
 			catch (Exception ex) { Debug.LogException(ex); }
 		}
 
-		internal async		UniTask	DoShow			( )	
+		internal async	UniTask	DoShow			( )	
 		{ 
 			try						{ await OnShow(); }
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
@@ -118,7 +119,7 @@ namespace Flexy.GameFlow
 			
 			_showing.Raise(this);
 		}
-		internal async		UniTask	DoForwardHide	( )	
+		internal async	UniTask	DoForwardHide	( )	
 		{
 			_hiding.Raise(this);
 			
@@ -128,7 +129,7 @@ namespace Flexy.GameFlow
 			if (gameObject.activeSelf)
 				gameObject.SetActive(false);
 		}
-		internal async		UniTask	DoBackShow		( )	
+		internal async	UniTask	DoBackShow		( )	
 		{
 			try						{ await OnBackShow(); }
 			catch ( Exception ex )	{ Debug.LogException(ex); }
@@ -138,7 +139,7 @@ namespace Flexy.GameFlow
 				
 			_showing.Raise(this);
 		}
-		internal async		UniTask	DoHide			( )	
+		internal async	UniTask	DoHide			( )	
 		{
 			_hiding.Raise(this);
 		
@@ -177,7 +178,7 @@ namespace Flexy.GameFlow
 		protected virtual	UniTask	OnChildShow		( FlowNode child, String tag )	=> default;
 		protected virtual	UniTask	OnChildHide		( FlowNode child, String tag )	=> default;
 		
-		protected virtual	void	Awake			( )	
+		protected virtual	void	Awake		( )	
 		{
 			// Awake parent Context before children in case if many GameStages spawned
 			if (this is GameStage { Node.PrevSibling.State: GameStage { Context.IsAlive: false } prevStage } )
@@ -186,8 +187,10 @@ namespace Flexy.GameFlow
 				prevStage.gameObject.SetActive(false);
 			}
 		}
-		protected virtual	void	OnDestroy		( )	
+		protected virtual	void	OnDestroy	( )	
 		{
+			IsDestroying = true;
+						
 			if (Node?.IsOpened == true)
 			{
 				Node.Close();
@@ -204,7 +207,7 @@ namespace Flexy.GameFlow
 	public interface IStateWithResult<out T> { T GetResult( FlowNode node ); }
 	public record struct ResultNode<T>( FlowNode Node )
 	{
-		public UniTask<T>	WaitResultOnHide	( ) => Node.WaitResultOnHide<T>(); 
+		public UniTask<T>	WaitResultOnHide	( ) => Node.WaitResultOnHide<T>();
 	}
 	
 	[AttributeUsage(AttributeTargets.Method)]
