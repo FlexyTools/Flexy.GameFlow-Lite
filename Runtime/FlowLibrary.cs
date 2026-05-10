@@ -15,7 +15,7 @@ namespace Flexy.GameFlow
 		public	List<AssetRef>	CollectAssets	( )										
 		{
 			#if UNITY_EDITOR
-			OnValidate();
+			GrabStates();
 			#endif
 		
 			var list = _states.Select( w => w.Ref.Raw ).ToList();
@@ -31,7 +31,7 @@ namespace Flexy.GameFlow
 			var list = new List<StateRef>();
 
 			#if UNITY_EDITOR
-			OnValidate();
+			GrabStates();
 			#endif
 
 			list.AddRange(_states);
@@ -46,6 +46,11 @@ namespace Flexy.GameFlow
 
 #if UNITY_EDITOR
 		private	void			OnValidate		( )		
+		{
+			GrabStates(false);
+		}
+		
+		private	void			GrabStates		( Boolean saveAssets = true )
 		{
 			if (_autoGrabMode is not EStateGrabMode.NoAutoGrab)
 			{
@@ -65,13 +70,14 @@ namespace Flexy.GameFlow
 				}
 			}
 			
-			UnityEditor.AssetDatabase.SaveAssets();
+			if (saveAssets)
+				UnityEditor.AssetDatabase.SaveAssets();
 		}
 		
 		[ContextMenu("Revalidate")]
 		internal	void	RevalidateStates					( )			
 		{
-			OnValidate();
+			GrabStates();
 		}
 		[ContextMenu("Grab States Curr Dir")]
 		internal	void	EditorGrabStatesCurrDir				( )			
