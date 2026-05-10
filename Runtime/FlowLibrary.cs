@@ -64,6 +64,8 @@ namespace Flexy.GameFlow
 					}
 				}
 			}
+			
+			UnityEditor.AssetDatabase.SaveAssets();
 		}
 		
 		[ContextMenu("Revalidate")]
