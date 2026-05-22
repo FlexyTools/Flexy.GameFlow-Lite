@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98dc713b27c7413490371c5ffc0749bc, type: 3}
+  m_Name: Sample_Library
+  m_EditorClassIdentifier: Flexy.GameFlow::Flexy.GameFlow.FlowLibrary
+  _autoGrabMode: 1
+  _dependencies: []
+  _states:
+  - TypeFullName: Flexy.GameFlow.Service_GameFlow, Flexy.GameFlow
+    Ref:
+      _uid:
+        serializedVersion: 2
+        Hash: 4dae9bfbee9877e49898f2c7924304a6
+      _subId: 0
+  - TypeFullName: Flexy.GameFlow.GameStage, Flexy.GameFlow
+    Ref:
+      _uid:
+        serializedVersion: 2
+        Hash: 07389a6a953e9214e8b9bf2cc0a7c1f7
+      _subId: 0
