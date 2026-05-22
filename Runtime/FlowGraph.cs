@@ -76,7 +76,7 @@ public class FlowGraph
 	{
 		var stateType = Flow.GetRefType(stateRef);
 		
-		if (stateType.IsSubclassOf(typeof(GameStage)))
+		if (typeof(GameStage).IsAssignableFrom(stateType))
 			return Open(new AssetRef<GameStage>(stateRef.Uid, stateRef.SubId), openParams);
 	
 		var parent = callSource.GameStageNode is {IsOpened:true} stage ? stage : _root.FirstBaseChild!.GetLastSibling();
