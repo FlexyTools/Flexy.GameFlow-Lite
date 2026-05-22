@@ -13,5 +13,5 @@ public record struct LibCtx ( FlowNode Src )
 		return new( panel.Node );
 	}
 	
-	public static implicit operator  LibCtx ( Component src )	=> new ( (src as State ?? src.GetComponentInParent<State>()).Node );
+	public static implicit operator  LibCtx ( Component src )	=> new ( (src as State ?? src.GetComponentInParent<State>())?.Node ?? src.GetService<GameStage>().Node );
 }

@@ -7,12 +7,16 @@ namespace Flexy.GameFlow
 	[DefaultExecutionOrder(Int16.MinValue+100)]
 	public class GameFlowBootstrap : MonoBehaviour
 	{
+		[Header("Root")]
 		[SerializeField]	protected AssetRef<Service_GameFlow> _flowService;
+		[SerializeField]	protected FlowLibrary?			_additionalLibrary;
+		
+		[Header("Launch States")]
 		[SerializeField]	protected AssetRef<GameStage>	_startGameStage;
         [SerializeField]	protected AssetRef<State>[]		_additionalStates = null!;
         [Tooltip( "Optional. Ref to final state to open after bootstrap" )]
         [SerializeField]	protected AssetRef<State>		_targetState;
-
+        
 		private static GameFlowBootstrap? _ref;
 
 		private				void	Awake	( )		
@@ -51,6 +55,9 @@ namespace Flexy.GameFlow
 			// Initialize Global GameContext and GameFlow Prefab
 			gameFlow.gameObject.SetActive(true);
 
+			if (_additionalLibrary != null)
+				gameFlow.RegisterLibrary(_additionalLibrary);
+
 			var openParams	= default(object);
 
 			#if UNITY_EDITOR
@@ -71,7 +78,10 @@ namespace Flexy.GameFlow
 			#endif
 
 			
-			var stageNode	= gameFlow.Graph.Open( _startGameStage );
+			var stageNode	= gameFlow.Node;
+			
+			if (!_startGameStage.IsNone)
+				stageNode	= gameFlow.Graph.Open( _startGameStage );
 
 			foreach (var state in _additionalStates)
 				gameFlow.Graph.Open( state, stageNode.GetLastSibling() );

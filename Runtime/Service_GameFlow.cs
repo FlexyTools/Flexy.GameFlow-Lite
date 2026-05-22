@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 
 namespace Flexy.GameFlow
 {
@@ -42,7 +42,7 @@ namespace Flexy.GameFlow
 		{
 			Debug.Log( "Init" );
 			name = "[GameFlow] (GlobalContext)";
-			ReadLibrary();
+			RegisterLibrary(_rootFlowLibrary);
 			_graph = new(this);
 			
 			base.Awake();
@@ -55,37 +55,37 @@ namespace Flexy.GameFlow
 #endif
 		}
 
-		private		void			ReadLibrary		( )					
+		public		void			RegisterLibrary	( FlowLibrary library )	
 		{
 			Debug.Log( $"Start..." );
 
-			var allRegisteredStates = new List<FlowLibrary.StateRef>( _rootFlowLibrary.CollectStates().Distinct().OrderBy(i => i.TypeFullName) );
+			var stateRefs = new List<FlowLibrary.StateRef>( library.CollectStates().Distinct().OrderBy(i => i.TypeFullName) );
 
-			foreach (var pair in allRegisteredStates)
+			foreach (var state in stateRefs)
 			{
-				var type = Type.GetType(pair.TypeFullName);
-				if (pair.Ref.IsNone || String.IsNullOrWhiteSpace( pair.TypeFullName ) || type is null )
+				var type = Type.GetType(state.TypeFullName);
+				if (state.Ref.IsNone || String.IsNullOrWhiteSpace( state.TypeFullName ) || type is null )
 				{
-					Debug.LogError( $"Invalid Entry: ref:{pair.Ref} name:{pair.TypeFullName}" );
+					Debug.LogError( $"Invalid Entry: ref:{state.Ref} name:{state.TypeFullName}" );
 					continue;
 				}
 				
-				_typesDict.Add(pair.Ref, type);	
+				_typesDict.Add(state.Ref, type);	
 				
-				var refStr = pair.Ref.ToString()[..32];
+				var refStr = state.Ref.ToString()[..32];
 				var refStr2 = refStr[..7];
 
 				Debug.Log( $"   {refStr.Replace("[", "  [").Insert(7, "  ")} => {type.FullName.Insert(type.FullName.LastIndexOf('.')+1, "  ")}" );
 				
-				_refsDict.TryAdd( type.FullName, pair.Ref );
-				_refsDict.TryAdd( type.Name, pair.Ref );
-				_refsDict.TryAdd( refStr, pair.Ref );
-				_refsDict.TryAdd( refStr2, pair.Ref );
+				_refsDict.TryAdd( type.FullName, state.Ref );
+				_refsDict.TryAdd( type.Name, state.Ref );
+				_refsDict.TryAdd( refStr, state.Ref );
+				_refsDict.TryAdd( refStr2, state.Ref );
 			}
 
 			Debug.Log( $"Done" );
 		}
-		private		AssetRef<State>	FindOpener		( Type typeToFind )	
+		private		AssetRef<State>	FindOpener		( Type typeToFind )		
 		{
 			if (_refsDict.TryGetValue(typeToFind.FullName, out var refState) || _refsDict.TryGetValue(typeToFind.Name, out refState))
 				return refState;

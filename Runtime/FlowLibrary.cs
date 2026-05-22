@@ -100,6 +100,9 @@ namespace Flexy.GameFlow
 			if (path == "")
 				return;
 				
+			if (_states == null)
+				_states = Array.Empty<StateRef>();
+				
 			var curDir	= System.IO.Path.GetDirectoryName(path);
 			var guids	= UnityEditor.AssetDatabase.FindAssets("t:prefab", new[] { curDir });
 			var states	= new List<StateRef>();
