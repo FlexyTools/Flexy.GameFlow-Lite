@@ -9,7 +9,7 @@ namespace Flexy.GameFlow
 	{
 		[SerializeField]	FlowLibrary		_rootFlowLibrary = null!;
 		
-		#if UNITY_INPUT_SYSTEM
+		#if ENABLE_INPUT_SYSTEM
 		[SerializeField]	UnityEngine.InputSystem.InputActionReference?	_backInputActionRef;
 		#endif
 
@@ -49,7 +49,7 @@ namespace Flexy.GameFlow
 		}
 		protected virtual	void	Update			( )					
 		{
-#if UNITY_INPUT_SYSTEM
+#if ENABLE_INPUT_SYSTEM
 			if (_backInputActionRef?.ToInputAction().WasPressedThisFrame() ?? false)
 				Graph.TryGoBack();
 #endif
